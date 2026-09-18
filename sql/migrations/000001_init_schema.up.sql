@@ -1,0 +1,45 @@
+-- Migración UP: Tablas iniciales de HospedaSync
+
+CREATE TABLE IF NOT EXISTS users (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(150) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    role VARCHAR(50) NOT NULL DEFAULT 'receptionist',
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS shifts (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES users(id),
+    initial_cash NUMERIC(12, 2) NOT NULL DEFAULT 0.00,
+    current_cash NUMERIC(12, 2) NOT NULL DEFAULT 0.00,
+    actual_cash NUMERIC(12, 2),
+    difference NUMERIC(12, 2),
+    status VARCHAR(20) NOT NULL DEFAULT 'OPEN',
+    notes TEXT,
+    started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    ended_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS shift_transactions (
+    id BIGSERIAL PRIMARY KEY,
+    shift_id BIGINT NOT NULL REFERENCES shifts(id) ON DELETE CASCADE,
+    amount NUMERIC(12, 2) NOT NULL,
+    type VARCHAR(20) NOT NULL,
+    concept VARCHAR(255) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS products (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(150) NOT NULL,
+    sku VARCHAR(50) UNIQUE NOT NULL,
+    price NUMERIC(10, 2) NOT NULL,
+    stock INT NOT NULL DEFAULT 0,
+    min_stock INT NOT NULL DEFAULT 5,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
