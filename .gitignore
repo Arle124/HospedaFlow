@@ -28,6 +28,11 @@ build-errors.log
 *.swp
 *.swo
 
+# Node.js and Frontend dependencies & build artifacts
+node_modules/
+frontend/node_modules/
+frontend/dist/
+
 # Graphify temporary cache and machine-specific configuration
 graphify-out/cache/
 graphify-out/.graphify_python

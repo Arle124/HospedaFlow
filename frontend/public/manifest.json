@@ -1,0 +1,18 @@
+{
+  "name": "HospedaSync - Gestión Hotelera",
+  "short_name": "HospedaSync",
+  "description": "Sistema de gestión hotelera offline-first para recepción, gobernanza y administración",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#090d16",
+  "theme_color": "#1e293b",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
