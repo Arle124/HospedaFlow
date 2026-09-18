@@ -1,0 +1,1101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HospedaSync — Complete Call Flow &amp; Architecture Documentation</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<style>
+:root {
+  --bg: #0f172a; --surface: #1e293b; --border: #334155;
+  --text: #e2e8f0; --muted: #94a3b8; --accent: #38bdf8;
+  --warn: #fbbf24; --err: #f87171; --ok: #34d399;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+.container { max-width: 1200px; margin: 0 auto; padding: 40px 24px; }
+h1 { font-size: 2.4rem; margin-bottom: 8px; background: linear-gradient(135deg, var(--accent), #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+h2 { font-size: 1.7rem; margin: 48px 0 16px; padding-bottom: 8px; border-bottom: 2px solid var(--accent); }
+h3 { font-size: 1.25rem; margin: 32px 0 12px; color: var(--accent); }
+h4 { font-size: 1.05rem; margin: 20px 0 8px; color: var(--warn); }
+p { margin: 8px 0; color: var(--muted); }
+.subtitle { color: var(--muted); font-size: 1.1rem; margin-bottom: 32px; }
+.mermaid { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin: 20px 0; overflow-x: auto; position: relative; }
+.mermaid.is-enhanced { padding: 0; overflow: hidden; min-height: 260px; }
+.mermaid-viewport { padding: 54px 24px 24px; overflow: hidden; cursor: grab; touch-action: none; min-height: 260px; }
+.mermaid-viewport.is-dragging { cursor: grabbing; }
+.mermaid-viewport svg { max-width: none !important; height: auto; transform-origin: 0 0; transition: transform 120ms ease; }
+.mermaid-toolbar { position: absolute; top: 10px; right: 10px; z-index: 3; display: flex; align-items: center; gap: 6px; padding: 6px; background: rgba(15,23,42,0.92); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.28); }
+.mermaid-toolbar button, .mermaid-toolbar .zoom-level { height: 28px; min-width: 32px; border: 1px solid var(--border); border-radius: 6px; background: #1e293b; color: var(--text); font: 600 0.78rem system-ui, sans-serif; display: inline-flex; align-items: center; justify-content: center; }
+.mermaid-toolbar button { cursor: pointer; }
+.mermaid-toolbar button:hover { border-color: var(--accent); color: var(--accent); }
+.mermaid-toolbar .zoom-level { min-width: 52px; color: var(--muted); background: transparent; }
+.call-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92rem; }
+.call-table th { background: #1a2744; color: var(--accent); text-align: left; padding: 10px 14px; border: 1px solid var(--border); }
+.call-table td { padding: 8px 14px; border: 1px solid var(--border); vertical-align: top; }
+.call-table tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+.tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; }
+.tag-async { background: #7c3aed33; color: #a78bfa; }
+.tag-class { background: #05966933; color: var(--ok); }
+.tag-func { background: #2563eb33; color: var(--accent); }
+.tag-cmd { background: #d9770633; color: var(--warn); }
+.tag-endpoint { background: #dc262633; color: var(--err); }
+.tag-hook { background: #db277733; color: #f472b6; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin: 16px 0; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; margin: 16px 0; }
+.arrow-chain { font-family: 'Fira Code', monospace; font-size: 0.85rem; color: var(--accent); padding: 10px; background: rgba(56,189,248,0.06); border-radius: 6px; }
+code { font-family: 'Fira Code', 'Cascadia Code', monospace; background: rgba(255,255,255,0.06); padding: 1px 6px; border-radius: 3px; font-size: 0.88em; }
+ul, ol { margin: 8px 0 8px 24px; color: var(--muted); }
+li { margin: 4px 0; }
+a { color: var(--accent); }
+hr { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+.nav { position: sticky; top: 0; background: var(--bg); z-index: 10; padding: 12px 0; border-bottom: 1px solid var(--border); display: flex; gap: 20px; flex-wrap: wrap; font-size: 0.9rem; }
+.nav a { text-decoration: none; }
+.nav a:hover { text-decoration: underline; }
+@media (max-width: 768px) { .container { padding: 16px; } h1 { font-size: 1.8rem; } }
+
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>HospedaSync — Complete Call Flow &amp; Architecture Documentation</h1>
+<p class="subtitle">Generated from graphify knowledge graph: 56 nodes, 71 edges, 12 communities. Commit: 77b70cb</p>
+
+<div class="nav">
+    <a href="#overview">Architecture Overview</a>
+    <a href="#extract-pipeline">Extraction Pipeline</a>
+    <a href="#build-graph">Graph Build</a>
+    <a href="#serve-api">Serving API</a>
+    <a href="#sqlc-prepared-queries">SQLC Prepared Queries</a>
+    <a href="#module-root-definition">Module Root Definition</a>
+</div>
+
+<!-- ====== Architecture Overview ====== -->
+<h2 id="overview">1. Architecture Overview</h2>
+
+<div class="mermaid">
+
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
+flowchart LR
+    EXTRACT_PIPELINE_5F350230("Extraction Pipeline<br/><small>33 nodes</small>")
+    class EXTRACT_PIPELINE_5F350230 module;
+    BUILD_GRAPH_321CBB04("Graph Build<br/><small>11 nodes</small>")
+    class BUILD_GRAPH_321CBB04 module;
+    SERVE_API_35EC8E86("Serving API<br/><small>10 nodes</small>")
+    class SERVE_API_35EC8E86 module;
+    SQLC_PREPARED_QUERIES_4563CC3C("SQLC Prepared Queries<br/><small>1 nodes</small>")
+    class SQLC_PREPARED_QUERIES_4563CC3C module;
+    MODULE_ROOT_DEFINITION_37CA4291("Module Root Definition<br/><small>1 nodes</small>")
+    class MODULE_ROOT_DEFINITION_37CA4291 module;
+    EXTRACT_PIPELINE_5F350230 -->|references x3| SERVE_API_35EC8E86
+    SERVE_API_35EC8E86 -->|references| EXTRACT_PIPELINE_5F350230
+    classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
+    classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
+    classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
+    classDef klass fill:#064e3b,stroke:#34d399,color:#d1fae5,stroke-width:1px;
+    classDef ui fill:#831843,stroke:#f472b6,color:#fce7f3,stroke-width:1px;
+    classDef module fill:#172554,stroke:#60a5fa,color:#dbeafe,stroke-width:1px;
+    classDef test fill:#3f3f46,stroke:#a1a1aa,color:#f4f4f5,stroke-width:1px;
+    classDef concept fill:#292524,stroke:#a8a29e,color:#fafaf9,stroke-dasharray:4 3;
+    classDef function fill:#0f172a,stroke:#38bdf8,color:#e0f2fe,stroke-width:1px;
+</div>
+
+<div class="grid">
+  <div class="card">
+    <h4>Architecture Layers</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><th>Layer</th><th>Nodes</th><th>Communities</th></tr>
+      <tr><td>Extraction Pipeline</td><td>33</td><td><code>0, 2, 3, 6, 7, 8</code></td></tr><tr><td>Graph Build</td><td>11</td><td><code>4, 5, 10</code></td></tr><tr><td>Serving API</td><td>10</td><td><code>1</code></td></tr><tr><td>SQLC Prepared Queries</td><td>1</td><td><code>11</code></td></tr><tr><td>Module Root Definition</td><td>1</td><td><code>9</code></td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Core Flow</h4>
+    <div class="arrow-chain">Graph Build -&gt; Extraction Pipeline -&gt; Serving API -&gt; SQLC Prepared Queries -&gt; Module Root Definition</div>
+  </div>
+</div>
+<div class="grid">
+  <div class="card">
+    <h4>Graph Report Highlights</h4>
+    <ul>
+      <li>56 nodes · 71 edges · 12 communities (7 shown, 2 thin omitted)</li>
+      <li>Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS</li>
+      <li>Token cost: 0 input · 0 output</li>
+      <li>1. `ShiftService` - 8 edges</li>
+      <li>2. `ShiftHandler` - 7 edges</li>
+      <li>3. `Shift` - 6 edges</li>
+    </ul>
+  </div>
+</div>
+<hr>
+<!-- ====== 2. Extraction Pipeline ====== -->
+<h2 id="extract-pipeline">2. Extraction Pipeline</h2>
+<p>Extraction Pipeline groups implementation around internal, shift, servicego, domain, mostly in internal/service/shift_service.go, internal/repository/repository.go, internal/handler/shift_handler.go. This section covers 33 nodes and 41 internal edges; the diagram shows only representative relationships to stay readable.</p>
+
+<div class="mermaid">
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
+flowchart LR
+    %% Section: Extraction Pipeline (33 nodes, 41 edges)
+    subgraph extract_pipeline_External_generated_e23197dc["External / generated"]
+        go_type_context_context_981b9f7d("context.Context")
+        go_type_github_com_jackc_pgx_v5_pgxpool_pool_16021d7a("github.com/jackc/pgx/v5/pgxpool.Pool")
+        go_type_net_http_handler_9ad615a1("net/http.Handler")
+        go_type_time_duration_e3d88e9a("time.Duration")
+        go_type_time_time_01a7665b("time.Time")
+    end
+    subgraph extract_pipeline_internal_service_shift_service_3216ad00["internal/service/shift_service.go"]
+        internal_service_shift_service_go_service_shifts_e3e9a675("ShiftService<br/><small>internal/service/shift_service.go</small>")
+        service_shiftservice_openshift_b7247647("OpenShift()<br/><small>internal/service/shift_service.go</small>")
+        service_shiftservice_closeshift_5eb5de80("CloseShift()<br/><small>internal/service/shift_service.go</small>")
+        service_shiftservice_getshift_c9543fb2("GetShift()<br/><small>internal/service/shift_service.go</small>")
+    end
+    subgraph extract_pipeline_internal_config_config_go_6ad94ddb["internal/config/config.go"]
+        internal_config_config_load_cb03e338("Load()<br/><small>internal/config/config.go</small>")
+        config_config_94e2c630("Config<br/><small>internal/config/config.go</small>")
+        internal_config_config_222db87c("config.go")
+    end
+    subgraph extract_pipeline_cmd_api_main_go_88331dfa["cmd/api/main.go"]
+        cmd_api_main_main_7e49d9ec("main()<br/><small>cmd/api/main.go</small>")
+        cmd_api_main_2c4ffa99("main.go")
+    end
+    subgraph extract_pipeline_internal_domain_inventory_go_c64e8d01["internal/domain/inventory.go"]
+        domain_product_86b1f9b7("Product<br/><small>internal/domain/inventory.go</small>")
+        internal_domain_inventory_25ce65d4("inventory.go")
+    end
+    internal_domain_errors_b9a0c338("errors.go")
+    internal_handler_router_newrouter_685128ee("NewRouter()<br/><small>internal/handler/router.go</small>")
+    internal_service_shift_service_go_service_shifts_e3e9a675 -->|method| service_shiftservice_openshift_b7247647
+    internal_service_shift_service_go_service_shifts_e3e9a675 -->|method| service_shiftservice_closeshift_5eb5de80
+    internal_service_shift_service_go_service_shifts_e3e9a675 -->|method| service_shiftservice_getshift_c9543fb2
+    cmd_api_main_main_7e49d9ec -->|calls| internal_config_config_load_cb03e338
+    cmd_api_main_main_7e49d9ec -->|calls| internal_handler_router_newrouter_685128ee
+    %% Omitted for readability: 15 nodes, 0 edges
+    class go_type_context_context_981b9f7d function;
+    class go_type_github_com_jackc_pgx_v5_pgxpool_pool_16021d7a function;
+    class go_type_net_http_handler_9ad615a1 function;
+    class go_type_time_duration_e3d88e9a function;
+    class go_type_time_time_01a7665b function;
+    class internal_service_shift_service_go_service_shifts_e3e9a675 klass;
+    class service_shiftservice_openshift_b7247647 function;
+    class service_shiftservice_closeshift_5eb5de80 function;
+    class service_shiftservice_getshift_c9543fb2 function;
+    class internal_config_config_load_cb03e338 function;
+    class config_config_94e2c630 klass;
+    class internal_config_config_222db87c module;
+    class cmd_api_main_main_7e49d9ec function;
+    class cmd_api_main_2c4ffa99 module;
+    class domain_product_86b1f9b7 klass;
+    class internal_domain_inventory_25ce65d4 module;
+    class internal_domain_errors_b9a0c338 module;
+    class internal_handler_router_newrouter_685128ee api;
+    classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
+    classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
+    classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
+    classDef klass fill:#064e3b,stroke:#34d399,color:#d1fae5,stroke-width:1px;
+    classDef ui fill:#831843,stroke:#f472b6,color:#fce7f3,stroke-width:1px;
+    classDef module fill:#172554,stroke:#60a5fa,color:#dbeafe,stroke-width:1px;
+    classDef test fill:#3f3f46,stroke:#a1a1aa,color:#f4f4f5,stroke-width:1px;
+    classDef concept fill:#292524,stroke:#a8a29e,color:#fafaf9,stroke-dasharray:4 3;
+    classDef function fill:#0f172a,stroke:#38bdf8,color:#e0f2fe,stroke-width:1px;
+</div>
+
+<h3>Call Details</h3>
+<table class="call-table">
+<tr>
+  <th style="width:5%">#</th>
+  <th style="width:28%">Node</th>
+  <th style="width:10%">Type</th>
+  <th style="width:17%">Caller</th>
+  <th style="width:20%">Callees</th>
+  <th style="width:20%">Description</th>
+</tr>
+<tr>
+  <td>1</td>
+  <td><code>ShiftStatus</code><br><small style="color:var(--muted)">internal/domain/shift.go</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>ShiftStatus node in internal/domain/shift.go.</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td><code>context.Context</code><br><small style="color:var(--muted)"></small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>context.Context node in project.</td>
+</tr>
+<tr>
+  <td>3</td>
+  <td><code>shift.go</code><br><small style="color:var(--muted)">internal/domain/shift.go</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>shift.go node in internal/domain/shift.go.</td>
+</tr>
+<tr>
+  <td>4</td>
+  <td><code>Shift</code><br><small style="color:var(--muted)">internal/domain/shift.go</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Shift node in internal/domain/shift.go.</td>
+</tr>
+<tr>
+  <td>5</td>
+  <td><code>shift_service.go</code><br><small style="color:var(--muted)">internal/service/shift_service.go</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>shift_service.go node in internal/service/shift_service.go.</td>
+</tr>
+<tr>
+  <td>6</td>
+  <td><code>ShiftService</code><br><small style="color:var(--muted)">internal/service/shift_service.go</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>CloseShift()</code><br><small style="color:var(--muted)">internal/service/shift_service.go</small><br><code>GetShift()</code><br><small style="color:var(--muted)">internal/service/shift_service.go</small><br><code>OpenShift()</code><br><small style="color:var(--muted)">internal/service/shift_service.go</small></td>
+  <td>ShiftService node in internal/service/shift_service.go.</td>
+</tr>
+<tr>
+  <td>7</td>
+  <td><code>NewShiftService()</code><br><small style="color:var(--muted)">internal/service/shift_service.go</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>NewShiftService() node in internal/service/shift_service.go.</td>
+</tr>
+<tr>
+  <td>8</td>
+  <td><code>.CloseShift()</code><br><small style="color:var(--muted)">internal/service/shift_service.go</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>ShiftService</code><br><small style="color:var(--muted)">internal/service/shift_service.go</small></td>
+  <td>No direct outbound edge</td>
+  <td>.CloseShift() node in internal/service/shift_service.go.</td>
+</tr>
+<tr>
+  <td>9</td>
+  <td><code>.GetShift()</code><br><small style="color:var(--muted)">internal/service/shift_service.go</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>ShiftService</code><br><small style="color:var(--muted)">internal/service/shift_service.go</small></td>
+  <td>No direct outbound edge</td>
+  <td>.GetShift() node in internal/service/shift_service.go.</td>
+</tr>
+<tr>
+  <td>10</td>
+  <td><code>.OpenShift()</code><br><small style="color:var(--muted)">internal/service/shift_service.go</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>ShiftService</code><br><small style="color:var(--muted)">internal/service/shift_service.go</small></td>
+  <td>No direct outbound edge</td>
+  <td>.OpenShift() node in internal/service/shift_service.go.</td>
+</tr>
+<tr>
+  <td>11</td>
+  <td><code>main.go</code><br><small style="color:var(--muted)">cmd/api/main.go</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>main.go node in cmd/api/main.go.</td>
+</tr>
+<tr>
+  <td>12</td>
+  <td><code>main()</code><br><small style="color:var(--muted)">cmd/api/main.go</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>Load()</code><br><small style="color:var(--muted)">internal/config/config.go</small><br><code>NewRouter()</code><br><small style="color:var(--muted)">internal/handler/router.go</small></td>
+  <td>main() node in cmd/api/main.go.</td>
+</tr>
+<tr>
+  <td>13</td>
+  <td><code>Config</code><br><small style="color:var(--muted)">internal/config/config.go</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Reads, resolves, or persists project configuration.</td>
+</tr>
+<tr>
+  <td>14</td>
+  <td><code>net/http.Handler</code><br><small style="color:var(--muted)"></small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>net/http.Handler node in project.</td>
+</tr>
+<tr>
+  <td>15</td>
+  <td><code>time.Duration</code><br><small style="color:var(--muted)"></small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>time.Duration node in project.</td>
+</tr>
+<tr>
+  <td>16</td>
+  <td><code>config.go</code><br><small style="color:var(--muted)">internal/config/config.go</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Reads, resolves, or persists project configuration.</td>
+</tr>
+<tr>
+  <td>17</td>
+  <td><code>Load()</code><br><small style="color:var(--muted)">internal/config/config.go</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>main()</code><br><small style="color:var(--muted)">cmd/api/main.go</small></td>
+  <td>No direct outbound edge</td>
+  <td>Load() node in internal/config/config.go.</td>
+</tr>
+<tr>
+  <td>18</td>
+  <td><code>router.go</code><br><small style="color:var(--muted)">internal/handler/router.go</small></td>
+  <td><span class="tag tag-endpoint">API</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>router.go node in internal/handler/router.go.</td>
+</tr>
+<tr>
+  <td>19</td>
+  <td><code>NewRouter()</code><br><small style="color:var(--muted)">internal/handler/router.go</small></td>
+  <td><span class="tag tag-endpoint">API</span></td>
+  <td><code>main()</code><br><small style="color:var(--muted)">cmd/api/main.go</small></td>
+  <td>No direct outbound edge</td>
+  <td>NewRouter() node in internal/handler/router.go.</td>
+</tr>
+<tr>
+  <td>20</td>
+  <td><code>github.com/jackc/pgx/v5/pgxpool.Pool</code><br><small style="color:var(--muted)"></small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Turns a local path or remote repository into analysis context.</td>
+</tr>
+<tr>
+  <td>21</td>
+  <td><code>repository.go</code><br><small style="color:var(--muted)">internal/repository/repository.go</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>repository.go node in internal/repository/repository.go.</td>
+</tr>
+<tr>
+  <td>22</td>
+  <td><code>ShiftRepository</code><br><small style="color:var(--muted)">internal/repository/repository.go</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>ShiftRepository node in internal/repository/repository.go.</td>
+</tr>
+<tr>
+  <td>23</td>
+  <td><code>NewDBPool()</code><br><small style="color:var(--muted)">internal/repository/repository.go</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>NewDBPool() node in internal/repository/repository.go.</td>
+</tr>
+<tr>
+  <td>24</td>
+  <td><code>InventoryRepository</code><br><small style="color:var(--muted)">internal/repository/repository.go</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>InventoryRepository node in internal/repository/repository.go.</td>
+</tr>
+<tr>
+  <td>25</td>
+  <td><code>Repository</code><br><small style="color:var(--muted)">internal/repository/repository.go</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Repository node in internal/repository/repository.go.</td>
+</tr>
+<tr>
+  <td>26</td>
+  <td><code>closeShiftRequest</code><br><small style="color:var(--muted)">internal/handler/shift_handler.go</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>closeShiftRequest node in internal/handler/shift_handler.go.</td>
+</tr>
+<tr>
+  <td>27</td>
+  <td><code>openShiftRequest</code><br><small style="color:var(--muted)">internal/handler/shift_handler.go</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>openShiftRequest node in internal/handler/shift_handler.go.</td>
+</tr>
+<tr>
+  <td>28</td>
+  <td><code>shift_handler.go</code><br><small style="color:var(--muted)">internal/handler/shift_handler.go</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>shift_handler.go node in internal/handler/shift_handler.go.</td>
+</tr>
+<tr>
+  <td>29</td>
+  <td><code>NewShiftHandler()</code><br><small style="color:var(--muted)">internal/handler/shift_handler.go</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>NewShiftHandler() node in internal/handler/shift_handler.go.</td>
+</tr>
+<tr>
+  <td>30</td>
+  <td><code>Product</code><br><small style="color:var(--muted)">internal/domain/inventory.go</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Product node in internal/domain/inventory.go.</td>
+</tr>
+</table>
+
+<div class="grid">
+  <div class="card">
+    <h4>Key Files</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><th>File</th><th>Coverage</th></tr>
+      <tr><td><code>internal/service/shift_service.go</code></td><td>6 nodes</td></tr>
+<tr><td><code>internal/repository/repository.go</code></td><td>5 nodes</td></tr>
+<tr><td><code>internal/handler/shift_handler.go</code></td><td>4 nodes</td></tr>
+<tr><td><code>internal/config/config.go</code></td><td>3 nodes</td></tr>
+<tr><td><code>internal/domain/shift.go</code></td><td>3 nodes</td></tr>
+<tr><td><code>cmd/api/main.go</code></td><td>2 nodes</td></tr>
+<tr><td><code>internal/domain/inventory.go</code></td><td>2 nodes</td></tr>
+<tr><td><code>internal/handler/router.go</code></td><td>2 nodes</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Design Notes</h4>
+    <p>This section comes from graphify community clustering. Relationship summary: references x18, contains x16, method x3, calls x2. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+  </div>
+</div>
+<hr>
+
+<!-- ====== 3. Graph Build ====== -->
+<h2 id="build-graph">3. Graph Build</h2>
+<p>Graph Build groups implementation around sql, 000001, schemaupsql, migrations, mostly in sql/migrations/000001_init_schema.up.sql, sql/schema/001_initial_schema.sql, sql/migrations/000001_init_schema.down.sql. This section covers 11 nodes and 12 internal edges; the diagram shows only representative relationships to stay readable.</p>
+
+<div class="mermaid">
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
+flowchart LR
+    %% Section: Graph Build (11 nodes, 12 edges)
+    subgraph build_graph_sql_migrations_000001_init_schema_up_a4715335["sql/migrations/000001_init_schema.up.sql"]
+        sql_migrations_000001_init_schema_up_a9865100("000001_init_schema.up.sql")
+        sql_migrations_000001_init_schema_up_shift_trans_ebeefb9c("shift_transactions<br/><small>sql/migrations/000001_init_schema.up.sql</small>")
+        sql_migrations_000001_init_schema_up_shifts_b148e69a("shifts<br/><small>sql/migrations/000001_init_schema.up.sql</small>")
+        sql_migrations_000001_init_schema_up_users_80dbb030("users<br/><small>sql/migrations/000001_init_schema.up.sql</small>")
+        sql_migrations_000001_init_schema_up_products_4beb73fd("products<br/><small>sql/migrations/000001_init_schema.up.sql</small>")
+    end
+    subgraph build_graph_sql_schema_001_initial_schema_sql_a7fbc19b["sql/schema/001_initial_schema.sql"]
+        sql_schema_001_initial_schema_8e45b78f("001_initial_schema.sql")
+        sql_schema_001_initial_schema_shift_transactions_4532d511("shift_transactions<br/><small>sql/schema/001_initial_schema.sql</small>")
+        sql_schema_001_initial_schema_shifts_614e2426("shifts<br/><small>sql/schema/001_initial_schema.sql</small>")
+        sql_schema_001_initial_schema_users_6f661123("users<br/><small>sql/schema/001_initial_schema.sql</small>")
+        sql_schema_001_initial_schema_products_4cecff8f("products<br/><small>sql/schema/001_initial_schema.sql</small>")
+    end
+    sql_migrations_000001_init_schema_down_b703c760("000001_init_schema.down.sql")
+    sql_migrations_000001_init_schema_up_shift_trans_ebeefb9c -->|references| sql_migrations_000001_init_schema_up_shifts_b148e69a
+    sql_migrations_000001_init_schema_up_shifts_b148e69a -->|references| sql_migrations_000001_init_schema_up_users_80dbb030
+    sql_schema_001_initial_schema_shift_transactions_4532d511 -->|references| sql_schema_001_initial_schema_shifts_614e2426
+    sql_schema_001_initial_schema_shifts_614e2426 -->|references| sql_schema_001_initial_schema_users_6f661123
+    sql_migrations_000001_init_schema_up_a9865100 -->|contains| sql_migrations_000001_init_schema_up_shifts_b148e69a
+    sql_migrations_000001_init_schema_up_a9865100 -->|contains| sql_migrations_000001_init_schema_up_shift_trans_ebeefb9c
+    sql_migrations_000001_init_schema_up_a9865100 -->|contains| sql_migrations_000001_init_schema_up_users_80dbb030
+    sql_migrations_000001_init_schema_up_a9865100 -->|contains| sql_migrations_000001_init_schema_up_products_4beb73fd
+    sql_schema_001_initial_schema_8e45b78f -->|contains| sql_schema_001_initial_schema_shifts_614e2426
+    sql_schema_001_initial_schema_8e45b78f -->|contains| sql_schema_001_initial_schema_shift_transactions_4532d511
+    sql_schema_001_initial_schema_8e45b78f -->|contains| sql_schema_001_initial_schema_users_6f661123
+    sql_schema_001_initial_schema_8e45b78f -->|contains| sql_schema_001_initial_schema_products_4cecff8f
+    class sql_migrations_000001_init_schema_up_a9865100 function;
+    class sql_migrations_000001_init_schema_up_shift_trans_ebeefb9c function;
+    class sql_migrations_000001_init_schema_up_shifts_b148e69a function;
+    class sql_migrations_000001_init_schema_up_users_80dbb030 function;
+    class sql_migrations_000001_init_schema_up_products_4beb73fd function;
+    class sql_schema_001_initial_schema_8e45b78f function;
+    class sql_schema_001_initial_schema_shift_transactions_4532d511 function;
+    class sql_schema_001_initial_schema_shifts_614e2426 function;
+    class sql_schema_001_initial_schema_users_6f661123 function;
+    class sql_schema_001_initial_schema_products_4cecff8f function;
+    class sql_migrations_000001_init_schema_down_b703c760 function;
+    classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
+    classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
+    classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
+    classDef klass fill:#064e3b,stroke:#34d399,color:#d1fae5,stroke-width:1px;
+    classDef ui fill:#831843,stroke:#f472b6,color:#fce7f3,stroke-width:1px;
+    classDef module fill:#172554,stroke:#60a5fa,color:#dbeafe,stroke-width:1px;
+    classDef test fill:#3f3f46,stroke:#a1a1aa,color:#f4f4f5,stroke-width:1px;
+    classDef concept fill:#292524,stroke:#a8a29e,color:#fafaf9,stroke-dasharray:4 3;
+    classDef function fill:#0f172a,stroke:#38bdf8,color:#e0f2fe,stroke-width:1px;
+</div>
+
+<h3>Call Details</h3>
+<table class="call-table">
+<tr>
+  <th style="width:5%">#</th>
+  <th style="width:28%">Node</th>
+  <th style="width:10%">Type</th>
+  <th style="width:17%">Caller</th>
+  <th style="width:20%">Callees</th>
+  <th style="width:20%">Description</th>
+</tr>
+<tr>
+  <td>1</td>
+  <td><code>000001_init_schema.up.sql</code><br><small style="color:var(--muted)">sql/migrations/000001_init_schema.up.sql</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>000001_init_schema.up.sql node in sql/migrations/000001_init_schema.up.sql.</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td><code>products</code><br><small style="color:var(--muted)">sql/migrations/000001_init_schema.up.sql</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>products node in sql/migrations/000001_init_schema.up.sql.</td>
+</tr>
+<tr>
+  <td>3</td>
+  <td><code>shift_transactions</code><br><small style="color:var(--muted)">sql/migrations/000001_init_schema.up.sql</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>shift_transactions node in sql/migrations/000001_init_schema.up.sql.</td>
+</tr>
+<tr>
+  <td>4</td>
+  <td><code>shifts</code><br><small style="color:var(--muted)">sql/migrations/000001_init_schema.up.sql</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>shifts node in sql/migrations/000001_init_schema.up.sql.</td>
+</tr>
+<tr>
+  <td>5</td>
+  <td><code>users</code><br><small style="color:var(--muted)">sql/migrations/000001_init_schema.up.sql</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>users node in sql/migrations/000001_init_schema.up.sql.</td>
+</tr>
+<tr>
+  <td>6</td>
+  <td><code>001_initial_schema.sql</code><br><small style="color:var(--muted)">sql/schema/001_initial_schema.sql</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>001_initial_schema.sql node in sql/schema/001_initial_schema.sql.</td>
+</tr>
+<tr>
+  <td>7</td>
+  <td><code>products</code><br><small style="color:var(--muted)">sql/schema/001_initial_schema.sql</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>products node in sql/schema/001_initial_schema.sql.</td>
+</tr>
+<tr>
+  <td>8</td>
+  <td><code>shift_transactions</code><br><small style="color:var(--muted)">sql/schema/001_initial_schema.sql</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>shift_transactions node in sql/schema/001_initial_schema.sql.</td>
+</tr>
+<tr>
+  <td>9</td>
+  <td><code>shifts</code><br><small style="color:var(--muted)">sql/schema/001_initial_schema.sql</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>shifts node in sql/schema/001_initial_schema.sql.</td>
+</tr>
+<tr>
+  <td>10</td>
+  <td><code>users</code><br><small style="color:var(--muted)">sql/schema/001_initial_schema.sql</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>users node in sql/schema/001_initial_schema.sql.</td>
+</tr>
+<tr>
+  <td>11</td>
+  <td><code>000001_init_schema.down.sql</code><br><small style="color:var(--muted)">sql/migrations/000001_init_schema.down.sql</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>000001_init_schema.down.sql node in sql/migrations/000001_init_schema.down.sql.</td>
+</tr>
+</table>
+
+<div class="grid">
+  <div class="card">
+    <h4>Key Files</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><th>File</th><th>Coverage</th></tr>
+      <tr><td><code>sql/migrations/000001_init_schema.up.sql</code></td><td>5 nodes</td></tr>
+<tr><td><code>sql/schema/001_initial_schema.sql</code></td><td>5 nodes</td></tr>
+<tr><td><code>sql/migrations/000001_init_schema.down.sql</code></td><td>1 nodes</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Design Notes</h4>
+    <p>This section comes from graphify community clustering. Relationship summary: contains x8, references x4. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+  </div>
+</div>
+<hr>
+
+<!-- ====== 4. Serving API ====== -->
+<h2 id="serve-api">4. Serving API</h2>
+<p>Serving API groups implementation around responsego, internal, handler, shift, mostly in internal/handler/shift_handler.go, pkg/response/response.go. This section covers 10 nodes and 14 internal edges; the diagram shows only representative relationships to stay readable.</p>
+
+<div class="mermaid">
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
+flowchart LR
+    %% Section: Serving API (10 nodes, 14 edges)
+    subgraph serve_api_internal_handler_shift_handler_go_71e92e07["internal/handler/shift_handler.go"]
+        handler_shifthandler_5990e701("ShiftHandler<br/><small>internal/handler/shift_handler.go</small>")
+        handler_shifthandler_openshift_30062657("OpenShift()<br/><small>internal/handler/shift_handler.go</small>")
+        handler_shifthandler_closeshift_abd5e031("CloseShift()<br/><small>internal/handler/shift_handler.go</small>")
+        handler_shifthandler_getshift_e13b595a("GetShift()<br/><small>internal/handler/shift_handler.go</small>")
+    end
+    subgraph serve_api_pkg_response_response_go_91e468fd["pkg/response/response.go"]
+        pkg_response_response_error_51873dc4("Error()<br/><small>pkg/response/response.go</small>")
+        pkg_response_response_json_ecab61ba("JSON()<br/><small>pkg/response/response.go</small>")
+        response_standardresponse_5478a199("StandardResponse<br/><small>pkg/response/response.go</small>")
+        pkg_response_response_c33a0832("response.go")
+    end
+    subgraph serve_api_External_generated_a71e9f44["External / generated"]
+        go_type_net_http_request_ef0d612e("net/http.Request")
+        go_type_net_http_responsewriter_dbf99439("net/http.ResponseWriter")
+    end
+    handler_shifthandler_5990e701 -->|method| handler_shifthandler_openshift_30062657
+    handler_shifthandler_5990e701 -->|method| handler_shifthandler_closeshift_abd5e031
+    handler_shifthandler_5990e701 -->|method| handler_shifthandler_getshift_e13b595a
+    class handler_shifthandler_5990e701 klass;
+    class handler_shifthandler_openshift_30062657 function;
+    class handler_shifthandler_closeshift_abd5e031 function;
+    class handler_shifthandler_getshift_e13b595a function;
+    class pkg_response_response_error_51873dc4 function;
+    class pkg_response_response_json_ecab61ba function;
+    class response_standardresponse_5478a199 klass;
+    class pkg_response_response_c33a0832 module;
+    class go_type_net_http_request_ef0d612e function;
+    class go_type_net_http_responsewriter_dbf99439 function;
+    classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
+    classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
+    classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
+    classDef klass fill:#064e3b,stroke:#34d399,color:#d1fae5,stroke-width:1px;
+    classDef ui fill:#831843,stroke:#f472b6,color:#fce7f3,stroke-width:1px;
+    classDef module fill:#172554,stroke:#60a5fa,color:#dbeafe,stroke-width:1px;
+    classDef test fill:#3f3f46,stroke:#a1a1aa,color:#f4f4f5,stroke-width:1px;
+    classDef concept fill:#292524,stroke:#a8a29e,color:#fafaf9,stroke-dasharray:4 3;
+    classDef function fill:#0f172a,stroke:#38bdf8,color:#e0f2fe,stroke-width:1px;
+</div>
+
+<h3>Call Details</h3>
+<table class="call-table">
+<tr>
+  <th style="width:5%">#</th>
+  <th style="width:28%">Node</th>
+  <th style="width:10%">Type</th>
+  <th style="width:17%">Caller</th>
+  <th style="width:20%">Callees</th>
+  <th style="width:20%">Description</th>
+</tr>
+<tr>
+  <td>1</td>
+  <td><code>net/http.Request</code><br><small style="color:var(--muted)"></small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>net/http.Request node in project.</td>
+</tr>
+<tr>
+  <td>2</td>
+  <td><code>net/http.ResponseWriter</code><br><small style="color:var(--muted)"></small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>net/http.ResponseWriter node in project.</td>
+</tr>
+<tr>
+  <td>3</td>
+  <td><code>ShiftHandler</code><br><small style="color:var(--muted)">internal/handler/shift_handler.go</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td>External entry / no inbound edge</td>
+  <td><code>CloseShift()</code><br><small style="color:var(--muted)">internal/handler/shift_handler.go</small><br><code>GetShift()</code><br><small style="color:var(--muted)">internal/handler/shift_handler.go</small><br><code>OpenShift()</code><br><small style="color:var(--muted)">internal/handler/shift_handler.go</small></td>
+  <td>ShiftHandler node in internal/handler/shift_handler.go.</td>
+</tr>
+<tr>
+  <td>4</td>
+  <td><code>.CloseShift()</code><br><small style="color:var(--muted)">internal/handler/shift_handler.go</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>ShiftHandler</code><br><small style="color:var(--muted)">internal/handler/shift_handler.go</small></td>
+  <td>No direct outbound edge</td>
+  <td>.CloseShift() node in internal/handler/shift_handler.go.</td>
+</tr>
+<tr>
+  <td>5</td>
+  <td><code>.GetShift()</code><br><small style="color:var(--muted)">internal/handler/shift_handler.go</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>ShiftHandler</code><br><small style="color:var(--muted)">internal/handler/shift_handler.go</small></td>
+  <td>No direct outbound edge</td>
+  <td>.GetShift() node in internal/handler/shift_handler.go.</td>
+</tr>
+<tr>
+  <td>6</td>
+  <td><code>.OpenShift()</code><br><small style="color:var(--muted)">internal/handler/shift_handler.go</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td><code>ShiftHandler</code><br><small style="color:var(--muted)">internal/handler/shift_handler.go</small></td>
+  <td>No direct outbound edge</td>
+  <td>.OpenShift() node in internal/handler/shift_handler.go.</td>
+</tr>
+<tr>
+  <td>7</td>
+  <td><code>response.go</code><br><small style="color:var(--muted)">pkg/response/response.go</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>response.go node in pkg/response/response.go.</td>
+</tr>
+<tr>
+  <td>8</td>
+  <td><code>Error()</code><br><small style="color:var(--muted)">pkg/response/response.go</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Error() node in pkg/response/response.go.</td>
+</tr>
+<tr>
+  <td>9</td>
+  <td><code>JSON()</code><br><small style="color:var(--muted)">pkg/response/response.go</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>JSON() node in pkg/response/response.go.</td>
+</tr>
+<tr>
+  <td>10</td>
+  <td><code>StandardResponse</code><br><small style="color:var(--muted)">pkg/response/response.go</small></td>
+  <td><span class="tag tag-class">Class</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>StandardResponse node in pkg/response/response.go.</td>
+</tr>
+</table>
+
+<div class="grid">
+  <div class="card">
+    <h4>Key Files</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><th>File</th><th>Coverage</th></tr>
+      <tr><td><code>internal/handler/shift_handler.go</code></td><td>4 nodes</td></tr>
+<tr><td><code>pkg/response/response.go</code></td><td>4 nodes</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Design Notes</h4>
+    <p>This section comes from graphify community clustering. Relationship summary: references x8, method x3, contains x3. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+  </div>
+</div>
+<hr>
+
+<!-- ====== 5. SQLC Prepared Queries ====== -->
+<h2 id="sqlc-prepared-queries">5. SQLC Prepared Queries</h2>
+<p>SQLC Prepared Queries groups implementation around shiftssql, sql, queries, mostly in sql/queries/shifts.sql. This section covers 1 nodes and 0 internal edges; the diagram shows only representative relationships to stay readable.</p>
+
+<div class="mermaid">
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
+flowchart LR
+    %% Section: SQLC Prepared Queries (1 nodes, 0 edges)
+    sql_queries_shifts_e1093664("shifts.sql")
+    class sql_queries_shifts_e1093664 function;
+    classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
+    classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
+    classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
+    classDef klass fill:#064e3b,stroke:#34d399,color:#d1fae5,stroke-width:1px;
+    classDef ui fill:#831843,stroke:#f472b6,color:#fce7f3,stroke-width:1px;
+    classDef module fill:#172554,stroke:#60a5fa,color:#dbeafe,stroke-width:1px;
+    classDef test fill:#3f3f46,stroke:#a1a1aa,color:#f4f4f5,stroke-width:1px;
+    classDef concept fill:#292524,stroke:#a8a29e,color:#fafaf9,stroke-dasharray:4 3;
+    classDef function fill:#0f172a,stroke:#38bdf8,color:#e0f2fe,stroke-width:1px;
+</div>
+
+<h3>Call Details</h3>
+<table class="call-table">
+<tr>
+  <th style="width:5%">#</th>
+  <th style="width:28%">Node</th>
+  <th style="width:10%">Type</th>
+  <th style="width:17%">Caller</th>
+  <th style="width:20%">Callees</th>
+  <th style="width:20%">Description</th>
+</tr>
+<tr>
+  <td>1</td>
+  <td><code>shifts.sql</code><br><small style="color:var(--muted)">sql/queries/shifts.sql</small></td>
+  <td><span class="tag tag-func">Function</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>shifts.sql node in sql/queries/shifts.sql.</td>
+</tr>
+</table>
+
+<div class="grid">
+  <div class="card">
+    <h4>Key Files</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><th>File</th><th>Coverage</th></tr>
+      <tr><td><code>sql/queries/shifts.sql</code></td><td>1 nodes</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Design Notes</h4>
+    <p>This section comes from graphify community clustering. Relationship summary: No high-confidence call edges detected. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+  </div>
+</div>
+<hr>
+
+<!-- ====== 6. Module Root Definition ====== -->
+<h2 id="module-root-definition">6. Module Root Definition</h2>
+<p>Module Root Definition groups implementation around githubcom, arle124, hospedasync, gomod, mostly in go.mod. This section covers 1 nodes and 0 internal edges; the diagram shows only representative relationships to stay readable.</p>
+
+<div class="mermaid">
+%%{init: {"theme": "dark", "themeVariables": {"fontSize": "15.0px", "fontFamily": "Segoe UI, system-ui, sans-serif", "primaryColor": "#1e293b", "primaryTextColor": "#e2e8f0", "primaryBorderColor": "#38bdf8", "secondaryColor": "#0f172a", "tertiaryColor": "#334155", "lineColor": "#64748b", "textColor": "#e2e8f0"}, "flowchart": {"htmlLabels": true, "curve": "basis", "nodeSpacing": 48, "rankSpacing": 64, "padding": 14, "diagramPadding": 10, "useMaxWidth": true}}}%%
+flowchart LR
+    %% Section: Module Root Definition (1 nodes, 0 edges)
+    pkg_github_com_arle124_hospedasync_ac9f2bc2("github.com/Arle124/HospedaSync<br/><small>go.mod</small>")
+    class pkg_github_com_arle124_hospedasync_ac9f2bc2 module;
+    classDef entry fill:#422006,stroke:#fbbf24,color:#fde68a,stroke-width:1px;
+    classDef api fill:#450a0a,stroke:#f87171,color:#fee2e2,stroke-width:1px;
+    classDef async fill:#2e1065,stroke:#a78bfa,color:#ede9fe,stroke-width:1px;
+    classDef klass fill:#064e3b,stroke:#34d399,color:#d1fae5,stroke-width:1px;
+    classDef ui fill:#831843,stroke:#f472b6,color:#fce7f3,stroke-width:1px;
+    classDef module fill:#172554,stroke:#60a5fa,color:#dbeafe,stroke-width:1px;
+    classDef test fill:#3f3f46,stroke:#a1a1aa,color:#f4f4f5,stroke-width:1px;
+    classDef concept fill:#292524,stroke:#a8a29e,color:#fafaf9,stroke-dasharray:4 3;
+    classDef function fill:#0f172a,stroke:#38bdf8,color:#e0f2fe,stroke-width:1px;
+</div>
+
+<h3>Call Details</h3>
+<table class="call-table">
+<tr>
+  <th style="width:5%">#</th>
+  <th style="width:28%">Node</th>
+  <th style="width:10%">Type</th>
+  <th style="width:17%">Caller</th>
+  <th style="width:20%">Callees</th>
+  <th style="width:20%">Description</th>
+</tr>
+<tr>
+  <td>1</td>
+  <td><code>github.com/Arle124/HospedaSync</code><br><small style="color:var(--muted)">go.mod</small></td>
+  <td><span class="tag tag-class">Module</span></td>
+  <td>External entry / no inbound edge</td>
+  <td>No direct outbound edge</td>
+  <td>Turns a local path or remote repository into analysis context.</td>
+</tr>
+</table>
+
+<div class="grid">
+  <div class="card">
+    <h4>Key Files</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><th>File</th><th>Coverage</th></tr>
+      <tr><td><code>go.mod</code></td><td>1 nodes</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Design Notes</h4>
+    <p>This section comes from graphify community clustering. Relationship summary: No high-confidence call edges detected. The diagram prioritizes high-confidence calls or usage relationships; the table keeps the broader node inventory.</p>
+  </div>
+</div>
+<hr>
+
+<h2 id="stats">Project Statistics</h2>
+
+<div class="grid">
+  <div class="card">
+    <h4>Graph</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><td>Nodes</td><td>56</td></tr>
+      <tr><td>Edges</td><td>71</td></tr>
+      <tr><td>Hyperedges</td><td>0</td></tr>
+      <tr><td>Communities</td><td>12</td></tr>
+      <tr><td>Documented Sections</td><td>5</td></tr>
+    </table>
+  </div>
+  <div class="card">
+    <h4>Edge Confidence</h4>
+    <table style="width:100%;font-size:0.85rem;">
+      <tr><td>EXTRACTED</td><td>71</td></tr>
+      <tr><td>INFERRED</td><td>0</td></tr>
+      <tr><td>AMBIGUOUS</td><td>0</td></tr>
+    </table>
+  </div>
+</div>
+
+<div style="text-align:center; padding:40px 0; color: var(--muted); font-size:0.9rem;">
+  <p>HospedaSync — Architecture Documentation</p>
+  <p>Generated: 2026-09-15 04:01 UTC · graphify callflow-html</p>
+</div>
+
+</div><!-- .container -->
+
+<script>
+(function () {
+  const mermaidConfig = {
+    startOnLoad: false,
+    theme: 'dark',
+    securityLevel: 'loose',
+    flowchart: { htmlLabels: true, useMaxWidth: true },
+    themeVariables: {
+      primaryColor: '#1e293b',
+      primaryTextColor: '#e2e8f0',
+      primaryBorderColor: '#38bdf8',
+      secondaryColor: '#0f172a',
+      tertiaryColor: '#334155',
+      lineColor: '#64748b',
+      textColor: '#e2e8f0',
+    }
+  };
+
+  mermaid.initialize(mermaidConfig);
+
+  function clamp(value, min, max) {
+    return Math.min(max, Math.max(min, value));
+  }
+
+  function enhanceMermaidDiagrams() {
+    document.querySelectorAll('.mermaid').forEach((container) => {
+      if (container.dataset.zoomReady === 'true') return;
+      const svg = container.querySelector('svg');
+      if (!svg) return;
+
+      container.dataset.zoomReady = 'true';
+      container.classList.add('is-enhanced');
+
+      const viewport = document.createElement('div');
+      viewport.className = 'mermaid-viewport';
+      svg.parentNode.insertBefore(viewport, svg);
+      viewport.appendChild(svg);
+
+      const toolbar = document.createElement('div');
+      toolbar.className = 'mermaid-toolbar';
+      toolbar.innerHTML = [
+        '<button type="button" data-action="zoom-out" title="Zoom out">-</button>',
+        '<span class="zoom-level" data-role="level">100%</span>',
+        '<button type="button" data-action="zoom-in" title="Zoom in">+</button>',
+        '<button type="button" data-action="fit" title="Fit width">Fit</button>',
+        '<button type="button" data-action="reset" title="Reset view">Reset</button>'
+      ].join('');
+      container.insertBefore(toolbar, viewport);
+
+      const state = { scale: 1, x: 0, y: 0, dragging: false, startX: 0, startY: 0, originX: 0, originY: 0 };
+      const level = toolbar.querySelector('[data-role="level"]');
+
+      function applyTransform() {
+        svg.style.transform = `translate(${state.x}px, ${state.y}px) scale(${state.scale})`;
+        level.textContent = `${Math.round(state.scale * 100)}%`;
+      }
+
+      function zoomBy(delta) {
+        state.scale = clamp(state.scale + delta, 0.25, 3);
+        applyTransform();
+      }
+
+      function reset() {
+        state.scale = 1;
+        state.x = 0;
+        state.y = 0;
+        applyTransform();
+      }
+
+      function fitWidth() {
+        const rawWidth = svg.viewBox && svg.viewBox.baseVal && svg.viewBox.baseVal.width
+          ? svg.viewBox.baseVal.width
+          : svg.getBoundingClientRect().width / state.scale;
+        if (!rawWidth) {
+          reset();
+          return;
+        }
+        state.scale = clamp((viewport.clientWidth - 48) / rawWidth, 0.25, 1.4);
+        state.x = 0;
+        state.y = 0;
+        applyTransform();
+      }
+
+      toolbar.addEventListener('click', (event) => {
+        const button = event.target.closest('button[data-action]');
+        if (!button) return;
+        const action = button.dataset.action;
+        if (action === 'zoom-in') zoomBy(0.15);
+        if (action === 'zoom-out') zoomBy(-0.15);
+        if (action === 'fit') fitWidth();
+        if (action === 'reset') reset();
+      });
+
+      viewport.addEventListener('wheel', (event) => {
+        if (!event.ctrlKey && !event.metaKey) return;
+        event.preventDefault();
+        zoomBy(event.deltaY < 0 ? 0.1 : -0.1);
+      }, { passive: false });
+
+      viewport.addEventListener('pointerdown', (event) => {
+        if (event.button !== 0) return;
+        state.dragging = true;
+        state.startX = event.clientX;
+        state.startY = event.clientY;
+        state.originX = state.x;
+        state.originY = state.y;
+        viewport.classList.add('is-dragging');
+        viewport.setPointerCapture(event.pointerId);
+      });
+
+      viewport.addEventListener('pointermove', (event) => {
+        if (!state.dragging) return;
+        state.x = state.originX + event.clientX - state.startX;
+        state.y = state.originY + event.clientY - state.startY;
+        applyTransform();
+      });
+
+      function endDrag(event) {
+        if (!state.dragging) return;
+        state.dragging = false;
+        viewport.classList.remove('is-dragging');
+        if (viewport.hasPointerCapture(event.pointerId)) {
+          viewport.releasePointerCapture(event.pointerId);
+        }
+      }
+
+      viewport.addEventListener('pointerup', endDrag);
+      viewport.addEventListener('pointercancel', endDrag);
+      applyTransform();
+    });
+  }
+
+  function renderMermaid() {
+    const result = mermaid.run
+      ? mermaid.run({ querySelector: '.mermaid' })
+      : Promise.resolve();
+    Promise.resolve(result)
+      .then(enhanceMermaidDiagrams)
+      .catch((error) => {
+        console.error('Mermaid render failed:', error);
+        enhanceMermaidDiagrams();
+      });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', renderMermaid);
+  } else {
+    renderMermaid();
+  }
+})();
+</script>
+
+</body>
+</html>
