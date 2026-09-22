@@ -29,10 +29,6 @@ export const ReceptionistView: React.FC = () => {
   const [closeNotesInput, setCloseNotesInput] = useState<string>('');
   const [guestNameInput, setGuestNameInput] = useState<string>('');
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
   const loadData = async () => {
     const loadedRooms = await db.rooms.toArray();
     setRooms(loadedRooms);
@@ -40,6 +36,10 @@ export const ReceptionistView: React.FC = () => {
     const openShifts = await db.shifts.where('status').equals('OPEN').toArray();
     setActiveShift(openShifts.length > 0 ? openShifts[0] : null);
   };
+
+  useEffect(() => {
+    loadData();
+  }, []);
 
   const handleOpenShift = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,7 +84,8 @@ export const ReceptionistView: React.FC = () => {
     });
 
     await syncService.enqueueAction('CLOSE_SHIFT', {
-      shiftId: activeShift.serverId || activeShift.id,
+      localShiftId: activeShift.id,
+      shiftId: activeShift.serverId,
       actual_cash: actual,
       notes: closeNotesInput,
     });

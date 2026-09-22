@@ -16,16 +16,16 @@ export const HousekeeperView: React.FC = () => {
   const [quickNote, setQuickNote] = useState<string>('');
   const [isOnline, setIsOnline] = useState<boolean>(syncService.getOnlineStatus());
 
+  const loadRooms = async () => {
+    const loaded = await db.rooms.toArray();
+    setRooms(loaded);
+  };
+
   useEffect(() => {
     loadRooms();
     const unsub = syncService.subscribeOnlineStatus(setIsOnline);
     return () => unsub();
   }, []);
-
-  const loadRooms = async () => {
-    const loaded = await db.rooms.toArray();
-    setRooms(loaded);
-  };
 
   const handleStartCleaning = async (roomId: string) => {
     await db.rooms.update(roomId, {

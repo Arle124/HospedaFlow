@@ -124,7 +124,21 @@ class SyncService {
         }
 
         case 'CLOSE_SHIFT': {
-          const res = await fetch(`${API_BASE}/shifts/${item.payload.shiftId}/close`, {
+          let targetServerId = item.payload.shiftId;
+          // Si no tiene serverId directo, buscar en Dexie por si OPEN_SHIFT ya se sincronizó
+          if (!targetServerId && item.payload.localShiftId) {
+            const localShift = await db.shifts.get(item.payload.localShiftId);
+            if (localShift?.serverId) {
+              targetServerId = localShift.serverId;
+            }
+          }
+
+          // Si aún no tiene serverId (OPEN_SHIFT sigue en cola), posponer para la siguiente vuelta
+          if (!targetServerId) {
+            return false;
+          }
+
+          const res = await fetch(`${API_BASE}/shifts/${targetServerId}/close`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -132,7 +146,13 @@ class SyncService {
               notes: item.payload.notes,
             }),
           });
-          return res.ok;
+          if (res.ok) {
+            if (item.payload.localShiftId) {
+              await db.shifts.update(item.payload.localShiftId, { isSynced: true });
+            }
+            return true;
+          }
+          return false;
         }
 
         case 'UPDATE_ROOM_STATUS': {

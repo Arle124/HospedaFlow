@@ -13,10 +13,6 @@ export const AdminView: React.FC = () => {
   const [shifts, setShifts] = useState<LocalShift[]>([]);
   const [products, setProducts] = useState<LocalProduct[]>([]);
 
-  useEffect(() => {
-    loadAdminData();
-  }, []);
-
   const loadAdminData = async () => {
     const allRooms = await db.rooms.toArray();
     setRooms(allRooms);
@@ -27,6 +23,10 @@ export const AdminView: React.FC = () => {
     const allProducts = await db.inventory.toArray();
     setProducts(allProducts);
   };
+
+  useEffect(() => {
+    loadAdminData();
+  }, []);
 
   const occupiedCount = rooms.filter((r) => r.status === 'occupied').length;
   const occupancyRate = rooms.length > 0 ? Math.round((occupiedCount / rooms.length) * 100) : 0;

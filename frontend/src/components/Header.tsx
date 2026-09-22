@@ -22,6 +22,11 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange }) => 
   const [pendingCount, setPendingCount] = useState<number>(0);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
 
+  const updatePending = async () => {
+    const count = await syncService.getPendingCount();
+    setPendingCount(count);
+  };
+
   useEffect(() => {
     const unsubscribe = syncService.subscribeOnlineStatus((online) => {
       setIsOnline(online);
@@ -36,11 +41,6 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange }) => 
       clearInterval(interval);
     };
   }, []);
-
-  const updatePending = async () => {
-    const count = await syncService.getPendingCount();
-    setPendingCount(count);
-  };
 
   const handleSyncNow = async () => {
     setIsSyncing(true);
