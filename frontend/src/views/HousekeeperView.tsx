@@ -230,11 +230,11 @@ export const HousekeeperView: React.FC = () => {
                 <div
                   style={{
                     padding: '8px 10px',
-                    backgroundColor: 'rgba(217, 119, 6, 0.1)',
+                    backgroundColor: 'var(--status-dirty-bg)',
                     borderLeft: '3px solid var(--status-dirty-border)',
                     borderRadius: 'var(--radius-xs)',
                     fontSize: '12px',
-                    color: '#fef3c7',
+                    color: 'var(--status-dirty-text)',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '8px',
@@ -350,9 +350,9 @@ export const HousekeeperView: React.FC = () => {
                     style={{
                       padding: '5px 9px',
                       fontSize: '11px',
-                      backgroundColor: quickNote === preset ? '#1e293b' : 'var(--bg-input)',
+                      backgroundColor: quickNote === preset ? 'var(--status-occupied-bg)' : 'var(--bg-input)',
                       border: `1px solid ${quickNote === preset ? 'var(--border-focus)' : 'var(--border-medium)'}`,
-                      color: quickNote === preset ? '#93c5fd' : 'var(--text-secondary)',
+                      color: quickNote === preset ? 'var(--status-occupied-text)' : 'var(--text-secondary)',
                       borderRadius: 'var(--radius-xs)',
                     }}
                   >

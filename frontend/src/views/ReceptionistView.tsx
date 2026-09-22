@@ -208,7 +208,7 @@ export const ReceptionistView: React.FC = () => {
                 width: '8px',
                 height: '8px',
                 borderRadius: '50%',
-                backgroundColor: activeShift ? '#10b981' : '#f59e0b',
+                backgroundColor: activeShift ? 'var(--status-available-text)' : 'var(--status-dirty-text)',
                 display: 'inline-block',
               }}
             />
@@ -228,7 +228,7 @@ export const ReceptionistView: React.FC = () => {
               <div style={{ width: '1px', height: '16px', backgroundColor: 'var(--border-subtle)' }} />
               <div>
                 <span style={{ color: 'var(--text-muted)' }}>Efectivo Actual: </span>
-                <span className="tabular-nums" style={{ fontWeight: '700', color: '#34d399', fontSize: '14px' }}>
+                <span className="tabular-nums" style={{ fontWeight: '700', color: 'var(--status-available-text)', fontSize: '14px' }}>
                   $ {activeShift.currentCash.toLocaleString()}
                 </span>
               </div>
@@ -277,10 +277,10 @@ export const ReceptionistView: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
           {[
             { id: 'all', label: `Todas (${rooms.length})` },
-            { id: 'available', label: `Disponibles (${availableCount})`, color: '#34d399' },
-            { id: 'occupied', label: `Ocupadas (${occupiedCount})`, color: '#93c5fd' },
-            { id: 'dirty', label: `Por asear (${dirtyCount})`, color: '#fcd34d' },
-            { id: 'cleaning', label: `En limpieza (${cleaningCount})`, color: '#67e8f9' },
+            { id: 'available', label: `Disponibles (${availableCount})`, color: 'var(--status-available-border)' },
+            { id: 'occupied', label: `Ocupadas (${occupiedCount})`, color: 'var(--status-occupied-border)' },
+            { id: 'dirty', label: `Por asear (${dirtyCount})`, color: 'var(--status-dirty-border)' },
+            { id: 'cleaning', label: `En limpieza (${cleaningCount})`, color: 'var(--status-cleaning-border)' },
           ].map((tab) => {
             const isActive = filterStatus === tab.id;
             return (
@@ -291,7 +291,7 @@ export const ReceptionistView: React.FC = () => {
                 style={{
                   backgroundColor: isActive ? 'var(--bg-surface-elevated)' : 'var(--bg-surface)',
                   border: `1px solid ${isActive ? 'var(--border-focus)' : 'var(--border-subtle)'}`,
-                  color: isActive ? '#f8fafc' : 'var(--text-secondary)',
+                  color: isActive ? 'var(--text-primary)' : 'var(--text-secondary)',
                   borderRadius: 'var(--radius-xs)',
                   padding: '5px 10px',
                   fontSize: '12px',
@@ -332,8 +332,9 @@ export const ReceptionistView: React.FC = () => {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
           gap: '12px',
+          width: '100%',
         }}
       >
         {filteredRooms.map((room) => {
@@ -389,11 +390,11 @@ export const ReceptionistView: React.FC = () => {
                     style={{
                       marginTop: '8px',
                       padding: '5px 8px',
-                      backgroundColor: 'rgba(37, 99, 235, 0.1)',
-                      borderLeft: '2px solid #2563eb',
+                      backgroundColor: 'var(--status-occupied-bg)',
+                      borderLeft: '2px solid var(--border-focus)',
                       borderRadius: 'var(--radius-xs)',
                       fontSize: '11px',
-                      color: '#bfdbfe',
+                      color: 'var(--status-occupied-text)',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '6px',
@@ -410,11 +411,11 @@ export const ReceptionistView: React.FC = () => {
                     style={{
                       marginTop: '8px',
                       padding: '5px 8px',
-                      backgroundColor: 'rgba(245, 158, 11, 0.12)',
+                      backgroundColor: 'var(--status-dirty-bg)',
                       borderLeft: '2px solid var(--status-dirty-border)',
                       borderRadius: 'var(--radius-xs)',
                       fontSize: '11px',
-                      color: '#fef3c7',
+                      color: 'var(--status-dirty-text)',
                       display: 'flex',
                       alignItems: 'flex-start',
                       gap: '6px',
@@ -450,7 +451,13 @@ export const ReceptionistView: React.FC = () => {
                   <button
                     type="button"
                     className="btn-secondary"
-                    style={{ width: '100%', padding: '6px', fontSize: '12px', borderColor: '#b91c1c', color: '#fca5a5' }}
+                    style={{
+                      width: '100%',
+                      padding: '6px',
+                      fontSize: '12px',
+                      borderColor: 'var(--status-maintenance-border)',
+                      color: 'var(--status-maintenance-text)',
+                    }}
                     onClick={() => handleCheckOut(room)}
                   >
                     <LogOut size={13} />
@@ -465,7 +472,7 @@ export const ReceptionistView: React.FC = () => {
                 )}
 
                 {isCleaning && (
-                  <div style={{ fontSize: '11px', color: '#67e8f9', textAlign: 'center', padding: '4px 0' }}>
+                  <div style={{ fontSize: '11px', color: 'var(--status-cleaning-text)', textAlign: 'center', padding: '4px 0', fontWeight: '500' }}>
                     Personal limpiando en piso...
                   </div>
                 )}
@@ -618,7 +625,7 @@ export const ReceptionistView: React.FC = () => {
                   </div>
                   <div style={{ padding: '8px 10px', backgroundColor: 'var(--bg-input)', borderRadius: 'var(--radius-xs)' }}>
                     <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Esperado en Sistema</span>
-                    <div className="tabular-nums" style={{ fontSize: '14px', fontWeight: '700', color: '#60a5fa' }}>
+                    <div className="tabular-nums" style={{ fontSize: '14px', fontWeight: '700', color: 'var(--status-occupied-text)' }}>
                       ${activeShift.currentCash.toLocaleString()}
                     </div>
                   </div>
@@ -653,15 +660,15 @@ export const ReceptionistView: React.FC = () => {
                       backgroundColor:
                         parseFloat(actualCashInput) - activeShift.currentCash === 0
                           ? 'var(--status-available-bg)'
-                          : 'rgba(239, 68, 68, 0.12)',
+                          : 'var(--status-maintenance-bg)',
                       color:
                         parseFloat(actualCashInput) - activeShift.currentCash === 0
                           ? 'var(--status-available-text)'
-                          : '#fca5a5',
+                          : 'var(--status-maintenance-text)',
                       border: `1px solid ${
                         parseFloat(actualCashInput) - activeShift.currentCash === 0
                           ? 'var(--status-available-border)'
-                          : '#b91c1c'
+                          : 'var(--status-maintenance-border)'
                       }`,
                     }}
                   >

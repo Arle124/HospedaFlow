@@ -1,32 +1,97 @@
 /* ==========================================================================
    HospedaSync - Enterprise Design System (Offline-First PMS)
-   Filosofía: Funcional, sobrio, alta densidad de datos y cero estética genérica.
+   Soporte nativo para Modo Claro y Modo Oscuro con aprovechamiento total de pantalla.
    ========================================================================== */
 
-:root {
-  /* Tipografía y métricas de lectura */
+/* --------------------------------------------------------------------------
+   1. Variables de Modo Claro (Default / Corporativo)
+   -------------------------------------------------------------------------- */
+:root,
+[data-theme="light"] {
   --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
-  /* Paleta Corporativa (Slate & Navy profundo) */
+  /* Superficies modo claro */
+  --bg-canvas: #f1f5f9;
+  --bg-surface: #ffffff;
+  --bg-surface-elevated: #f8fafc;
+  --bg-surface-hover: #f1f5f9;
+  --bg-input: #ffffff;
+
+  /* Bordes de alta definición */
+  --border-subtle: #e2e8f0;
+  --border-medium: #cbd5e1;
+  --border-focus: #2563eb;
+
+  /* Textos contrastados (WCAG AA) */
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --text-inverted: #ffffff;
+
+  /* Semáforo Operacional Hotelero (Modo Claro) */
+  --status-available-bg: #ecfdf5;
+  --status-available-border: #a7f3d0;
+  --status-available-text: #047857;
+
+  --status-occupied-bg: #eff6ff;
+  --status-occupied-border: #bfdbfe;
+  --status-occupied-text: #1d4ed8;
+
+  --status-dirty-bg: #fffbeb;
+  --status-dirty-border: #fde68a;
+  --status-dirty-text: #b45309;
+
+  --status-cleaning-bg: #ecfeff;
+  --status-cleaning-border: #a5f3fc;
+  --status-cleaning-text: #0e7490;
+
+  --status-maintenance-bg: #fff1f2;
+  --status-maintenance-border: #fecdd3;
+  --status-maintenance-text: #be123c;
+
+  /* Botones primarios y secundarios */
+  --btn-secondary-bg: #f8fafc;
+  --btn-secondary-text: #0f172a;
+  --btn-secondary-border: #cbd5e1;
+  --btn-secondary-hover: #f1f5f9;
+
+  /* Escala de radios sobrios */
+  --radius-xs: 3px;
+  --radius-sm: 5px;
+  --radius-md: 7px;
+  --radius-lg: 10px;
+
+  /* Sombras ligeras y nítidas */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px 0 rgba(0, 0, 0, 0.08);
+  --shadow-modal: 0 20px 45px -10px rgba(15, 23, 42, 0.25);
+  --modal-overlay-bg: rgba(15, 23, 42, 0.5);
+}
+
+/* --------------------------------------------------------------------------
+   2. Variables de Modo Oscuro (Deep Slate & Navy)
+   -------------------------------------------------------------------------- */
+[data-theme="dark"] {
+  /* Superficies modo oscuro */
   --bg-canvas: #090d16;
   --bg-surface: #111827;
   --bg-surface-elevated: #182234;
   --bg-surface-hover: #1e293b;
   --bg-input: #0b1120;
 
-  /* Bordes de alta definición */
+  /* Bordes */
   --border-subtle: #1e293b;
   --border-medium: #2d3b55;
   --border-focus: #3b82f6;
 
-  /* Textos con contraste accesible (WCAG AA) */
+  /* Textos */
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
   --text-inverted: #0f172a;
 
-  /* Acentos de estado operacional (Hotelería) */
+  /* Semáforo Operacional Hotelero (Modo Oscuro) */
   --status-available-bg: #062e24;
   --status-available-border: #047857;
   --status-available-text: #34d399;
@@ -47,19 +112,22 @@
   --status-maintenance-border: #be123c;
   --status-maintenance-text: #fda4af;
 
-  /* Escala de radios sobrios (sin curvas exageradas) */
-  --radius-xs: 3px;
-  --radius-sm: 5px;
-  --radius-md: 7px;
-  --radius-lg: 10px;
+  /* Botones en modo oscuro */
+  --btn-secondary-bg: var(--bg-surface-elevated);
+  --btn-secondary-text: var(--text-primary);
+  --btn-secondary-border: var(--border-medium);
+  --btn-secondary-hover: var(--bg-surface-hover);
 
-  /* Sombras sutiles */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.25);
-  --shadow-md: 0 4px 12px 0 rgba(0, 0, 0, 0.35);
-  --shadow-modal: 0 16px 40px 0 rgba(0, 0, 0, 0.6);
+  /* Sombras */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 4px 12px 0 rgba(0, 0, 0, 0.45);
+  --shadow-modal: 0 20px 45px -5px rgba(0, 0, 0, 0.7);
+  --modal-overlay-bg: rgba(3, 7, 18, 0.75);
 }
 
-/* Reset y base */
+/* --------------------------------------------------------------------------
+   3. Reset y estructura base (Full-Screen Responsive)
+   -------------------------------------------------------------------------- */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -68,6 +136,7 @@
 
 html, body {
   min-height: 100vh;
+  width: 100%;
   background-color: var(--bg-canvas);
   color: var(--text-primary);
   font-family: var(--font-sans);
@@ -75,21 +144,23 @@ html, body {
   line-height: 1.45;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 #root {
   min-height: 100vh;
+  width: 100%;
   display: flex;
   flex-direction: column;
 }
 
-/* Tipografía de números tabulares (dinero, habitaciones, stock) */
+/* Tipografía de números tabulares (dinero, códigos, habitaciones) */
 .tabular-nums {
   font-variant-numeric: tabular-nums;
   font-family: var(--font-mono);
 }
 
-/* Controles de formulario empresariales */
+/* Controles de formulario */
 input, select, textarea {
   font-family: inherit;
   font-size: 13px;
@@ -99,7 +170,7 @@ input, select, textarea {
   border-radius: var(--radius-sm);
   padding: 8px 12px;
   outline: none;
-  transition: border-color 0.15s ease;
+  transition: border-color 0.15s ease, background-color 0.2s ease;
   width: 100%;
 }
 
@@ -144,12 +215,12 @@ button:disabled {
 }
 
 .btn-secondary {
-  background-color: var(--bg-surface-elevated);
-  color: var(--text-primary);
-  border-color: var(--border-medium);
+  background-color: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
+  border-color: var(--btn-secondary-border);
 }
 .btn-secondary:hover:not(:disabled) {
-  background-color: var(--bg-surface-hover);
+  background-color: var(--btn-secondary-hover);
   border-color: var(--border-focus);
 }
 
@@ -218,8 +289,8 @@ button:disabled {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(3, 7, 18, 0.75);
-  backdrop-filter: blur(2px);
+  background-color: var(--modal-overlay-bg);
+  backdrop-filter: blur(3px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -252,18 +323,26 @@ button:disabled {
 .modal-footer {
   padding: 12px 18px;
   border-top: 1px solid var(--border-subtle);
-  background-color: rgba(0, 0, 0, 0.2);
+  background-color: var(--bg-surface-elevated);
   display: flex;
   justify-content: flex-end;
   gap: 8px;
 }
 
-/* Layout container */
+/* --------------------------------------------------------------------------
+   4. Contenedores de Ancho Completo (Full Real Estate para PC)
+   -------------------------------------------------------------------------- */
 .container-fluid {
   width: 100%;
-  max-width: 1360px;
-  margin: 0 auto;
-  padding: 14px 20px;
+  max-width: 100%;
+  margin: 0;
+  padding: 16px 24px;
+}
+
+@media (min-width: 1440px) {
+  .container-fluid {
+    padding: 20px 32px;
+  }
 }
 
 @keyframes slideInRight {

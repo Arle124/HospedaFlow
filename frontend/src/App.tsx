@@ -49,7 +49,7 @@ function App() {
       <footer
         style={{
           borderTop: '1px solid var(--border-subtle)',
-          padding: '12px 20px',
+          padding: '12px 24px',
           textAlign: 'center',
           fontSize: '11px',
           color: 'var(--text-muted)',
@@ -57,9 +57,7 @@ function App() {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          maxWidth: '1360px',
           width: '100%',
-          margin: '0 auto',
         }}
       >
         <div>

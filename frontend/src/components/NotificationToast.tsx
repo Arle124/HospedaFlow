@@ -23,7 +23,7 @@ export const NotificationToast: React.FC = () => {
         osc.stop(ctx.currentTime + 0.35);
       }
     } catch {
-      // Ignorar si el navegador bloquea audio sin interacción previa
+      // Audio bloqueado si no hay interacción de usuario
     }
   };
 
@@ -51,14 +51,14 @@ export const NotificationToast: React.FC = () => {
     <div
       style={{
         position: 'fixed',
-        top: '72px',
-        right: '20px',
+        top: '68px',
+        right: '24px',
         zIndex: 9999,
         display: 'flex',
         flexDirection: 'column',
         gap: '8px',
         maxWidth: '380px',
-        width: 'calc(100% - 40px)',
+        width: 'calc(100% - 48px)',
         pointerEvents: 'none',
       }}
     >
@@ -66,9 +66,21 @@ export const NotificationToast: React.FC = () => {
         const isClean = n.type === 'room_cleaned';
         const isIssue = n.type === 'room_issue';
 
-        const borderColor = isClean ? '#10b981' : isIssue ? '#f59e0b' : '#3b82f6';
-        const bgColor = isClean ? '#062e24' : isIssue ? '#381e05' : '#0c1e3d';
-        const iconColor = isClean ? '#34d399' : isIssue ? '#fbbf24' : '#60a5fa';
+        const borderColor = isClean
+          ? 'var(--status-available-border)'
+          : isIssue
+          ? 'var(--status-dirty-border)'
+          : 'var(--border-focus)';
+        const bgColor = isClean
+          ? 'var(--status-available-bg)'
+          : isIssue
+          ? 'var(--status-dirty-bg)'
+          : 'var(--status-occupied-bg)';
+        const iconColor = isClean
+          ? 'var(--status-available-text)'
+          : isIssue
+          ? 'var(--status-dirty-text)'
+          : 'var(--status-occupied-text)';
 
         return (
           <div
@@ -79,9 +91,9 @@ export const NotificationToast: React.FC = () => {
               backgroundColor: bgColor,
               border: `1px solid ${borderColor}`,
               borderLeft: `4px solid ${borderColor}`,
-              borderRadius: '6px',
+              borderRadius: 'var(--radius-sm)',
               padding: '12px 14px',
-              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.45)',
+              boxShadow: 'var(--shadow-modal)',
               display: 'flex',
               alignItems: 'flex-start',
               gap: '12px',
@@ -96,25 +108,26 @@ export const NotificationToast: React.FC = () => {
 
             <div style={{ flex: 1 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-                <span style={{ fontSize: '13px', fontWeight: '700', color: '#f8fafc', letterSpacing: '-0.2px' }}>
+                <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)', letterSpacing: '-0.2px' }}>
                   {n.title}
                 </span>
-                <span style={{ fontSize: '11px', color: '#94a3b8', fontFamily: 'monospace' }}>
+                <span className="tabular-nums" style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
                   {n.timestamp}
                 </span>
               </div>
-              <p style={{ fontSize: '12px', color: '#cbd5e1', margin: '3px 0 0 0', lineHeight: 1.35 }}>
+              <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '3px 0 0 0', lineHeight: 1.35 }}>
                 {n.message}
               </p>
             </div>
 
             <button
+              type="button"
               onClick={() => dismiss(n.id)}
               aria-label="Cerrar notificación"
               style={{
                 background: 'transparent',
                 border: 'none',
-                color: '#94a3b8',
+                color: 'var(--text-muted)',
                 cursor: 'pointer',
                 padding: '2px',
                 borderRadius: '4px',

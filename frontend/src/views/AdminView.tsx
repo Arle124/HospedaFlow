@@ -107,12 +107,12 @@ export const AdminView: React.FC = () => {
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
             <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>Caja Turno Activo</span>
-            <DollarSign size={16} color="#34d399" />
+            <DollarSign size={16} color="var(--status-available-text)" />
           </div>
-          <div className="tabular-nums" style={{ fontSize: '28px', fontWeight: '800', color: '#34d399' }}>
+          <div className="tabular-nums" style={{ fontSize: '28px', fontWeight: '800', color: 'var(--status-available-text)' }}>
             ${(activeShift?.currentCash || 0).toLocaleString()}
           </div>
-          <div style={{ fontSize: '11px', color: activeShift ? '#34d399' : 'var(--text-muted)', marginTop: '4px' }}>
+          <div style={{ fontSize: '11px', color: activeShift ? 'var(--status-available-text)' : 'var(--text-muted)', marginTop: '4px' }}>
             {activeShift ? `Turno activo · Base: $${activeShift.initialCash.toLocaleString()}` : 'Sin turno activo en recepción'}
           </div>
         </div>
@@ -128,7 +128,7 @@ export const AdminView: React.FC = () => {
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
             <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>Total en Arqueos Cerrados</span>
-            <FileText size={16} color="#a78bfa" />
+            <FileText size={16} color="var(--border-focus)" />
           </div>
           <div className="tabular-nums" style={{ fontSize: '28px', fontWeight: '800', color: 'var(--text-primary)' }}>
             ${totalClosedCash.toLocaleString()}
@@ -149,9 +149,9 @@ export const AdminView: React.FC = () => {
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
             <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>Avisos de Aseo / Averías</span>
-            <Wrench size={16} color={roomsWithIncidents.length > 0 ? '#f59e0b' : 'var(--text-muted)'} />
+            <Wrench size={16} color={roomsWithIncidents.length > 0 ? 'var(--status-dirty-text)' : 'var(--text-muted)'} />
           </div>
-          <div className="tabular-nums" style={{ fontSize: '28px', fontWeight: '800', color: roomsWithIncidents.length > 0 ? '#fcd34d' : 'var(--text-primary)' }}>
+          <div className="tabular-nums" style={{ fontSize: '28px', fontWeight: '800', color: roomsWithIncidents.length > 0 ? 'var(--status-dirty-text)' : 'var(--text-primary)' }}>
             {roomsWithIncidents.length}
           </div>
           <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
@@ -197,7 +197,7 @@ export const AdminView: React.FC = () => {
                     <strong style={{ fontSize: '14px', color: 'var(--text-primary)' }}>Hab #{r.number}</strong>
                     <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Piso {r.floor}</span>
                   </div>
-                  <p style={{ fontSize: '12px', color: '#fef3c7', marginTop: '4px' }}>
+                  <p style={{ fontSize: '12px', color: 'var(--status-dirty-text)', marginTop: '4px' }}>
                     {r.notes}
                   </p>
                 </div>
@@ -294,11 +294,11 @@ export const AdminView: React.FC = () => {
                             $0 (Cuadre Exacto)
                           </span>
                         ) : isShortage ? (
-                          <span style={{ color: '#f87171', fontWeight: '700' }}>
+                          <span style={{ color: 'var(--status-maintenance-text)', fontWeight: '700' }}>
                             ${s.difference?.toLocaleString()} (Faltante)
                           </span>
                         ) : isSurplus ? (
-                          <span style={{ color: '#fbbf24', fontWeight: '700' }}>
+                          <span style={{ color: 'var(--status-dirty-text)', fontWeight: '700' }}>
                             +${s.difference?.toLocaleString()} (Sobrante)
                           </span>
                         ) : null}

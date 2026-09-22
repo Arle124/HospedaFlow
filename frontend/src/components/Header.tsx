@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { syncService } from '../services/syncService';
+import { getInitialTheme, applyTheme, type ThemeMode } from '../services/themeService';
 import {
   Hotel,
   Wifi,
@@ -7,7 +8,9 @@ import {
   RefreshCw,
   Layers,
   Sparkles,
-  BarChart3
+  BarChart3,
+  Sun,
+  Moon
 } from 'lucide-react';
 
 export type UserRole = 'receptionist' | 'housekeeper' | 'admin';
@@ -21,11 +24,16 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange }) => 
   const [isOnline, setIsOnline] = useState<boolean>(syncService.getOnlineStatus());
   const [pendingCount, setPendingCount] = useState<number>(0);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [theme, setTheme] = useState<ThemeMode>(getInitialTheme);
 
   const updatePending = async () => {
     const count = await syncService.getPendingCount();
     setPendingCount(count);
   };
+
+  useEffect(() => {
+    applyTheme(theme);
+  }, [theme]);
 
   useEffect(() => {
     const unsubscribe = syncService.subscribeOnlineStatus((online) => {
@@ -49,6 +57,10 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange }) => 
     setIsSyncing(false);
   };
 
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
+  };
+
   return (
     <header
       style={{
@@ -57,13 +69,14 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange }) => 
         position: 'sticky',
         top: 0,
         zIndex: 100,
+        width: '100%',
+        transition: 'background-color 0.2s ease, border-color 0.2s ease',
       }}
     >
       <div
         style={{
-          maxWidth: '1360px',
-          margin: '0 auto',
-          padding: '0 20px',
+          width: '100%',
+          padding: '0 24px',
           height: '56px',
           display: 'flex',
           alignItems: 'center',
@@ -71,14 +84,14 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange }) => 
           gap: '16px',
         }}
       >
-        {/* Marca y Entorno */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+        {/* Marca y Selector de Espacio Operacional */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <div
               style={{
                 width: '28px',
                 height: '28px',
-                borderRadius: '4px',
+                borderRadius: 'var(--radius-xs)',
                 backgroundColor: '#1d4ed8',
                 display: 'flex',
                 alignItems: 'center',
@@ -109,21 +122,21 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange }) => 
           </div>
 
           {/* Separador vertical */}
-          <div style={{ width: '1px', height: '24px', backgroundColor: 'var(--border-subtle)' }} />
+          <div style={{ width: '1px', height: '22px', backgroundColor: 'var(--border-subtle)' }} />
 
-          {/* Selector de Entornos Operativos (Roles delimitados) */}
+          {/* Selector de Entornos */}
           <nav style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
             <button
               type="button"
               onClick={() => onRoleChange('receptionist')}
               style={{
                 backgroundColor: currentRole === 'receptionist' ? 'var(--bg-surface-elevated)' : 'transparent',
-                color: currentRole === 'receptionist' ? '#60a5fa' : 'var(--text-secondary)',
+                color: currentRole === 'receptionist' ? 'var(--border-focus)' : 'var(--text-secondary)',
                 border: currentRole === 'receptionist' ? '1px solid var(--border-medium)' : '1px solid transparent',
-                borderRadius: '4px',
+                borderRadius: 'var(--radius-xs)',
                 padding: '5px 10px',
                 fontSize: '12px',
-                fontWeight: currentRole === 'receptionist' ? 600 : 400,
+                fontWeight: currentRole === 'receptionist' ? 600 : 500,
               }}
             >
               <Layers size={14} />
@@ -135,12 +148,12 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange }) => 
               onClick={() => onRoleChange('housekeeper')}
               style={{
                 backgroundColor: currentRole === 'housekeeper' ? 'var(--bg-surface-elevated)' : 'transparent',
-                color: currentRole === 'housekeeper' ? '#34d399' : 'var(--text-secondary)',
+                color: currentRole === 'housekeeper' ? 'var(--status-available-text)' : 'var(--text-secondary)',
                 border: currentRole === 'housekeeper' ? '1px solid var(--border-medium)' : '1px solid transparent',
-                borderRadius: '4px',
+                borderRadius: 'var(--radius-xs)',
                 padding: '5px 10px',
                 fontSize: '12px',
-                fontWeight: currentRole === 'housekeeper' ? 600 : 400,
+                fontWeight: currentRole === 'housekeeper' ? 600 : 500,
               }}
             >
               <Sparkles size={14} />
@@ -152,12 +165,12 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange }) => 
               onClick={() => onRoleChange('admin')}
               style={{
                 backgroundColor: currentRole === 'admin' ? 'var(--bg-surface-elevated)' : 'transparent',
-                color: currentRole === 'admin' ? '#a78bfa' : 'var(--text-secondary)',
+                color: currentRole === 'admin' ? '#8b5cf6' : 'var(--text-secondary)',
                 border: currentRole === 'admin' ? '1px solid var(--border-medium)' : '1px solid transparent',
-                borderRadius: '4px',
+                borderRadius: 'var(--radius-xs)',
                 padding: '5px 10px',
                 fontSize: '12px',
-                fontWeight: currentRole === 'admin' ? 600 : 400,
+                fontWeight: currentRole === 'admin' ? 600 : 500,
               }}
             >
               <BarChart3 size={14} />
@@ -166,18 +179,41 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange }) => 
           </nav>
         </div>
 
-        {/* Indicadores de Conectividad & Sincronización */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {/* Badge de Red */}
+        {/* Indicadores de Conectividad, Sincronización y Switcher de Tema */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {/* Botón de Modo Claro / Modo Oscuro */}
+          <button
+            type="button"
+            onClick={toggleTheme}
+            aria-label={`Cambiar a modo ${theme === 'light' ? 'oscuro' : 'claro'}`}
+            title={`Cambiar a modo ${theme === 'light' ? 'oscuro' : 'claro'}`}
+            style={{
+              padding: '6px 9px',
+              backgroundColor: 'var(--bg-surface-elevated)',
+              border: '1px solid var(--border-medium)',
+              color: 'var(--text-secondary)',
+              borderRadius: 'var(--radius-xs)',
+              fontSize: '11px',
+              fontWeight: '500',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+          >
+            {theme === 'light' ? <Moon size={13} /> : <Sun size={13} color="#f59e0b" />}
+            <span>{theme === 'light' ? 'Modo Oscuro' : 'Modo Claro'}</span>
+          </button>
+
+          {/* Badge de Conectividad */}
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              padding: '4px 8px',
-              borderRadius: '4px',
+              padding: '5px 9px',
+              borderRadius: 'var(--radius-xs)',
               fontSize: '11px',
-              fontWeight: '500',
+              fontWeight: '600',
               backgroundColor: isOnline ? 'var(--status-available-bg)' : 'var(--status-dirty-bg)',
               color: isOnline ? 'var(--status-available-text)' : 'var(--status-dirty-text)',
               border: `1px solid ${isOnline ? 'var(--status-available-border)' : 'var(--status-dirty-border)'}`,
@@ -195,11 +231,11 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange }) => 
               disabled={!isOnline || isSyncing}
               style={{
                 fontSize: '11px',
-                padding: '4px 9px',
-                backgroundColor: '#1e293b',
-                border: '1px solid #334155',
-                color: '#f8fafc',
-                borderRadius: '4px',
+                padding: '5px 9px',
+                backgroundColor: 'var(--bg-surface-elevated)',
+                border: '1px solid var(--border-medium)',
+                color: 'var(--text-primary)',
+                borderRadius: 'var(--radius-xs)',
               }}
             >
               <RefreshCw size={12} className={isSyncing ? 'animate-spin' : ''} />
