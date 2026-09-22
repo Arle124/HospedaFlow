@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { db, type Room, type LocalShift, type LocalProduct } from '../db/db';
+import { db, type Room, type LocalShift, type LocalProduct, type CashMovement } from '../db/db';
+import { syncService } from '../services/syncService';
 import { eventBus } from '../services/eventBus';
 import {
   TrendingUp,
@@ -7,13 +8,17 @@ import {
   Package,
   FileText,
   AlertTriangle,
-  Wrench
+  Wrench,
+  CheckCircle2,
+  ArrowDownRight,
+  Receipt
 } from 'lucide-react';
 
 export const AdminView: React.FC = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [shifts, setShifts] = useState<LocalShift[]>([]);
   const [products, setProducts] = useState<LocalProduct[]>([]);
+  const [cashMovements, setCashMovements] = useState<CashMovement[]>([]);
 
   const loadAdminData = async () => {
     const allRooms = await db.rooms.toArray();
@@ -26,6 +31,10 @@ export const AdminView: React.FC = () => {
 
     const allProducts = await db.inventory.toArray();
     setProducts(allProducts);
+
+    const allMoves = await db.cashMovements.toArray();
+    allMoves.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    setCashMovements(allMoves);
   };
 
   useEffect(() => {
@@ -38,12 +47,44 @@ export const AdminView: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
+  const handleResolveIncident = async (room: Room) => {
+    if (!window.confirm(`¿Confirmar que la avería o novedad en la Hab #${room.number} ("${room.notes}") ya fue reparada y resuelta?`)) {
+      return;
+    }
+
+    // Si estaba bloqueada por mantenimiento, se pasa a 'dirty' para que aseo la desinfecte y aliste
+    const nextStatus = room.status === 'maintenance' ? 'dirty' : room.status;
+
+    await db.rooms.update(room.id, {
+      notes: undefined,
+      status: nextStatus,
+      updatedAt: new Date().toISOString(),
+    });
+
+    await syncService.enqueueAction('RESOLVE_INCIDENT', {
+      roomId: room.id,
+      notes: '',
+      status: nextStatus,
+    });
+
+    eventBus.emit({
+      type: 'room_issue',
+      title: `Reparación Finalizada: Hab #${room.number}`,
+      message: `Gerencia certificó la solución del arreglo. ${nextStatus === 'dirty' ? 'Habitación enviada a Aseo para alistamiento.' : 'Habitación normalizada.'}`,
+      roomNumber: room.number,
+    });
+
+    loadAdminData();
+  };
+
   const occupiedCount = rooms.filter((r) => r.status === 'occupied').length;
   const availableCount = rooms.filter((r) => r.status === 'available').length;
   const dirtyCount = rooms.filter((r) => r.status === 'dirty').length;
   const occupancyRate = rooms.length > 0 ? Math.round((occupiedCount / rooms.length) * 100) : 0;
   const activeShift = shifts.find((s) => s.status === 'OPEN');
   const roomsWithIncidents = rooms.filter((r) => Boolean(r.notes));
+  const supplierExpenses = cashMovements.filter((m) => m.type === 'EXPENSE_SUPPLIER');
+  const totalSupplierExpenses = supplierExpenses.reduce((acc, m) => acc + m.amount, 0);
 
   // Total recaudado en turnos cerrados
   const totalClosedCash = shifts
@@ -158,6 +199,27 @@ export const AdminView: React.FC = () => {
             {roomsWithIncidents.length > 0 ? 'Habitaciones reportan novedades' : 'Sin reportes de averías o faltantes'}
           </div>
         </div>
+
+        {/* KPI 5: Pagos a Proveedores / Egresos */}
+        <div
+          style={{
+            backgroundColor: 'var(--bg-surface)',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: 'var(--radius-md)',
+            padding: '14px 16px',
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+            <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>Egresos a Proveedores</span>
+            <ArrowDownRight size={16} color="var(--status-maintenance-text)" />
+          </div>
+          <div className="tabular-nums" style={{ fontSize: '28px', fontWeight: '800', color: totalSupplierExpenses > 0 ? 'var(--status-maintenance-text)' : 'var(--text-primary)' }}>
+            ${totalSupplierExpenses.toLocaleString()}
+          </div>
+          <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
+            {supplierExpenses.length} comprobantes de egreso registrados
+          </div>
+        </div>
       </div>
 
       {/* Sección 1: Avisos de Habitaciones (Reportes en caliente de la Aseadora) */}
@@ -189,19 +251,31 @@ export const AdminView: React.FC = () => {
                   padding: '10px 12px',
                   display: 'flex',
                   justifyContent: 'space-between',
-                  alignItems: 'flex-start',
+                  alignItems: 'center',
+                  gap: '12px',
                 }}
               >
-                <div>
+                <div style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                     <strong style={{ fontSize: '14px', color: 'var(--text-primary)' }}>Hab #{r.number}</strong>
                     <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Piso {r.floor}</span>
+                    {r.status === 'maintenance' && (
+                      <span className="status-pill status-maintenance" style={{ fontSize: '10px' }}>Mantenimiento</span>
+                    )}
                   </div>
                   <p style={{ fontSize: '12px', color: 'var(--status-dirty-text)', marginTop: '4px' }}>
                     {r.notes}
                   </p>
                 </div>
-                <span className="status-pill status-dirty">Pendiente</span>
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={() => handleResolveIncident(r)}
+                  style={{ fontSize: '11px', padding: '6px 10px', display: 'flex', alignItems: 'center', gap: '5px', flexShrink: 0 }}
+                >
+                  <CheckCircle2 size={12} />
+                  <span>Marcar Solucionado</span>
+                </button>
               </div>
             ))}
           </div>
@@ -316,7 +390,92 @@ export const AdminView: React.FC = () => {
         )}
       </section>
 
-      {/* Sección 3: Control de Minibar e Insumos */}
+      {/* Sección 3: Auditoría de Pagos a Proveedores y Egresos de Caja */}
+      <section
+        style={{
+          backgroundColor: 'var(--bg-surface)',
+          border: '1px solid var(--border-subtle)',
+          borderRadius: 'var(--radius-md)',
+          padding: '16px',
+          marginBottom: '20px',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Receipt size={16} color="var(--status-maintenance-text)" />
+            <h2 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>
+              Auditoría de Pagos a Proveedores y Egresos de Caja
+            </h2>
+          </div>
+          <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+            Control inmutable de facturas y salidas de caja de recepción
+          </span>
+        </div>
+
+        {supplierExpenses.length === 0 ? (
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', padding: '20px 0', textAlign: 'center' }}>
+            No se registran pagos a proveedores o salidas de caja en los turnos locales.
+          </div>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border-medium)', color: 'var(--text-muted)' }}>
+                  <th style={{ padding: '8px 10px', fontWeight: '600' }}>Fecha y Hora</th>
+                  <th style={{ padding: '8px 10px', fontWeight: '600' }}>Proveedor / Beneficiario</th>
+                  <th style={{ padding: '8px 10px', fontWeight: '600' }}>Categoría</th>
+                  <th style={{ padding: '8px 10px', fontWeight: '600' }}>Concepto / Detalle</th>
+                  <th style={{ padding: '8px 10px', fontWeight: '600' }}>Nº Factura / Recibo</th>
+                  <th style={{ padding: '8px 10px', fontWeight: '600' }}>Monto Pagado</th>
+                  <th style={{ padding: '8px 10px', fontWeight: '600' }}>Turno</th>
+                </tr>
+              </thead>
+              <tbody>
+                {supplierExpenses.map((exp) => (
+                  <tr key={exp.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                    <td style={{ padding: '10px', whiteSpace: 'nowrap' }}>
+                      <div className="tabular-nums" style={{ color: 'var(--text-primary)', fontWeight: '500' }}>
+                        {new Date(exp.createdAt).toLocaleDateString()} {new Date(exp.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    </td>
+                    <td style={{ padding: '10px', fontWeight: '600', color: 'var(--text-primary)' }}>
+                      {exp.supplier || 'Proveedor no especificado'}
+                    </td>
+                    <td style={{ padding: '10px' }}>
+                      <span
+                        style={{
+                          fontSize: '11px',
+                          padding: '2px 7px',
+                          backgroundColor: 'var(--bg-input)',
+                          border: '1px solid var(--border-subtle)',
+                          borderRadius: 'var(--radius-xs)',
+                          color: 'var(--text-secondary)',
+                        }}
+                      >
+                        {exp.category || 'Varios'}
+                      </span>
+                    </td>
+                    <td style={{ padding: '10px', color: 'var(--text-secondary)', maxWidth: '260px' }}>
+                      {exp.concept}
+                    </td>
+                    <td style={{ padding: '10px', color: 'var(--text-muted)' }}>
+                      {exp.receipt || '—'}
+                    </td>
+                    <td className="tabular-nums" style={{ padding: '10px', fontWeight: '700', color: 'var(--status-maintenance-text)' }}>
+                      -${exp.amount.toLocaleString()}
+                    </td>
+                    <td style={{ padding: '10px', color: 'var(--text-muted)', fontSize: '11px' }}>
+                      {exp.shiftId.startsWith('shift_') ? exp.shiftId.substring(0, 14) : `Turno #${exp.shiftId}`}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {/* Sección 4: Control de Minibar e Insumos */}
       <section
         style={{
           backgroundColor: 'var(--bg-surface)',

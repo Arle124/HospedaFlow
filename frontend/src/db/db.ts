@@ -30,9 +30,24 @@ export interface LocalShift {
   isSynced: boolean;
 }
 
+export type CashMovementType = 'INCOME_ROOM' | 'INCOME_MINIBAR' | 'EXPENSE_SUPPLIER';
+
+export interface CashMovement {
+  id: string;
+  shiftId: string;
+  type: CashMovementType;
+  amount: number;
+  concept: string;
+  category?: string;
+  supplier?: string;
+  receipt?: string;
+  roomNumber?: string;
+  createdAt: string;
+}
+
 export interface SyncQueueItem {
   id: string;
-  action: 'OPEN_SHIFT' | 'CLOSE_SHIFT' | 'UPDATE_ROOM_STATUS' | 'ADD_TRANSACTION';
+  action: 'OPEN_SHIFT' | 'CLOSE_SHIFT' | 'UPDATE_ROOM_STATUS' | 'ADD_TRANSACTION' | 'RESOLVE_INCIDENT';
   payload: any;
   status: 'pending' | 'synced' | 'failed';
   createdAt: string;
@@ -54,6 +69,7 @@ export class HospedaSyncDatabase extends Dexie {
   shifts!: Table<LocalShift>;
   syncQueue!: Table<SyncQueueItem>;
   inventory!: Table<LocalProduct>;
+  cashMovements!: Table<CashMovement>;
 
   constructor() {
     super('HospedaSyncDB');
@@ -62,6 +78,13 @@ export class HospedaSyncDatabase extends Dexie {
       shifts: 'id, status, isSynced',
       syncQueue: 'id, status, createdAt',
       inventory: 'id, sku'
+    });
+    this.version(2).stores({
+      rooms: 'id, number, floor, status',
+      shifts: 'id, status, isSynced',
+      syncQueue: 'id, status, createdAt',
+      inventory: 'id, sku',
+      cashMovements: 'id, shiftId, type, createdAt'
     });
   }
 }
@@ -82,11 +105,16 @@ export async function seedInitialDataIfNeeded() {
       { id: '204', number: '204', floor: 2, type: 'single', status: 'maintenance', price: 60000, notes: 'Fuga de agua en lavamanos', updatedAt: new Date().toISOString() },
     ];
     await db.rooms.bulkAdd(initialRooms);
+  }
 
+  const invCount = await db.inventory.count();
+  if (invCount === 0) {
     const initialProducts: LocalProduct[] = [
       { id: 1, name: 'Agua Mineral 600ml', sku: 'AGUA-600', price: 3000, stock: 24, minStock: 5 },
       { id: 2, name: 'Gaseosa 400ml', sku: 'GAS-400', price: 4000, stock: 18, minStock: 5 },
       { id: 3, name: 'Paquete de Snacks', sku: 'SNK-01', price: 3500, stock: 15, minStock: 4 },
+      { id: 4, name: 'Cerveza Club Colombia 330ml', sku: 'CERV-330', price: 6000, stock: 20, minStock: 6 },
+      { id: 5, name: 'Kit Aseo Dental', sku: 'KIT-DEN', price: 5000, stock: 12, minStock: 3 },
     ];
     await db.inventory.bulkAdd(initialProducts);
   }
