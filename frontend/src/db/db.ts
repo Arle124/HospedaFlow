@@ -3,6 +3,16 @@ import Dexie, { type Table } from 'dexie';
 export type RoomStatus = 'available' | 'occupied' | 'dirty' | 'cleaning' | 'maintenance';
 export type RoomType = 'single' | 'double' | 'matrimonial' | 'suite';
 
+export interface RoomConsumption {
+  id: string;
+  productId: number;
+  productName: string;
+  unitPrice: number;
+  quantity: number;
+  total: number;
+  createdAt: string;
+}
+
 export interface Room {
   id: string;
   number: string;
@@ -11,6 +21,10 @@ export interface Room {
   status: RoomStatus;
   price: number;
   guestName?: string;
+  guestsCount?: number;
+  paymentStatus?: 'PAID' | 'PENDING';
+  paidAmount?: number;
+  consumptions?: RoomConsumption[];
   notes?: string;
   updatedAt: string;
 }
@@ -97,7 +111,39 @@ export async function seedInitialDataIfNeeded() {
   if (count === 0) {
     const initialRooms: Room[] = [
       { id: '101', number: '101', floor: 1, type: 'matrimonial', status: 'available', price: 80000, updatedAt: new Date().toISOString() },
-      { id: '102', number: '102', floor: 1, type: 'double', status: 'occupied', price: 95000, guestName: 'Carlos Gómez', updatedAt: new Date().toISOString() },
+      {
+        id: '102',
+        number: '102',
+        floor: 1,
+        type: 'double',
+        status: 'occupied',
+        price: 95000,
+        guestName: 'Carlos Gómez',
+        guestsCount: 2,
+        paymentStatus: 'PENDING',
+        paidAmount: 0,
+        consumptions: [
+          {
+            id: 'cons_init_1',
+            productId: 1,
+            productName: 'Agua Mineral 600ml',
+            unitPrice: 3000,
+            quantity: 2,
+            total: 6000,
+            createdAt: new Date().toISOString(),
+          },
+          {
+            id: 'cons_init_2',
+            productId: 3,
+            productName: 'Paquete de Snacks',
+            unitPrice: 3500,
+            quantity: 1,
+            total: 3500,
+            createdAt: new Date().toISOString(),
+          },
+        ],
+        updatedAt: new Date().toISOString(),
+      },
       { id: '103', number: '103', floor: 1, type: 'single', status: 'dirty', price: 60000, notes: 'Salida de huésped a las 09:00', updatedAt: new Date().toISOString() },
       { id: '201', number: '201', floor: 2, type: 'suite', status: 'available', price: 140000, updatedAt: new Date().toISOString() },
       { id: '202', number: '202', floor: 2, type: 'matrimonial', status: 'cleaning', price: 85000, updatedAt: new Date().toISOString() },
@@ -105,6 +151,36 @@ export async function seedInitialDataIfNeeded() {
       { id: '204', number: '204', floor: 2, type: 'single', status: 'maintenance', price: 60000, notes: 'Fuga de agua en lavamanos', updatedAt: new Date().toISOString() },
     ];
     await db.rooms.bulkAdd(initialRooms);
+  } else {
+    // Si ya existían habitaciones de una versión anterior, asegurar que Hab #102 tenga datos completos de prueba
+    const room102 = await db.rooms.get('102');
+    if (room102 && !room102.paymentStatus) {
+      await db.rooms.update('102', {
+        guestsCount: 2,
+        paymentStatus: 'PENDING',
+        paidAmount: 0,
+        consumptions: [
+          {
+            id: 'cons_init_1',
+            productId: 1,
+            productName: 'Agua Mineral 600ml',
+            unitPrice: 3000,
+            quantity: 2,
+            total: 6000,
+            createdAt: new Date().toISOString(),
+          },
+          {
+            id: 'cons_init_2',
+            productId: 3,
+            productName: 'Paquete de Snacks',
+            unitPrice: 3500,
+            quantity: 1,
+            total: 3500,
+            createdAt: new Date().toISOString(),
+          },
+        ],
+      });
+    }
   }
 
   const invCount = await db.inventory.count();

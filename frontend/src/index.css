@@ -73,42 +73,42 @@
    2. Variables de Modo Oscuro (Deep Slate & Navy)
    -------------------------------------------------------------------------- */
 [data-theme="dark"] {
-  /* Superficies modo oscuro */
-  --bg-canvas: #090d16;
-  --bg-surface: #111827;
-  --bg-surface-elevated: #182234;
-  --bg-surface-hover: #1e293b;
-  --bg-input: #0b1120;
+  /* Superficies modo oscuro (Slate Charcoal suave, descanso visual) */
+  --bg-canvas: #1b2230;
+  --bg-surface: #242c3d;
+  --bg-surface-elevated: #2d374d;
+  --bg-surface-hover: #354159;
+  --bg-input: #171d29;
 
-  /* Bordes */
-  --border-subtle: #1e293b;
-  --border-medium: #2d3b55;
+  /* Bordes nítidos para delimitación visual clara */
+  --border-subtle: #343f54;
+  --border-medium: #45536e;
   --border-focus: #3b82f6;
 
   /* Textos */
   --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
   --text-inverted: #0f172a;
 
-  /* Semáforo Operacional Hotelero (Modo Oscuro) */
-  --status-available-bg: #062e24;
-  --status-available-border: #047857;
-  --status-available-text: #34d399;
+  /* Semáforo Operacional Hotelero (Modo Oscuro Suave) */
+  --status-available-bg: #10352b;
+  --status-available-border: #0f766e;
+  --status-available-text: #4ade80;
 
-  --status-occupied-bg: #10223f;
-  --status-occupied-border: #1d4ed8;
+  --status-occupied-bg: #1a2b4c;
+  --status-occupied-border: #2563eb;
   --status-occupied-text: #93c5fd;
 
-  --status-dirty-bg: #381a04;
+  --status-dirty-bg: #3b260e;
   --status-dirty-border: #b45309;
   --status-dirty-text: #fcd34d;
 
-  --status-cleaning-bg: #082d38;
+  --status-cleaning-bg: #113244;
   --status-cleaning-border: #0e7490;
   --status-cleaning-text: #67e8f9;
 
-  --status-maintenance-bg: #3b0d19;
+  --status-maintenance-bg: #3d1a24;
   --status-maintenance-border: #be123c;
   --status-maintenance-text: #fda4af;
 
@@ -118,11 +118,11 @@
   --btn-secondary-border: var(--border-medium);
   --btn-secondary-hover: var(--bg-surface-hover);
 
-  /* Sombras */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.35);
-  --shadow-md: 0 4px 12px 0 rgba(0, 0, 0, 0.45);
-  --shadow-modal: 0 20px 45px -5px rgba(0, 0, 0, 0.7);
-  --modal-overlay-bg: rgba(3, 7, 18, 0.75);
+  /* Sombras y modal */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 4px 12px 0 rgba(0, 0, 0, 0.35);
+  --shadow-modal: 0 20px 45px -5px rgba(0, 0, 0, 0.5);
+  --modal-overlay-bg: rgba(15, 20, 30, 0.65);
 }
 
 /* --------------------------------------------------------------------------
