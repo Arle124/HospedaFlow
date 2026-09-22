@@ -5,9 +5,9 @@ import {
   Wifi,
   WifiOff,
   RefreshCw,
-  Monitor,
+  Layers,
   Sparkles,
-  ShieldCheck
+  BarChart3
 } from 'lucide-react';
 
 export type UserRole = 'receptionist' | 'housekeeper' | 'admin';
@@ -50,127 +50,162 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange }) => 
   };
 
   return (
-    <header style={{
-      backgroundColor: 'var(--bg-card)',
-      borderBottom: '1px solid var(--border-color)',
-      position: 'sticky',
-      top: 0,
-      zIndex: 100,
-      boxShadow: '0 2px 10px rgba(0,0,0,0.2)'
-    }}>
-      <div className="container" style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        gap: '12px',
-        paddingTop: '12px',
-        paddingBottom: '12px'
-      }}>
-        {/* Marca & Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{
-            backgroundColor: 'var(--primary)',
-            padding: '8px',
-            borderRadius: 'var(--radius-sm)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#fff'
-          }}>
-            <Hotel size={22} />
+    <header
+      style={{
+        backgroundColor: 'var(--bg-surface)',
+        borderBottom: '1px solid var(--border-subtle)',
+        position: 'sticky',
+        top: 0,
+        zIndex: 100,
+      }}
+    >
+      <div
+        style={{
+          maxWidth: '1360px',
+          margin: '0 auto',
+          padding: '0 20px',
+          height: '56px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '16px',
+        }}
+      >
+        {/* Marca y Entorno */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div
+              style={{
+                width: '28px',
+                height: '28px',
+                borderRadius: '4px',
+                backgroundColor: '#1d4ed8',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#ffffff',
+              }}
+            >
+              <Hotel size={16} />
+            </div>
+            <div>
+              <span style={{ fontSize: '15px', fontWeight: '700', letterSpacing: '-0.3px', color: 'var(--text-primary)' }}>
+                HospedaSync
+              </span>
+              <span
+                style={{
+                  marginLeft: '6px',
+                  fontSize: '10px',
+                  fontWeight: '600',
+                  color: 'var(--text-muted)',
+                  border: '1px solid var(--border-subtle)',
+                  padding: '1px 5px',
+                  borderRadius: '3px',
+                }}
+              >
+                PMS
+              </span>
+            </div>
           </div>
-          <div>
-            <h1 style={{
-              fontSize: '18px',
-              fontWeight: '700',
-              letterSpacing: '-0.3px',
-              color: 'var(--text-main)',
-              lineHeight: 1.2
-            }}>
-              HospedaSync
-            </h1>
-            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-              Hotel PMS · Offline-First
-            </span>
-          </div>
+
+          {/* Separador vertical */}
+          <div style={{ width: '1px', height: '24px', backgroundColor: 'var(--border-subtle)' }} />
+
+          {/* Selector de Entornos Operativos (Roles delimitados) */}
+          <nav style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <button
+              type="button"
+              onClick={() => onRoleChange('receptionist')}
+              style={{
+                backgroundColor: currentRole === 'receptionist' ? 'var(--bg-surface-elevated)' : 'transparent',
+                color: currentRole === 'receptionist' ? '#60a5fa' : 'var(--text-secondary)',
+                border: currentRole === 'receptionist' ? '1px solid var(--border-medium)' : '1px solid transparent',
+                borderRadius: '4px',
+                padding: '5px 10px',
+                fontSize: '12px',
+                fontWeight: currentRole === 'receptionist' ? 600 : 400,
+              }}
+            >
+              <Layers size={14} />
+              Recepción
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onRoleChange('housekeeper')}
+              style={{
+                backgroundColor: currentRole === 'housekeeper' ? 'var(--bg-surface-elevated)' : 'transparent',
+                color: currentRole === 'housekeeper' ? '#34d399' : 'var(--text-secondary)',
+                border: currentRole === 'housekeeper' ? '1px solid var(--border-medium)' : '1px solid transparent',
+                borderRadius: '4px',
+                padding: '5px 10px',
+                fontSize: '12px',
+                fontWeight: currentRole === 'housekeeper' ? 600 : 400,
+              }}
+            >
+              <Sparkles size={14} />
+              Aseo (Móvil)
+            </button>
+
+            <button
+              type="button"
+              onClick={() => onRoleChange('admin')}
+              style={{
+                backgroundColor: currentRole === 'admin' ? 'var(--bg-surface-elevated)' : 'transparent',
+                color: currentRole === 'admin' ? '#a78bfa' : 'var(--text-secondary)',
+                border: currentRole === 'admin' ? '1px solid var(--border-medium)' : '1px solid transparent',
+                borderRadius: '4px',
+                padding: '5px 10px',
+                fontSize: '12px',
+                fontWeight: currentRole === 'admin' ? 600 : 400,
+              }}
+            >
+              <BarChart3 size={14} />
+              Gerencia
+            </button>
+          </nav>
         </div>
 
-        {/* Selector de Roles */}
-        <nav style={{
-          display: 'flex',
-          backgroundColor: 'var(--bg-input)',
-          padding: '4px',
-          borderRadius: 'var(--radius-sm)',
-          border: '1px solid var(--border-color)',
-          gap: '4px'
-        }}>
-          <button
-            onClick={() => onRoleChange('receptionist')}
+        {/* Indicadores de Conectividad & Sincronización */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {/* Badge de Red */}
+          <div
             style={{
-              padding: '6px 12px',
-              fontSize: '13px',
-              backgroundColor: currentRole === 'receptionist' ? 'var(--primary)' : 'transparent',
-              color: currentRole === 'receptionist' ? '#fff' : 'var(--text-muted)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              padding: '4px 8px',
+              borderRadius: '4px',
+              fontSize: '11px',
+              fontWeight: '500',
+              backgroundColor: isOnline ? 'var(--status-available-bg)' : 'var(--status-dirty-bg)',
+              color: isOnline ? 'var(--status-available-text)' : 'var(--status-dirty-text)',
+              border: `1px solid ${isOnline ? 'var(--status-available-border)' : 'var(--status-dirty-border)'}`,
             }}
           >
-            <Monitor size={15} />
-            <span>Recepción (PC)</span>
-          </button>
-          <button
-            onClick={() => onRoleChange('housekeeper')}
-            style={{
-              padding: '6px 12px',
-              fontSize: '13px',
-              backgroundColor: currentRole === 'housekeeper' ? 'var(--primary)' : 'transparent',
-              color: currentRole === 'housekeeper' ? '#fff' : 'var(--text-muted)',
-            }}
-          >
-            <Sparkles size={15} />
-            <span>Aseo (Móvil)</span>
-          </button>
-          <button
-            onClick={() => onRoleChange('admin')}
-            style={{
-              padding: '6px 12px',
-              fontSize: '13px',
-              backgroundColor: currentRole === 'admin' ? 'var(--primary)' : 'transparent',
-              color: currentRole === 'admin' ? '#fff' : 'var(--text-muted)',
-            }}
-          >
-            <ShieldCheck size={15} />
-            <span>Gerencia</span>
-          </button>
-        </nav>
-
-        {/* Estado de Conectividad & Sincronización */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span className={`badge ${isOnline ? 'badge-success' : 'badge-danger'}`}>
             {isOnline ? <Wifi size={13} /> : <WifiOff size={13} />}
-            {isOnline ? 'En Línea' : 'Offline'}
-          </span>
+            <span>{isOnline ? 'En línea' : 'Sin conexión'}</span>
+          </div>
 
+          {/* Cola de Sincronización */}
           {pendingCount > 0 && (
-            <span className="badge badge-warning" title="Cambios locales pendientes de enviar al servidor">
-              {pendingCount} pend.
-            </span>
+            <button
+              type="button"
+              onClick={handleSyncNow}
+              disabled={!isOnline || isSyncing}
+              style={{
+                fontSize: '11px',
+                padding: '4px 9px',
+                backgroundColor: '#1e293b',
+                border: '1px solid #334155',
+                color: '#f8fafc',
+                borderRadius: '4px',
+              }}
+            >
+              <RefreshCw size={12} className={isSyncing ? 'animate-spin' : ''} />
+              <span>{pendingCount} {pendingCount === 1 ? 'pendiente' : 'pendientes'}</span>
+            </button>
           )}
-
-          <button
-            onClick={handleSyncNow}
-            disabled={!isOnline || isSyncing}
-            style={{
-              padding: '6px 10px',
-              backgroundColor: 'var(--bg-input)',
-              border: '1px solid var(--border-color)',
-              color: 'var(--text-main)',
-              fontSize: '12px'
-            }}
-            title="Sincronizar cambios locales con la base de datos central"
-          >
-            <RefreshCw size={14} style={{ animation: isSyncing ? 'spin 1s linear infinite' : 'none' }} />
-            <span>{isSyncing ? 'Sincronizando...' : 'Sincronizar'}</span>
-          </button>
         </div>
       </div>
     </header>

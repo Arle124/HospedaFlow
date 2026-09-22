@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { db, type Room } from '../db/db';
 import { syncService } from '../services/syncService';
+import { eventBus } from '../services/eventBus';
 import {
-  Sparkles,
   CheckCircle2,
   Brush,
   AlertTriangle,
   Send,
-  WifiOff
+  WifiOff,
+  Wrench
 } from 'lucide-react';
 
 export const HousekeeperView: React.FC = () => {
@@ -28,6 +29,7 @@ export const HousekeeperView: React.FC = () => {
   }, []);
 
   const handleStartCleaning = async (roomId: string) => {
+    const room = rooms.find((r) => r.id === roomId);
     await db.rooms.update(roomId, {
       status: 'cleaning',
       updatedAt: new Date().toISOString(),
@@ -36,19 +38,40 @@ export const HousekeeperView: React.FC = () => {
       roomId,
       status: 'cleaning',
     });
+
+    if (room) {
+      eventBus.emit({
+        type: 'room_issue',
+        title: `Aseo en Curso: Hab #${room.number}`,
+        message: `Personal de aseo comenzó limpieza en Piso ${room.floor}.`,
+        roomNumber: room.number,
+      });
+    }
+
     loadRooms();
   };
 
   const handleFinishCleaning = async (roomId: string) => {
+    const room = rooms.find((r) => r.id === roomId);
     await db.rooms.update(roomId, {
       status: 'available',
-      notes: undefined, // Limpiar novedades resueltas
+      notes: undefined, // Se limpia la novedad al terminar aseo
       updatedAt: new Date().toISOString(),
     });
     await syncService.enqueueAction('UPDATE_ROOM_STATUS', {
       roomId,
       status: 'available',
     });
+
+    if (room) {
+      eventBus.emit({
+        type: 'room_cleaned',
+        title: `¡Habitación #${room.number} Lista!`,
+        message: `Despachada por Aseo. Lista y disponible para recepción inmediata.`,
+        roomNumber: room.number,
+      });
+    }
+
     loadRooms();
   };
 
@@ -66,66 +89,89 @@ export const HousekeeperView: React.FC = () => {
       notes: quickNote,
     });
 
+    eventBus.emit({
+      type: 'room_issue',
+      title: `Aviso: Hab #${selectedRoomForNote.number}`,
+      message: `Novedad reportada: "${quickNote}"`,
+      roomNumber: selectedRoomForNote.number,
+    });
+
     setSelectedRoomForNote(null);
     setQuickNote('');
     loadRooms();
   };
 
-  // Priorizar habitaciones que necesitan atención (sucias o en limpieza)
+  // Orden de prioridad operacional: Sucias -> En limpieza -> Mantenimiento -> Disponibles -> Ocupadas
   const sortedRooms = [...rooms].sort((a, b) => {
     const order: Record<string, number> = { dirty: 1, cleaning: 2, maintenance: 3, available: 4, occupied: 5 };
     return (order[a.status] || 99) - (order[b.status] || 99);
   });
 
-  const pendingCount = rooms.filter((r) => r.status === 'dirty' || r.status === 'cleaning').length;
+  const dirtyCount = rooms.filter((r) => r.status === 'dirty').length;
+  const cleaningCount = rooms.filter((r) => r.status === 'cleaning').length;
 
   return (
-    <div className="container" style={{ maxWidth: '600px', paddingBottom: '60px' }}>
-      {/* Alerta si está sin internet */}
+    <div style={{ maxWidth: '580px', margin: '0 auto', padding: '16px 16px 80px 16px' }}>
+      {/* Alerta sin conexión amigable para camarera */}
       {!isOnline && (
-        <div style={{
-          backgroundColor: 'var(--warning-bg)',
-          border: '1px solid var(--warning)',
-          borderRadius: 'var(--radius-md)',
-          padding: '12px 16px',
-          marginBottom: '16px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '10px'
-        }}>
-          <WifiOff size={22} color="var(--warning)" />
-          <div style={{ fontSize: '13px', lineHeight: 1.3 }}>
-            <strong>Modo Sin Señal:</strong> Puedes seguir marcando habitaciones. Todo se guarda seguro en tu teléfono y se avisará a recepción apenas tengas Wi-Fi.
+        <div
+          style={{
+            backgroundColor: 'var(--status-dirty-bg)',
+            border: '1px solid var(--status-dirty-border)',
+            borderRadius: 'var(--radius-sm)',
+            padding: '10px 14px',
+            marginBottom: '14px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px',
+          }}
+        >
+          <WifiOff size={18} color="var(--status-dirty-text)" style={{ flexShrink: 0 }} />
+          <div style={{ fontSize: '12px', color: 'var(--status-dirty-text)', lineHeight: 1.3 }}>
+            <strong>Modo sin señal:</strong> Puedes seguir marcando habitaciones. Se guardan en el teléfono y se enviarán a recepción apenas haya Wi-Fi.
           </div>
         </div>
       )}
 
-      {/* Encabezado Housekeeping */}
-      <div style={{
-        backgroundColor: 'var(--bg-card)',
-        padding: '16px 20px',
-        borderRadius: 'var(--radius-md)',
-        border: '1px solid var(--border-color)',
-        marginBottom: '18px',
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center'
-      }}>
-        <div>
-          <h2 style={{ fontSize: '20px', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Sparkles size={20} color="var(--warning)" />
-            Aseo y Habitaciones
-          </h2>
-          <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-            {pendingCount > 0
-              ? `Tienes ${pendingCount} habitaciones pendientes de aseo.`
-              : '¡Todo el hotel se encuentra al día y limpio! 🎉'}
-          </p>
+      {/* Barra de progreso de aseo */}
+      <div
+        style={{
+          backgroundColor: 'var(--bg-surface)',
+          border: '1px solid var(--border-subtle)',
+          borderRadius: 'var(--radius-md)',
+          padding: '14px 16px',
+          marginBottom: '16px',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            <h1 style={{ fontSize: '17px', fontWeight: '700', color: 'var(--text-primary)' }}>
+              Aseo de Habitaciones
+            </h1>
+            <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+              {dirtyCount > 0
+                ? `${dirtyCount} por asear · ${cleaningCount} en proceso`
+                : 'Piso al día: no hay habitaciones sucias pendientes'}
+            </p>
+          </div>
+          <div
+            style={{
+              padding: '6px 12px',
+              backgroundColor: dirtyCount > 0 ? 'var(--status-dirty-bg)' : 'var(--status-available-bg)',
+              color: dirtyCount > 0 ? 'var(--status-dirty-text)' : 'var(--status-available-text)',
+              border: `1px solid ${dirtyCount > 0 ? 'var(--status-dirty-border)' : 'var(--status-available-border)'}`,
+              borderRadius: 'var(--radius-xs)',
+              fontSize: '12px',
+              fontWeight: '700',
+            }}
+          >
+            {dirtyCount} pendientes
+          </div>
         </div>
       </div>
 
-      {/* Lista vertical de tarjetas grandes para tocar fácil */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+      {/* Lista táctil vertical de habitaciones */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {sortedRooms.map((room) => {
           const isDirty = room.status === 'dirty';
           const isCleaning = room.status === 'cleaning';
@@ -136,110 +182,128 @@ export const HousekeeperView: React.FC = () => {
             <div
               key={room.id}
               style={{
-                backgroundColor: 'var(--bg-card)',
+                backgroundColor: 'var(--bg-surface)',
                 border: isDirty
-                  ? '2px solid var(--warning)'
+                  ? '1px solid var(--status-dirty-border)'
                   : isCleaning
-                  ? '2px solid var(--primary)'
-                  : '1px solid var(--border-color)',
-                borderRadius: 'var(--radius-lg)',
-                padding: '18px',
-                boxShadow: 'var(--shadow-card)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '14px'
+                  ? '1px solid var(--border-focus)'
+                  : '1px solid var(--border-subtle)',
+                borderRadius: 'var(--radius-md)',
+                padding: '14px 16px',
+                boxShadow: 'var(--shadow-sm)',
               }}
             >
-              {/* Header de la tarjeta */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              {/* Encabezado de la tarjeta */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
                 <div>
-                  <span style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: '600' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.4px', fontWeight: '600' }}>
                     Piso {room.floor} · {room.type}
                   </span>
-                  <div style={{ fontSize: '28px', fontWeight: '900', letterSpacing: '-0.5px' }}>
-                    Hab #{room.number}
+                  <div style={{ fontSize: '26px', fontWeight: '800', letterSpacing: '-0.5px', color: 'var(--text-primary)', lineHeight: 1.1 }}>
+                    #{room.number}
                   </div>
                 </div>
 
                 <div>
-                  {isDirty && <span className="badge badge-warning" style={{ fontSize: '13px', padding: '6px 12px' }}>Requiere Aseo</span>}
-                  {isCleaning && <span className="badge badge-info" style={{ fontSize: '13px', padding: '6px 12px' }}>En Limpieza</span>}
-                  {isAvailable && <span className="badge badge-success" style={{ fontSize: '13px', padding: '6px 12px' }}>Limpia / Libre</span>}
-                  {isOccupied && <span className="badge" style={{ backgroundColor: '#334155', color: '#cbd5e1' }}>Huésped adentro</span>}
+                  {isDirty && <span className="status-pill status-dirty">Sucia / Desocupada</span>}
+                  {isCleaning && <span className="status-pill status-cleaning">En Limpieza</span>}
+                  {isAvailable && <span className="status-pill status-available">Limpia / Lista</span>}
+                  {isOccupied && (
+                    <span
+                      style={{
+                        padding: '2px 7px',
+                        backgroundColor: 'var(--bg-input)',
+                        border: '1px solid var(--border-subtle)',
+                        borderRadius: 'var(--radius-xs)',
+                        fontSize: '11px',
+                        color: 'var(--text-muted)',
+                      }}
+                    >
+                      Huésped adentro
+                    </span>
+                  )}
                 </div>
               </div>
 
-              {/* Novedades o notas */}
+              {/* Novedad reportada si existe */}
               {room.notes && (
-                <div style={{
-                  padding: '8px 12px',
-                  backgroundColor: 'var(--bg-input)',
-                  borderLeft: '4px solid var(--warning)',
-                  borderRadius: 'var(--radius-sm)',
-                  fontSize: '13px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}>
-                  <AlertTriangle size={16} color="var(--warning)" />
+                <div
+                  style={{
+                    padding: '8px 10px',
+                    backgroundColor: 'rgba(217, 119, 6, 0.1)',
+                    borderLeft: '3px solid var(--status-dirty-border)',
+                    borderRadius: 'var(--radius-xs)',
+                    fontSize: '12px',
+                    color: '#fef3c7',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    marginBottom: '12px',
+                  }}
+                >
+                  <AlertTriangle size={15} color="var(--status-dirty-text)" style={{ flexShrink: 0 }} />
                   <span>{room.notes}</span>
                 </div>
               )}
 
-              {/* Botones de acción táctiles grandes */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {/* Acciones principales de campo (1 solo toque grande) */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '6px' }}>
                 {isDirty && (
                   <button
+                    type="button"
                     onClick={() => handleStartCleaning(room.id)}
                     style={{
                       width: '100%',
-                      padding: '16px',
-                      fontSize: '16px',
-                      fontWeight: '700',
-                      backgroundColor: 'var(--primary)',
-                      color: '#fff',
-                      borderRadius: 'var(--radius-md)'
+                      padding: '12px',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      backgroundColor: '#1d4ed8',
+                      color: '#ffffff',
+                      borderRadius: 'var(--radius-sm)',
                     }}
                   >
-                    <Brush size={20} />
+                    <Brush size={16} />
                     <span>Comenzar a Limpiar</span>
                   </button>
                 )}
 
                 {isCleaning && (
                   <button
+                    type="button"
                     onClick={() => handleFinishCleaning(room.id)}
                     style={{
                       width: '100%',
-                      padding: '16px',
-                      fontSize: '16px',
+                      padding: '12px',
+                      fontSize: '14px',
                       fontWeight: '700',
-                      backgroundColor: 'var(--success)',
-                      color: '#fff',
-                      borderRadius: 'var(--radius-md)'
+                      backgroundColor: '#047857',
+                      color: '#ffffff',
+                      borderRadius: 'var(--radius-sm)',
                     }}
                   >
-                    <CheckCircle2 size={20} />
-                    <span>¡Lista y Limpia para Huésped!</span>
+                    <CheckCircle2 size={17} />
+                    <span>¡Limpia y Lista para Recepción!</span>
                   </button>
                 )}
 
-                {/* Botón secundario para reportar novedad */}
+                {/* Botón secundario para reportar avería o falta de insumos */}
                 <button
+                  type="button"
                   onClick={() => {
                     setSelectedRoomForNote(room);
                     setQuickNote(room.notes || '');
                   }}
                   style={{
                     backgroundColor: 'transparent',
-                    border: '1px solid var(--border-color)',
-                    color: 'var(--text-muted)',
-                    padding: '10px',
-                    fontSize: '13px'
+                    border: '1px solid var(--border-medium)',
+                    color: 'var(--text-secondary)',
+                    padding: '7px',
+                    fontSize: '12px',
+                    borderRadius: 'var(--radius-xs)',
                   }}
                 >
-                  <AlertTriangle size={15} />
-                  <span>{room.notes ? 'Editar novedad' : 'Reportar daño o falta de insumos'}</span>
+                  <Wrench size={13} />
+                  <span>{room.notes ? 'Modificar aviso a recepción' : 'Aviso a recepción (avería o insumos)'}</span>
                 </button>
               </div>
             </div>
@@ -247,63 +311,80 @@ export const HousekeeperView: React.FC = () => {
         })}
       </div>
 
-      {/* Modal: Reportar Novedad */}
+      {/* Modal: Reportar Novedad Rápida */}
       {selectedRoomForNote && (
-        <div className="modal-backdrop" onClick={() => setSelectedRoomForNote(null)}>
-          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-            <h3 style={{ fontSize: '18px', fontWeight: '700', marginBottom: '8px' }}>
-              Novedad en Habitación #{selectedRoomForNote.number}
-            </h3>
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '14px' }}>
-              Selecciona o escribe una nota para que recepción esté enterada.
-            </p>
-
-            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '14px' }}>
-              {['Faltan toallas', 'Cama requiere cambio', 'Bombillo fundido', 'Falta jabón', 'Llave con problemas'].map((preset) => (
-                <button
-                  key={preset}
-                  type="button"
-                  onClick={() => setQuickNote(preset)}
-                  style={{
-                    padding: '6px 10px',
-                    fontSize: '12px',
-                    backgroundColor: 'var(--bg-input)',
-                    border: '1px solid var(--border-color)',
-                    color: 'var(--text-main)'
-                  }}
-                >
-                  {preset}
-                </button>
-              ))}
+        <div className="modal-overlay" onClick={() => setSelectedRoomForNote(null)}>
+          <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <span style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>
+                Aviso a Recepción · Hab #{selectedRoomForNote.number}
+              </span>
+              <button
+                type="button"
+                onClick={() => setSelectedRoomForNote(null)}
+                style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)' }}
+              >
+                ✕
+              </button>
             </div>
 
-            <form onSubmit={handleSaveNote}>
-              <textarea
-                rows={3}
-                style={{ width: '100%', marginBottom: '16px' }}
-                value={quickNote}
-                onChange={(e) => setQuickNote(e.target.value)}
-                placeholder="Escribe el detalle aquí..."
-                required
-              />
+            <div className="modal-body">
+              <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '12px' }}>
+                Toca una opción rápida o escribe el detalle para que el recepcionista lo vea al instante:
+              </p>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-                <button
-                  type="button"
-                  onClick={() => setSelectedRoomForNote(null)}
-                  style={{ padding: '8px 14px', backgroundColor: 'transparent', color: 'var(--text-muted)' }}
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  style={{ padding: '8px 18px', backgroundColor: 'var(--primary)', color: '#fff' }}
-                >
-                  <Send size={15} />
-                  <span>Guardar Novedad</span>
-                </button>
+              {/* Chips rápidos de 1 toque */}
+              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '14px' }}>
+                {[
+                  'Faltan toallas',
+                  'Falta jabón / shampoo',
+                  'Bombillo quemado',
+                  'Fuga en baño',
+                  'Cerradura dura',
+                  'Control remoto sin pilas',
+                ].map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => setQuickNote(preset)}
+                    style={{
+                      padding: '5px 9px',
+                      fontSize: '11px',
+                      backgroundColor: quickNote === preset ? '#1e293b' : 'var(--bg-input)',
+                      border: `1px solid ${quickNote === preset ? 'var(--border-focus)' : 'var(--border-medium)'}`,
+                      color: quickNote === preset ? '#93c5fd' : 'var(--text-secondary)',
+                      borderRadius: 'var(--radius-xs)',
+                    }}
+                  >
+                    {preset}
+                  </button>
+                ))}
               </div>
-            </form>
+
+              <form onSubmit={handleSaveNote}>
+                <textarea
+                  rows={3}
+                  value={quickNote}
+                  onChange={(e) => setQuickNote(e.target.value)}
+                  placeholder="Detalle de la novedad..."
+                  required
+                />
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '14px' }}>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => setSelectedRoomForNote(null)}
+                  >
+                    Cancelar
+                  </button>
+                  <button type="submit" className="btn-primary">
+                    <Send size={13} />
+                    <span>Enviar a Recepción</span>
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}
