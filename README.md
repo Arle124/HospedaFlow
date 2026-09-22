@@ -1,154 +1,183 @@
-# HospedaSync 🏨
+# HospedaSync
 
-**HospedaSync** es un sistema integral de gestión hotelera (PMS - *Property Management System*) diseñado bajo la metodología **Offline-First**. Su objetivo es garantizar la continuidad operativa total del hotel (recepción, caja, check-in, limpieza de habitaciones y auditoría) incluso ante cortes prolongados de energía o caídas del servicio de internet.
-
----
-
-## 📌 Descripción del Programa
-
-En establecimientos hoteleros y de hospedaje, las fallas de conectividad a internet suelen paralizar la recepción y el registro de habitaciones. HospedaSync resuelve esta problemática permitiendo que cada terminal trabaje de forma autónoma con almacenamiento local y se sincronice automáticamente en segundo plano con el servidor central al restablecerse la red.
-
-### Perfiles de Usuario Adaptados:
-1. **🖥️ Recepcionista (PC / Escritorio):**
-   * **Control de Caja y Turnos:** Apertura de turnos con base en efectivo, registro de entradas/salidas de dinero y arqueo de caja de cierre con cálculo automático de descuadres (faltante/sobrante) y notas de entrega.
-   * **Tablero de Habitaciones:** Matriz visual con filtros rápidos (*Disponibles, Ocupadas, Sucias, En Limpieza*) y flujo de Check-in (asignación de huésped y cobro a caja) y Check-out.
-2. **🧹 Personal de Aseo / Housekeeping (Celular / Móvil):**
-   * **Interfaz Táctil de 1 Toque:** Tarjetas grandes con botones diseñados para uso ágil en pasillos y pisos con una sola mano.
-   * **Flujo Operativo:** Marcar habitación como *"Comenzar a limpiar"* y posterior confirmación de *"¡Limpia y Lista!"* (pasa inmediatamente a disponible para recepción).
-   * **Reporte de Novedades:** Registro rápido de faltantes de insumos (toallas, jabones) o daños en la infraestructura.
-   * **Garantía Offline:** Alertas explícitas para tranquilidad del personal cuando limpian en zonas sin cobertura Wi-Fi.
-3. **📊 Administrador / Dueño (Gerencial - Celular / PC):**
-   * **Métricas en Tiempo Real (KPIs):** % de Ocupación actual, habitaciones disponibles vs ocupadas y dinero en caja del turno activo.
-   * **Auditoría de Turnos:** Histórico de arqueos con desglose de diferencias de caja y registro de novedades.
-   * **Control de Minibar:** Monitoreo de stock de productos e inventario.
+Sistema de gestión hotelera (PMS - *Property Management System*) diseñado bajo la metodología **Offline-First**. Garantiza la continuidad operativa integral de hoteles y alojamientos (recepción, caja, check-in, limpieza de habitaciones y auditoría) frente a caídas de conexión a internet o interrupciones en el suministro eléctrico.
 
 ---
 
-## 🛠️ Herramientas y Tecnologías Utilizadas
+## 1. Descripción del Sistema
+
+En entornos hoteleros, los cortes en el servicio de internet o fallas de red local suelen congelar la operación en recepción y la asignación de habitaciones. HospedaSync elimina esta dependencia mediante un modelo de datos local en cada dispositivo, sincronizando automáticamente las transacciones en segundo plano una vez que la conectividad es restablecida.
+
+### Perfiles de Usuario
+
+* **Recepción (PC / Terminal de Escritorio):**
+  * **Control de Caja y Turnos:** Apertura de turno con fondo de caja, registro de ingresos/egresos y arqueo de cierre con cálculo automático de descuadres (sobrantes o faltantes) y notas de entrega.
+  * **Tablero de Habitaciones:** Matriz visual con filtrado por estado (*Disponibles, Ocupadas, Sucias, En Limpieza*) y flujos directos de Check-in (asignación de huésped y cargo a caja) y Check-out.
+
+* **Personal de Aseo / Housekeeping (Dispositivo Móvil):**
+  * **Interfaz Táctil Optimizada:** Botones y tarjetas de gran tamaño diseñados para operar con una sola mano en pasillos y pisos.
+  * **Ciclo de Limpieza:** Transición rápida de estados (*"Comenzar a limpiar"* a *"Limpia y lista"*), habilitando la habitación de inmediato en recepción.
+  * **Reporte de Novedades:** Registro ágil de faltantes de insumos o daños en la infraestructura.
+  * **Garantía Sin Conexión:** Indicadores visuales claros para operar con total tranquilidad en áreas sin cobertura Wi-Fi.
+
+* **Administración y Auditoría (Gerencial - PC / Móvil):**
+  * **Métricas en Tiempo Real:** Indicadores clave de desempeño (KPIs) como porcentaje de ocupación, balance actual en caja y distribución de habitaciones.
+  * **Auditoría de Turnos:** Historial de arqueos con desglose detallado de diferencias registradas por usuario.
+  * **Control de Inventario:** Supervisión de existencias y productos de minibar.
+
+---
+
+## 2. Arquitectura Offline-First y Sincronización
+
+El sistema implementa el patrón **Outbox Transaccional** en el cliente:
+
+```
+[UI / Vistas de Rol]
+        │
+        ▼
+[Dexie.js (IndexedDB)] ──► Persistencia local inmediata (UI no bloqueante)
+        │
+        ▼
+ [Sync Queue (Outbox)]
+        │
+   (Evento Online)
+        │
+        ▼
+[SyncService Dispatcher] ──► Resolución de IDs locales a IDs de servidor
+        │
+        ▼
+ [API REST Backend Go] ──► Persistencia central en PostgreSQL
+```
+
+1. **Escritura Local Inmediata:** Toda operación (apertura de turno, cambio de estado de habitación o cobro) se persiste primero en IndexedDB mediante Dexie.js. La interfaz responde instantáneamente sin esperar respuesta del servidor.
+2. **Cola de Sincronización (Sync Queue):** Las acciones pendientes se encolan con identificadores locales temporales (`localId`).
+3. **Resolución Dinámica de Dependencias:** Al restablecerse la red, las acciones maestras (como `OPEN_SHIFT`) obtienen el ID numérico asignado por PostgreSQL. Las acciones subsecuentes dependientes (como `CLOSE_SHIFT`) resuelven dinámicamente este identificador en la base local antes de su envío a la API, evitando errores de referencia o transacciones huérfanas.
+4. **Tolerancia a Fallos:** Reintentos con control de errores e idempotencia en las operaciones de despacho.
+
+---
+
+## 3. Stack Tecnológico
 
 ### Backend (API REST en Go)
-* **Lenguaje:** [Go](https://go.dev/) (v1.26+)
-* **Enrutador HTTP & Middlewares:** [Chi v5](https://github.com/go-chi/chi) con `Logger`, `Recoverer`, `Timeout` y `RequestID`.
-* **Persistencia & Base de Datos:** [PostgreSQL](https://www.postgresql.org/) con pool de conexiones transaccional de alto rendimiento vía [pgx/v5](https://github.com/jackc/pgx).
-* **Compilación de Consultas SQL:** [sqlc](https://sqlc.dev/) para generación de código Go seguro a partir de esquemas y queries SQL.
-* **Migraciones de Base de Datos:** Scripts DDL estructurados (`UP` y `DOWN`) para control de versiones del esquema relacional.
-* **Live Reload:** [Air](https://github.com/air-verse/air) para recarga en caliente del binario Go en desarrollo.
-* **Auditoría de Arquitectura:** [Graphify](https://github.com/safishamsi/graphify) para detección de grafos de dependencias, centralidad de componentes (*god nodes*) y reporte de comunidades.
+* **Lenguaje:** Go (v1.22+)
+* **Enrutador HTTP y Middlewares:** Chi v5 (`Logger`, `Recoverer`, `Timeout`, `RequestID`).
+* **Base de Datos y Persistencia:** PostgreSQL con pool transaccional de alto rendimiento vía `pgx/v5` (`pgxpool`).
+* **Arranque Tolerante:** Capacidad de inicializar el servidor en modo degradado si PostgreSQL no está accesible de inmediato, manteniendo activo el endpoint de salud `/healthz`.
+* **Pruebas Automatizadas:** Pruebas unitarias nativas con el paquete estándar `testing`, validando casos límite de arqueo y máquinas de estado.
 
-### Frontend (PWA Offline-First)
-* **Framework & Lenguaje:** [React 19](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/) empaquetado con [Vite](https://vitejs.dev/).
-* **Almacenamiento Local (Local-First):** [Dexie.js](https://dexie.org/) sobre **IndexedDB** del navegador para persistencia sin conexión de turnos, habitaciones, inventario y cola de sincronización.
-* **Capacidades PWA (Progressive Web App):**
-  * `manifest.json` para instalación en pantalla de inicio (celulares) o como app de escritorio independiente en Windows/Mac/Linux (Chrome/Edge).
+### Frontend (Progressive Web App)
+* **Framework y Lenguaje:** React 19 + TypeScript sobre Vite.
+* **Almacenamiento Local:** Dexie.js sobre IndexedDB del navegador.
+* **Capacidades PWA:**
+  * Web App Manifest (`manifest.json`) para instalación nativa en sistemas operativos de escritorio (Windows, macOS, Linux) y móviles (Android, iOS).
   * Service Worker (`sw.js`) para almacenamiento en caché estático del shell de la aplicación.
-* **Sincronización (Outbox Pattern):** `syncService` con escucha de eventos de red (`online`/`offline`) y procesamiento en cola FIFO contra los endpoints del backend.
-* **Iconografía & Estilos:** [Lucide React](https://lucide.dev/) + CSS responsivo con variables de diseño en modo oscuro.
+* **Iconografía e Interfaz:** Lucide React, con estilos CSS modulares y soporte para modo oscuro mediante variables CSS.
+
+### Herramientas de Desarrollo y Calidad
+* **Air:** Recarga en caliente (*live-reload*) para el backend en Go.
+* **Oxlint:** Linter de alto rendimiento para validación estática en el frontend.
+* **Graphify:** Mapeo de conocimiento arquitectónico, detección de dependencias y auditoría de grafos (`graphify-out/`).
 
 ---
 
-## 📐 Estructura del Repositorio
+## 4. Estructura del Repositorio
 
 ```text
 HospedaSync/
 ├── cmd/
 │   └── api/
-│       └── main.go                 # Punto de entrada HTTP con Graceful Shutdown y arranque tolerante
+│       └── main.go                 # Punto de entrada HTTP, pool pgx y graceful shutdown
 ├── internal/
-│   ├── config/                     # Carga de variables de entorno y timeouts
-│   ├── domain/                     # Entidades de dominio (Turnos, Habitaciones, Insumos, Errores)
-│   ├── handler/                    # Transporte HTTP (Router Chi, ShiftHandler)
-│   ├── repository/                 # Interfaces de persistencia y repositorio Postgres (pgxpool)
-│   └── service/                    # Casos de uso y reglas de negocio (ShiftService)
+│   ├── config/                     # Carga de variables de entorno y configuración
+│   ├── domain/                     # Modelos de dominio y definición de errores canónicos
+│   ├── handler/                    # Controladores HTTP (Router Chi, ShiftHandler)
+│   ├── repository/                 # Interfaces de persistencia y repositorio PostgreSQL
+│   └── service/                    # Lógica de negocio (ShiftService) y pruebas unitarias
 ├── pkg/
-│   └── response/                   # Envoltorios estandarizados de respuestas JSON y errores
+│   └── response/                   # Respuestas JSON estandarizadas y manejo de errores HTTP
 ├── sql/
-│   ├── migrations/                 # Migraciones UP/DOWN para PostgreSQL
-│   ├── queries/                    # Consultas SQL preparadas para sqlc
-│   └── schema/                     # DDL canónico de la base de datos
+│   ├── migrations/                 # Migraciones DDL (UP / DOWN) para PostgreSQL
+│   ├── queries/                    # Consultas SQL preparadas
+│   └── schema/                     # Esquema canónico relacional
 ├── frontend/                       # Aplicación React + TypeScript + Vite (PWA)
 │   ├── public/                     # Manifest PWA, Service Worker e iconos
 │   └── src/
-│       ├── components/             # Header con selector de roles y semáforo de red
+│       ├── components/             # Componentes comunes (Header, semáforo de conectividad)
 │       ├── db/                     # Esquema IndexedDB con Dexie y datos semilla
-│       ├── services/               # Servicio de sincronización y cola Outbox
-│       └── views/                  # Vistas especializadas (Recepción, Aseo, Gerencia)
-├── graphify-out/                   # Grafo de conocimiento arquitectónico y reporte visual
-├── .air.toml                       # Configuración de recarga en caliente para Go
-├── sqlc.yaml                       # Configuración del compilador sqlc
+│       ├── services/               # Servicio Outbox de sincronización en segundo plano
+│       └── views/                  # Vistas especializadas por rol (Recepción, Aseo, Gerencia)
+├── graphify-out/                   # Grafo de dependencias arquitectónicas y diagramas de flujo
+├── .air.toml                       # Configuración de recarga en caliente
 └── README.md                       # Documentación técnica del proyecto
 ```
 
 ---
 
-## 🚀 Despliegue y Ejecución en el Estado Actual
+## 5. Guía de Ejecución y Desarrollo Local
 
-El sistema está configurado para que puedas levantar tanto el backend como el frontend en pocos pasos:
-
-### 1. Requisitos Previos
-* **Go:** 1.22 o superior (recomendado 1.26+)
-* **Node.js:** v20 o v22 LTS con npm
-* **PostgreSQL (Opcional en desarrollo local):** El backend cuenta con arranque tolerante a fallos; si la base de datos no está disponible, el servidor inicia en modo degradado respondiendo en `/healthz` sin abortar.
+### Requisitos Previos
+* Go 1.22 o superior
+* Node.js v20 o v22 LTS y npm
+* PostgreSQL (opcional para desarrollo local desacoplado)
 
 ---
 
-### 2. Ejecutar el Backend (API Go)
+### Ejecución del Backend
 
-1. Configura opcionalmente las variables de entorno (por defecto usará puerto `8080` y Postgres local):
+1. Configuración de variables de entorno (opcional, utiliza valores por defecto para entorno local):
    ```bash
    export PORT=8080
    export DATABASE_URL="postgres://postgres:postgres@localhost:5432/hospedasync?sslmode=disable"
    export APP_ENV=development
    ```
 
-2. Ejecutar directamente:
+2. Iniciar el servidor:
    ```bash
    go run cmd/api/main.go
    ```
+   *(O mediante Air para recarga automática: `air`)*
 
-3. *(Alternativa con recarga automática en caliente)*:
-   ```bash
-   air
-   ```
-
-El servidor estará escuchando en:
-* Salud del servicio: `http://localhost:8080/healthz`
-* API de Turnos: `http://localhost:8080/api/v1/shifts`
+3. Endpoints disponibles:
+   * Chequeo de salud: `http://localhost:8080/healthz`
+   * API de Turnos: `http://localhost:8080/api/v1/shifts`
 
 ---
 
-### 3. Ejecutar el Frontend (PWA)
+### Ejecución del Frontend
 
-1. Ingresar al directorio del frontend e instalar dependencias:
+1. Instalar dependencias e iniciar el servidor de desarrollo:
    ```bash
    cd frontend
    npm install
-   ```
-
-2. Iniciar el servidor de desarrollo:
-   ```bash
    npm run dev
    ```
 
-3. Abre en tu navegador `http://localhost:5173`.
-   * **Instalación:** En la barra de direcciones de Chrome o Edge, pulsa el botón **"Instalar HospedaSync"** para obtener el ícono en tu escritorio de Windows.
-   * **Prueba Offline:** En las herramientas de desarrollador (F12) $\rightarrow$ pestaña *Network*, selecciona *"Offline"* y observa cómo la creación de turnos, check-in y limpieza siguen funcionando al 100% de manera ininterrumpida.
+2. Abrir en el navegador: `http://localhost:5173`
 
 ---
 
-### 4. Compilación para Producción
+### Verificación y Calidad de Código
 
-* **Binario del Backend:**
+* **Pruebas del Backend:**
   ```bash
-  go build -ldflags="-s -w" -o bin/hospedasync-api ./cmd/api
+  go test -v ./...
   ```
-* **Build del Frontend:**
+* **Linter del Frontend:**
   ```bash
-  cd frontend
-  npm run build
+  cd frontend && npm run lint
   ```
-  Los archivos estáticos optimizados se generarán en `frontend/dist/` listos para ser servidos por Nginx, Caddy o directamente embebidos en el servidor Go.
+* **Compilación de Producción:**
+  * Backend:
+    ```bash
+    go build -ldflags="-s -w" -o bin/hospedasync-api ./cmd/api
+    ```
+  * Frontend:
+    ```bash
+    cd frontend && npm run build
+    ```
 
 ---
 
-## 📄 Licencia
-Este proyecto es propiedad de **HospedaSync**. Todos los derechos reservados.
+## 6. Licencia
+
+Proyecto privado desarrollado para HospedaSync. Todos los derechos reservados.
