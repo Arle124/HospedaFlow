@@ -103,24 +103,10 @@ export const AdminView: React.FC = () => {
         </p>
       </div>
 
-      {/* Grid de KPIs Ejecutivos */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-          gap: '12px',
-          marginBottom: '20px',
-        }}
-      >
+      {/* Grid de KPIs Ejecutivos (Responsive: 5 cols en desktop, 2 cols en móvil) */}
+      <div className="admin-kpi-grid">
         {/* KPI 1: Ocupación */}
-        <div
-          style={{
-            backgroundColor: 'var(--bg-surface)',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: 'var(--radius-md)',
-            padding: '14px 16px',
-          }}
-        >
+        <div className="admin-kpi-card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
             <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>Tasa de Ocupación</span>
             <TrendingUp size={16} color="#60a5fa" />
@@ -138,19 +124,12 @@ export const AdminView: React.FC = () => {
         </div>
 
         {/* KPI 2: Caja en Operación */}
-        <div
-          style={{
-            backgroundColor: 'var(--bg-surface)',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: 'var(--radius-md)',
-            padding: '14px 16px',
-          }}
-        >
+        <div className="admin-kpi-card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
             <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>Caja Turno Activo</span>
             <DollarSign size={16} color="var(--status-available-text)" />
           </div>
-          <div className="tabular-nums" style={{ fontSize: '28px', fontWeight: '800', color: 'var(--status-available-text)' }}>
+          <div className="tabular-nums kpi-value" style={{ color: 'var(--status-available-text)' }}>
             ${(activeShift?.currentCash || 0).toLocaleString()}
           </div>
           <div style={{ fontSize: '11px', color: activeShift ? 'var(--status-available-text)' : 'var(--text-muted)', marginTop: '4px' }}>
@@ -159,19 +138,12 @@ export const AdminView: React.FC = () => {
         </div>
 
         {/* KPI 3: Recaudación Histórica */}
-        <div
-          style={{
-            backgroundColor: 'var(--bg-surface)',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: 'var(--radius-md)',
-            padding: '14px 16px',
-          }}
-        >
+        <div className="admin-kpi-card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
             <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>Total en Arqueos Cerrados</span>
             <FileText size={16} color="var(--border-focus)" />
           </div>
-          <div className="tabular-nums" style={{ fontSize: '28px', fontWeight: '800', color: 'var(--text-primary)' }}>
+          <div className="tabular-nums kpi-value" style={{ color: 'var(--text-primary)' }}>
             ${totalClosedCash.toLocaleString()}
           </div>
           <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
@@ -180,19 +152,12 @@ export const AdminView: React.FC = () => {
         </div>
 
         {/* KPI 4: Novedades / Averías Activas */}
-        <div
-          style={{
-            backgroundColor: 'var(--bg-surface)',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: 'var(--radius-md)',
-            padding: '14px 16px',
-          }}
-        >
+        <div className="admin-kpi-card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
             <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>Avisos de Aseo / Averías</span>
             <Wrench size={16} color={roomsWithIncidents.length > 0 ? 'var(--status-dirty-text)' : 'var(--text-muted)'} />
           </div>
-          <div className="tabular-nums" style={{ fontSize: '28px', fontWeight: '800', color: roomsWithIncidents.length > 0 ? 'var(--status-dirty-text)' : 'var(--text-primary)' }}>
+          <div className="tabular-nums kpi-value" style={{ color: roomsWithIncidents.length > 0 ? 'var(--status-dirty-text)' : 'var(--text-primary)' }}>
             {roomsWithIncidents.length}
           </div>
           <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
@@ -201,19 +166,12 @@ export const AdminView: React.FC = () => {
         </div>
 
         {/* KPI 5: Pagos a Proveedores / Egresos */}
-        <div
-          style={{
-            backgroundColor: 'var(--bg-surface)',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: 'var(--radius-md)',
-            padding: '14px 16px',
-          }}
-        >
+        <div className="admin-kpi-card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
             <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>Egresos a Proveedores</span>
             <ArrowDownRight size={16} color="var(--status-maintenance-text)" />
           </div>
-          <div className="tabular-nums" style={{ fontSize: '28px', fontWeight: '800', color: totalSupplierExpenses > 0 ? 'var(--status-maintenance-text)' : 'var(--text-primary)' }}>
+          <div className="tabular-nums kpi-value" style={{ color: totalSupplierExpenses > 0 ? 'var(--status-maintenance-text)' : 'var(--text-primary)' }}>
             ${totalSupplierExpenses.toLocaleString()}
           </div>
           <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
@@ -309,84 +267,160 @@ export const AdminView: React.FC = () => {
             No se registran turnos anteriores en la base de datos local.
           </div>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid var(--border-medium)', color: 'var(--text-muted)' }}>
-                  <th style={{ padding: '8px 10px', fontWeight: '600' }}>Fecha y Turno</th>
-                  <th style={{ padding: '8px 10px', fontWeight: '600' }}>Estado</th>
-                  <th style={{ padding: '8px 10px', fontWeight: '600' }}>Fondo Base</th>
-                  <th style={{ padding: '8px 10px', fontWeight: '600' }}>Esperado</th>
-                  <th style={{ padding: '8px 10px', fontWeight: '600' }}>Entregado</th>
-                  <th style={{ padding: '8px 10px', fontWeight: '600' }}>Diferencia (Cuadre)</th>
-                  <th style={{ padding: '8px 10px', fontWeight: '600' }}>Observaciones de Cierre</th>
-                </tr>
-              </thead>
-              <tbody>
-                {shifts.map((s) => {
-                  const isOpen = s.status === 'OPEN';
-                  const isBalanced = s.difference === 0;
-                  const isShortage = s.difference !== undefined && s.difference < 0;
-                  const isSurplus = s.difference !== undefined && s.difference > 0;
+          <>
+            {/* Tabla para Desktop / Tablets */}
+            <div className="desktop-only" style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid var(--border-medium)', color: 'var(--text-muted)' }}>
+                    <th style={{ padding: '8px 10px', fontWeight: '600' }}>Fecha y Turno</th>
+                    <th style={{ padding: '8px 10px', fontWeight: '600' }}>Estado</th>
+                    <th style={{ padding: '8px 10px', fontWeight: '600' }}>Fondo Base</th>
+                    <th style={{ padding: '8px 10px', fontWeight: '600' }}>Esperado</th>
+                    <th style={{ padding: '8px 10px', fontWeight: '600' }}>Entregado</th>
+                    <th style={{ padding: '8px 10px', fontWeight: '600' }}>Diferencia (Cuadre)</th>
+                    <th style={{ padding: '8px 10px', fontWeight: '600' }}>Observaciones de Cierre</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {shifts.map((s) => {
+                    const isOpen = s.status === 'OPEN';
+                    const isBalanced = s.difference === 0;
+                    const isShortage = s.difference !== undefined && s.difference < 0;
+                    const isSurplus = s.difference !== undefined && s.difference > 0;
 
-                  return (
-                    <tr key={s.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                      <td style={{ padding: '10px' }}>
-                        <div className="tabular-nums" style={{ fontWeight: '600', color: 'var(--text-primary)' }}>
+                    return (
+                      <tr key={s.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                        <td style={{ padding: '10px' }}>
+                          <div className="tabular-nums" style={{ fontWeight: '600', color: 'var(--text-primary)' }}>
+                            {s.id.startsWith('shift_') ? s.id.substring(0, 14) : `Turno #${s.id}`}
+                          </div>
+                          <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                            {new Date(s.startedAt).toLocaleDateString()} {new Date(s.startedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                        </td>
+
+                        <td style={{ padding: '10px' }}>
+                          {isOpen ? (
+                            <span className="status-pill status-cleaning">En Operación</span>
+                          ) : (
+                            <span className="status-pill status-available">Cerrado</span>
+                          )}
+                        </td>
+
+                        <td className="tabular-nums" style={{ padding: '10px' }}>
+                          ${s.initialCash.toLocaleString()}
+                        </td>
+
+                        <td className="tabular-nums" style={{ padding: '10px', fontWeight: '600' }}>
+                          ${s.currentCash.toLocaleString()}
+                        </td>
+
+                        <td className="tabular-nums" style={{ padding: '10px' }}>
+                          {s.actualCash !== undefined ? `$${s.actualCash.toLocaleString()}` : '—'}
+                        </td>
+
+                        <td style={{ padding: '10px' }}>
+                          {isOpen ? (
+                            <span style={{ color: 'var(--text-muted)' }}>Pendiente cierre</span>
+                          ) : isBalanced ? (
+                            <span style={{ color: 'var(--status-available-text)', fontWeight: '600' }}>
+                              $0 (Cuadre Exacto)
+                            </span>
+                          ) : isShortage ? (
+                            <span style={{ color: 'var(--status-maintenance-text)', fontWeight: '700' }}>
+                              ${s.difference?.toLocaleString()} (Faltante)
+                            </span>
+                          ) : isSurplus ? (
+                            <span style={{ color: 'var(--status-dirty-text)', fontWeight: '700' }}>
+                              +${s.difference?.toLocaleString()} (Sobrante)
+                            </span>
+                          ) : null}
+                        </td>
+
+                        <td style={{ padding: '10px', color: 'var(--text-secondary)', maxWidth: '240px' }}>
+                          {s.notes || <span style={{ color: 'var(--text-muted)' }}>Sin notas</span>}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Tarjetas Optimizadas para Móvil (Sin scroll horizontal) */}
+            <div className="mobile-only mobile-shifts-card-list">
+              {shifts.map((s) => {
+                const isOpen = s.status === 'OPEN';
+                const isBalanced = s.difference === 0;
+                const isShortage = s.difference !== undefined && s.difference < 0;
+                const isSurplus = s.difference !== undefined && s.difference > 0;
+
+                return (
+                  <div key={s.id} className="mobile-card-item">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                      <div>
+                        <div className="tabular-nums" style={{ fontWeight: '700', fontSize: '13px', color: 'var(--text-primary)' }}>
                           {s.id.startsWith('shift_') ? s.id.substring(0, 14) : `Turno #${s.id}`}
                         </div>
-                        <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                          {new Date(s.startedAt).toLocaleDateString()} {new Date(s.startedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        <div style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+                          {new Date(s.startedAt).toLocaleDateString()} · {new Date(s.startedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </div>
-                      </td>
+                      </div>
+                      <span className={`status-pill ${isOpen ? 'status-cleaning' : 'status-available'}`} style={{ fontSize: '11px' }}>
+                        {isOpen ? 'En Operación' : 'Cerrado'}
+                      </span>
+                    </div>
 
-                      <td style={{ padding: '10px' }}>
-                        {isOpen ? (
-                          <span className="status-pill status-cleaning">En Operación</span>
-                        ) : (
-                          <span className="status-pill status-available">Cerrado</span>
-                        )}
-                      </td>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', fontSize: '11px', backgroundColor: 'var(--bg-input)', padding: '8px 10px', borderRadius: 'var(--radius-sm)' }}>
+                      <div>
+                        <span style={{ color: 'var(--text-muted)' }}>Esperado: </span>
+                        <strong className="tabular-nums" style={{ color: 'var(--text-primary)' }}>${(s.currentCash || 0).toLocaleString()}</strong>
+                      </div>
+                      <div>
+                        <span style={{ color: 'var(--text-muted)' }}>Entregado: </span>
+                        <strong className="tabular-nums" style={{ color: 'var(--text-primary)' }}>{s.actualCash !== undefined ? `$${s.actualCash.toLocaleString()}` : '—'}</strong>
+                      </div>
+                      <div>
+                        <span style={{ color: 'var(--text-muted)' }}>Fondo Base: </span>
+                        <span className="tabular-nums">${s.initialCash.toLocaleString()}</span>
+                      </div>
+                      <div>
+                        <span style={{ color: 'var(--text-muted)' }}>Cuadre: </span>
+                        <span
+                          className="tabular-nums"
+                          style={{
+                            fontWeight: '700',
+                            color: isBalanced
+                              ? 'var(--status-available-text)'
+                              : isShortage
+                              ? 'var(--status-maintenance-text)'
+                              : isSurplus
+                              ? '#3b82f6'
+                              : 'var(--text-muted)',
+                          }}
+                        >
+                          {isOpen
+                            ? 'Pendiente'
+                            : isBalanced
+                            ? '$0'
+                            : isShortage
+                            ? `-$${Math.abs(s.difference || 0).toLocaleString()}`
+                            : `+$${(s.difference || 0).toLocaleString()}`}
+                        </span>
+                      </div>
+                    </div>
 
-                      <td className="tabular-nums" style={{ padding: '10px' }}>
-                        ${s.initialCash.toLocaleString()}
-                      </td>
-
-                      <td className="tabular-nums" style={{ padding: '10px', fontWeight: '600' }}>
-                        ${s.currentCash.toLocaleString()}
-                      </td>
-
-                      <td className="tabular-nums" style={{ padding: '10px' }}>
-                        {s.actualCash !== undefined ? `$${s.actualCash.toLocaleString()}` : '—'}
-                      </td>
-
-                      <td style={{ padding: '10px' }}>
-                        {isOpen ? (
-                          <span style={{ color: 'var(--text-muted)' }}>Pendiente cierre</span>
-                        ) : isBalanced ? (
-                          <span style={{ color: 'var(--status-available-text)', fontWeight: '600' }}>
-                            $0 (Cuadre Exacto)
-                          </span>
-                        ) : isShortage ? (
-                          <span style={{ color: 'var(--status-maintenance-text)', fontWeight: '700' }}>
-                            ${s.difference?.toLocaleString()} (Faltante)
-                          </span>
-                        ) : isSurplus ? (
-                          <span style={{ color: 'var(--status-dirty-text)', fontWeight: '700' }}>
-                            +${s.difference?.toLocaleString()} (Sobrante)
-                          </span>
-                        ) : null}
-                      </td>
-
-                      <td style={{ padding: '10px', color: 'var(--text-secondary)', maxWidth: '240px' }}>
-                        {s.notes || <span style={{ color: 'var(--text-muted)' }}>Sin notas</span>}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                    {s.notes && (
+                      <p style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '8px', fontStyle: 'italic', borderLeft: '2px solid var(--border-medium)', paddingLeft: '8px' }}>
+                        "{s.notes}"
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </>
         )}
       </section>
 
@@ -417,61 +451,89 @@ export const AdminView: React.FC = () => {
             No se registran pagos a proveedores o salidas de caja en los turnos locales.
           </div>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid var(--border-medium)', color: 'var(--text-muted)' }}>
-                  <th style={{ padding: '8px 10px', fontWeight: '600' }}>Fecha y Hora</th>
-                  <th style={{ padding: '8px 10px', fontWeight: '600' }}>Proveedor / Beneficiario</th>
-                  <th style={{ padding: '8px 10px', fontWeight: '600' }}>Categoría</th>
-                  <th style={{ padding: '8px 10px', fontWeight: '600' }}>Concepto / Detalle</th>
-                  <th style={{ padding: '8px 10px', fontWeight: '600' }}>Nº Factura / Recibo</th>
-                  <th style={{ padding: '8px 10px', fontWeight: '600' }}>Monto Pagado</th>
-                  <th style={{ padding: '8px 10px', fontWeight: '600' }}>Turno</th>
-                </tr>
-              </thead>
-              <tbody>
-                {supplierExpenses.map((exp) => (
-                  <tr key={exp.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                    <td style={{ padding: '10px', whiteSpace: 'nowrap' }}>
-                      <div className="tabular-nums" style={{ color: 'var(--text-primary)', fontWeight: '500' }}>
-                        {new Date(exp.createdAt).toLocaleDateString()} {new Date(exp.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </div>
-                    </td>
-                    <td style={{ padding: '10px', fontWeight: '600', color: 'var(--text-primary)' }}>
-                      {exp.supplier || 'Proveedor no especificado'}
-                    </td>
-                    <td style={{ padding: '10px' }}>
-                      <span
-                        style={{
-                          fontSize: '11px',
-                          padding: '2px 7px',
-                          backgroundColor: 'var(--bg-input)',
-                          border: '1px solid var(--border-subtle)',
-                          borderRadius: 'var(--radius-xs)',
-                          color: 'var(--text-secondary)',
-                        }}
-                      >
-                        {exp.category || 'Varios'}
-                      </span>
-                    </td>
-                    <td style={{ padding: '10px', color: 'var(--text-secondary)', maxWidth: '260px' }}>
-                      {exp.concept}
-                    </td>
-                    <td style={{ padding: '10px', color: 'var(--text-muted)' }}>
-                      {exp.receipt || '—'}
-                    </td>
-                    <td className="tabular-nums" style={{ padding: '10px', fontWeight: '700', color: 'var(--status-maintenance-text)' }}>
-                      -${exp.amount.toLocaleString()}
-                    </td>
-                    <td style={{ padding: '10px', color: 'var(--text-muted)', fontSize: '11px' }}>
-                      {exp.shiftId.startsWith('shift_') ? exp.shiftId.substring(0, 14) : `Turno #${exp.shiftId}`}
-                    </td>
+          <>
+            {/* Tabla para Desktop / Tablets */}
+            <div className="desktop-only" style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid var(--border-medium)', color: 'var(--text-muted)' }}>
+                    <th style={{ padding: '8px 10px', fontWeight: '600' }}>Fecha y Hora</th>
+                    <th style={{ padding: '8px 10px', fontWeight: '600' }}>Proveedor / Beneficiario</th>
+                    <th style={{ padding: '8px 10px', fontWeight: '600' }}>Categoría</th>
+                    <th style={{ padding: '8px 10px', fontWeight: '600' }}>Concepto / Detalle</th>
+                    <th style={{ padding: '8px 10px', fontWeight: '600' }}>Nº Factura / Recibo</th>
+                    <th style={{ padding: '8px 10px', fontWeight: '600' }}>Monto Pagado</th>
+                    <th style={{ padding: '8px 10px', fontWeight: '600' }}>Turno</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {supplierExpenses.map((exp) => (
+                    <tr key={exp.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                      <td style={{ padding: '10px', whiteSpace: 'nowrap' }}>
+                        <div className="tabular-nums" style={{ color: 'var(--text-primary)', fontWeight: '500' }}>
+                          {new Date(exp.createdAt).toLocaleDateString()} {new Date(exp.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      </td>
+                      <td style={{ padding: '10px', fontWeight: '600', color: 'var(--text-primary)' }}>
+                        {exp.supplier || 'Proveedor no especificado'}
+                      </td>
+                      <td style={{ padding: '10px' }}>
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            padding: '2px 7px',
+                            backgroundColor: 'var(--bg-input)',
+                            border: '1px solid var(--border-subtle)',
+                            borderRadius: 'var(--radius-xs)',
+                            color: 'var(--text-secondary)',
+                          }}
+                        >
+                          {exp.category || 'Varios'}
+                        </span>
+                      </td>
+                      <td style={{ padding: '10px', color: 'var(--text-secondary)', maxWidth: '260px' }}>
+                        {exp.concept}
+                      </td>
+                      <td style={{ padding: '10px', color: 'var(--text-muted)' }}>
+                        {exp.receipt || '—'}
+                      </td>
+                      <td className="tabular-nums" style={{ padding: '10px', fontWeight: '700', color: 'var(--status-maintenance-text)' }}>
+                        -${exp.amount.toLocaleString()}
+                      </td>
+                      <td style={{ padding: '10px', color: 'var(--text-muted)', fontSize: '11px' }}>
+                        {exp.shiftId.startsWith('shift_') ? exp.shiftId.substring(0, 14) : `Turno #${exp.shiftId}`}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Tarjetas Optimizadas para Móvil (Sin scroll horizontal) */}
+            <div className="mobile-only mobile-expenses-card-list">
+              {supplierExpenses.map((exp) => (
+                <div key={exp.id} className="mobile-card-item">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <strong style={{ fontSize: '13px', color: 'var(--text-primary)' }}>
+                      {exp.supplier || 'Proveedor no especificado'}
+                    </strong>
+                    <span className="tabular-nums" style={{ fontWeight: '800', color: 'var(--status-maintenance-text)', fontSize: '14px' }}>
+                      -${exp.amount.toLocaleString()}
+                    </span>
+                  </div>
+                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '8px' }}>
+                    {exp.concept}
+                  </p>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: 'var(--text-muted)' }}>
+                    <span>{exp.category || 'Varios'} {exp.receipt ? `· Doc: ${exp.receipt}` : ''}</span>
+                    <span className="tabular-nums">
+                      {new Date(exp.createdAt).toLocaleDateString()} {new Date(exp.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </section>
 
