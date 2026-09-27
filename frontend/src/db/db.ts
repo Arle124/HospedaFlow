@@ -164,7 +164,7 @@ export async function seedInitialDataIfNeeded() {
       { id: '203', number: '203', floor: 2, type: 'double', status: 'dirty', price: 95000, updatedAt: new Date().toISOString() },
       { id: '204', number: '204', floor: 2, type: 'single', status: 'maintenance', price: 60000, notes: 'Fuga de agua en lavamanos', updatedAt: new Date().toISOString() },
     ];
-    await db.rooms.bulkAdd(initialRooms);
+    await db.rooms.bulkPut(initialRooms);
   } else {
     // Si ya existían habitaciones de una versión anterior, asegurar que Hab #102 tenga datos completos de prueba
     const room102 = await db.rooms.get('102');
@@ -206,6 +206,6 @@ export async function seedInitialDataIfNeeded() {
       { id: 4, name: 'Cerveza Club Colombia 330ml', sku: 'CERV-330', price: 6000, stock: 20, minStock: 6 },
       { id: 5, name: 'Kit Aseo Dental', sku: 'KIT-DEN', price: 5000, stock: 12, minStock: 3 },
     ];
-    await db.inventory.bulkAdd(initialProducts);
+    await db.inventory.bulkPut(initialProducts);
   }
 }
