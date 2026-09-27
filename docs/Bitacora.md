@@ -20,6 +20,11 @@ Historial de sesiones de trabajo, hitos completados y estado del proyecto.
   5. **Rediseño de Toasts (`NotificationToast.tsx`):**
      * Integración con `AnimatePresence` en modo `popLayout`.
      * Desplazamiento reactivo de toasts con físicas elásticas al descartar avisos.
+  6. **Desarticulación y Modularización de `ReceptionistView.tsx`:**
+     * Reducción del monolito de 2.089 líneas a 365 líneas desacopladas.
+     * Creación de 8 subcomponentes atómicos en `views/receptionist/`: `ShiftBanner`, `RoomFilterBar`, `RoomCard`, `RoomDetailModal`, `CheckInModal`, `CheckOutModal`, `ShiftModals`, `MinibarModal` y `ExpenseModal`.
+     * Eliminación masiva de CSS inline en favor de clases semánticas de diseño en `index.css`.
+     * Inyección de físicas de resorte Framer Motion (`whileHover`, `whileTap`, `springModal`) en tarjetas y modales emergentes.
 
 ### Sesión 4: Validación de Mercado y Modelo Econométrico
 * **Fecha:** 27 de Septiembre de 2026
