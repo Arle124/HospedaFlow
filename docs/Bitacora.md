@@ -25,6 +25,11 @@ Historial de sesiones de trabajo, hitos completados y estado del proyecto.
      * Creación de 8 subcomponentes atómicos en `views/receptionist/`: `ShiftBanner`, `RoomFilterBar`, `RoomCard`, `RoomDetailModal`, `CheckInModal`, `CheckOutModal`, `ShiftModals`, `MinibarModal` y `ExpenseModal`.
      * Eliminación masiva de CSS inline en favor de clases semánticas de diseño en `index.css`.
      * Inyección de físicas de resorte Framer Motion (`whileHover`, `whileTap`, `springModal`) en tarjetas y modales emergentes.
+  7. **Arquitectura Contable de Multimedios de Pago (Efectivo vs Digital):**
+     * Integración en Dexie.js (`db.ts` v3) de `PaymentMethod`: `CASH`, `TRANSFER` (Nequi/Daviplata/QR) y `CARD` (Datáfono con opción de recargo del 6%).
+     * Selector de medio de pago en Check-in, Check-out y Venta de Minibar.
+     * Separación contable estricta: los pagos digitales NO contaminan la gaveta física de billetes.
+     * Arqueo y Cierre de Turno con conciliación por canales: arqueo de efectivo físico independiente y resumen auditado de Nequi y Datáfonos.
 
 ### Sesión 4: Validación de Mercado y Modelo Econométrico
 * **Fecha:** 27 de Septiembre de 2026
