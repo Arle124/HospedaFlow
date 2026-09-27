@@ -745,6 +745,79 @@ button:disabled {
   padding: 12px 14px;
 }
 
+/* Admin Section Headers */
+.admin-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+  gap: 8px;
+}
+
+/* Incidents Section */
+.admin-incidents-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 12px;
+}
+
+.admin-incident-card {
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  overflow: hidden;
+}
+
+.admin-incident-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-incident-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-incident-room {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.admin-incident-floor {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.admin-incident-notes {
+  font-size: 12px;
+  color: var(--status-dirty-text);
+  margin-top: 5px;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.admin-incident-btn {
+  font-size: 12px;
+  padding: 7px 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+
 /* Modal Backdrop & Card Core */
 .modal-backdrop {
   position: fixed;
@@ -833,6 +906,30 @@ button:disabled {
 
   .admin-kpi-card .kpi-value {
     font-size: 20px !important;
+  }
+
+  .admin-section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .admin-incidents-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .admin-incident-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .admin-incident-btn {
+    width: 100%;
+    padding: 9px 12px;
+    font-size: 12px;
   }
 }
 

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { db, type Room, type LocalShift, type LocalProduct, type CashMovement } from '../db/db';
 import { syncService } from '../services/syncService';
 import { eventBus } from '../services/eventBus';
+import { springTouch } from '../utils/motion';
 import {
   TrendingUp,
   DollarSign,
@@ -191,49 +193,46 @@ export const AdminView: React.FC = () => {
             marginBottom: '20px',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-            <AlertTriangle size={16} color="var(--status-dirty-text)" />
-            <h2 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>
-              Novedades de Infraestructura e Insumos (Reportadas por Camareras)
-            </h2>
+          <div className="admin-section-header">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <AlertTriangle size={16} color="var(--status-dirty-text)" style={{ flexShrink: 0 }} />
+              <h2 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>
+                Novedades de Infraestructura e Insumos
+              </h2>
+            </div>
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+              Reportes generados por camareras
+            </span>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '10px' }}>
+          <div className="admin-incidents-grid">
             {roomsWithIncidents.map((r) => (
-              <div
-                key={r.id}
-                style={{
-                  backgroundColor: 'var(--bg-input)',
-                  border: '1px solid var(--border-medium)',
-                  borderRadius: 'var(--radius-sm)',
-                  padding: '10px 12px',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  gap: '12px',
-                }}
-              >
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <strong style={{ fontSize: '14px', color: 'var(--text-primary)' }}>Hab #{r.number}</strong>
-                    <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Piso {r.floor}</span>
+              <div key={r.id} className="admin-incident-card">
+                <div className="admin-incident-content">
+                  <div className="admin-incident-meta">
+                    <strong className="admin-incident-room">Hab #{r.number}</strong>
+                    <span className="admin-incident-floor">Piso {r.floor}</span>
                     {r.status === 'maintenance' && (
-                      <span className="status-pill status-maintenance" style={{ fontSize: '10px' }}>Mantenimiento</span>
+                      <span className="status-pill status-maintenance" style={{ fontSize: '10px' }}>
+                        Mantenimiento
+                      </span>
                     )}
                   </div>
-                  <p style={{ fontSize: '12px', color: 'var(--status-dirty-text)', marginTop: '4px' }}>
+                  <p className="admin-incident-notes">
                     {r.notes}
                   </p>
                 </div>
-                <button
+                <motion.button
                   type="button"
-                  className="btn-primary"
+                  className="btn-primary admin-incident-btn"
                   onClick={() => handleResolveIncident(r)}
-                  style={{ fontSize: '11px', padding: '6px 10px', display: 'flex', alignItems: 'center', gap: '5px', flexShrink: 0 }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
+                  transition={springTouch}
                 >
-                  <CheckCircle2 size={12} />
+                  <CheckCircle2 size={13} />
                   <span>Marcar Solucionado</span>
-                </button>
+                </motion.button>
               </div>
             ))}
           </div>
@@ -250,10 +249,10 @@ export const AdminView: React.FC = () => {
           marginBottom: '20px',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+        <div className="admin-section-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <FileText size={16} color="#60a5fa" />
-            <h2 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>
+            <FileText size={16} color="#60a5fa" style={{ flexShrink: 0 }} />
+            <h2 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>
               Auditoría Histórica de Arqueos de Turno
             </h2>
           </div>
@@ -434,10 +433,10 @@ export const AdminView: React.FC = () => {
           marginBottom: '20px',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+        <div className="admin-section-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Receipt size={16} color="var(--status-maintenance-text)" />
-            <h2 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>
+            <Receipt size={16} color="var(--status-maintenance-text)" style={{ flexShrink: 0 }} />
+            <h2 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>
               Auditoría de Pagos a Proveedores y Egresos de Caja
             </h2>
           </div>
