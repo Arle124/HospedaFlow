@@ -34,6 +34,11 @@ Historial de sesiones de trabajo, hitos completados y estado del proyecto.
      * Configuración de proxy inverso `/api` y escucha en todas las interfaces de red (`host: true`) en `vite.config.ts`.
      * Capacidad en el router Chi de Go para servir la SPA de frontend directamente desde `frontend/dist` en el puerto 8080 si existe la compilación de producción.
      * Cross-compilación de binario estático optimizado para ARM64 (`bin/hospedasync-arm64`) para ejecución nativa en Android / Termux.
+  9. **Adaptabilidad Móvil Completa, Role Bottom Sheet y Protección con PIN Gerencial:**
+     * **Header Adaptativo Móvil:** Segmented control en desktop colapsado a un selector táctil compacto (*Role Pill*) en móvil (`<= 640px`), simplificando indicadores secundarios.
+     * **Bottom Sheet Táctil de Selección de Rol:** Menú inferior táctil para alternar fluidamente entre Recepción, Aseo y Gerencia.
+     * **Protección de Seguridad con PIN:** Modal numérico táctil de 4 dígitos para Gerencia (por defecto `1234`), con físicas de sacudida (*shake animation*) ante fallos y atajo de autocompletado para demostraciones comerciales.
+     * **Vista Gerencial Móvil (`AdminView`):** Grid táctil de métricas 2x2 y transformación automática de tablas contables en tarjetas tipo recibo legibles sin scroll horizontal.
 
 ### Sesión 4: Validación de Mercado y Modelo Econométrico
 * **Fecha:** 27 de Septiembre de 2026
