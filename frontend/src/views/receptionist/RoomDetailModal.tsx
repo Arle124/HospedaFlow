@@ -72,29 +72,26 @@ export const RoomDetailModal: React.FC<RoomDetailModalProps> = ({
               }}
             >
               <div>
-                <span style={{ color: 'var(--text-muted)', fontSize: '11px', display: 'block' }}>Huésped:</span>
-                <span style={{ fontWeight: '700', color: 'var(--text-primary)' }}>{room.guestName || 'Sin registrar'}</span>
+                <span style={{ color: 'var(--text-muted)', fontSize: '11px', display: 'block', marginBottom: '2px' }}>Huésped:</span>
+                <span style={{ fontWeight: '700', color: 'var(--text-primary)', display: 'block' }}>{room.guestName || 'Sin registrar'}</span>
               </div>
               <div>
-                <span style={{ color: 'var(--text-muted)', fontSize: '11px', display: 'block' }}>Huéspedes:</span>
+                <span style={{ color: 'var(--text-muted)', fontSize: '11px', display: 'block', marginBottom: '2px' }}>Huéspedes:</span>
                 <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: '600' }}>
                   <Users size={13} /> {room.guestsCount || 1} {(room.guestsCount || 1) === 1 ? 'persona' : 'personas'}
                 </span>
               </div>
               <div>
-                <span style={{ color: 'var(--text-muted)', fontSize: '11px', display: 'block' }}>Tarifa de Noche:</span>
-                <span className="tabular-nums" style={{ fontWeight: '600' }}>$ {room.price.toLocaleString()}</span>
+                <span style={{ color: 'var(--text-muted)', fontSize: '11px', display: 'block', marginBottom: '2px' }}>Tarifa de Noche:</span>
+                <span className="tabular-nums" style={{ fontWeight: '600', whiteSpace: 'nowrap' }}>${room.price.toLocaleString()}</span>
               </div>
               <div>
-                <span style={{ color: 'var(--text-muted)', fontSize: '11px', display: 'block' }}>Estado de Pago de Noche:</span>
+                <span style={{ color: 'var(--text-muted)', fontSize: '11px', display: 'block', marginBottom: '2px' }}>Estado de Pago:</span>
                 <span
-                  style={{
-                    fontWeight: '700',
-                    fontSize: '12px',
-                    color: room.paymentStatus === 'PAID' ? 'var(--status-available-text)' : 'var(--status-dirty-text)',
-                  }}
+                  className={`status-pill ${room.paymentStatus === 'PAID' ? 'status-available' : 'status-dirty'}`}
+                  style={{ fontSize: '11px', fontWeight: '600', whiteSpace: 'nowrap' }}
                 >
-                  {room.paymentStatus === 'PAID' ? '✓ Pagado en check-in' : '⏳ Pendiente al check-out'}
+                  {room.paymentStatus === 'PAID' ? '✓ Pagado' : '⏳ Pendiente'}
                 </span>
               </div>
             </div>
@@ -146,9 +143,9 @@ export const RoomDetailModal: React.FC<RoomDetailModalProps> = ({
                       {consumptions.map((c) => (
                         <tr key={c.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                           <td style={{ padding: '8px 10px', color: 'var(--text-primary)', fontWeight: '500' }}>{c.productName}</td>
-                          <td className="tabular-nums" style={{ padding: '8px 10px', textAlign: 'center' }}>{c.quantity}</td>
-                          <td className="tabular-nums" style={{ padding: '8px 10px', textAlign: 'right', fontWeight: '600' }}>
-                            $ {c.total.toLocaleString()}
+                          <td className="tabular-nums" style={{ padding: '8px 10px', textAlign: 'center', whiteSpace: 'nowrap' }}>{c.quantity}</td>
+                          <td className="tabular-nums" style={{ padding: '8px 10px', textAlign: 'right', fontWeight: '600', whiteSpace: 'nowrap' }}>
+                            ${c.total.toLocaleString()}
                           </td>
                         </tr>
                       ))}
@@ -168,25 +165,29 @@ export const RoomDetailModal: React.FC<RoomDetailModalProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
+                gap: '12px',
               }}
             >
-              <div>
-                <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: '700', display: 'block' }}>
                   Saldo Total por Cobrar
                 </span>
-                <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                  Hospedaje ($ {roomDebt.toLocaleString()}) + Minibar ($ {minibarDebt.toLocaleString()})
+                <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '3px', lineHeight: 1.3 }}>
+                  Hospedaje: <strong style={{ color: 'var(--text-primary)' }}>${roomDebt.toLocaleString()}</strong> · Minibar: <strong style={{ color: 'var(--text-primary)' }}>${minibarDebt.toLocaleString()}</strong>
                 </div>
               </div>
               <span
                 className="tabular-nums"
                 style={{
-                  fontSize: '18px',
+                  fontSize: '20px',
                   fontWeight: '800',
                   color: totalDebt > 0 ? 'var(--status-maintenance-text)' : 'var(--status-available-text)',
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
+                  textAlign: 'right',
                 }}
               >
-                $ {totalDebt.toLocaleString()}
+                ${totalDebt.toLocaleString()}
               </span>
             </div>
           </div>

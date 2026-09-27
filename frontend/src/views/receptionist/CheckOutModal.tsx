@@ -119,11 +119,14 @@ export const CheckOutModal: React.FC<CheckOutModalProps> = ({
                   <span
                     className="tabular-nums"
                     style={{
-                      fontSize: '16px',
+                      fontSize: '18px',
+                      fontWeight: '800',
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0,
                       color: totalDebt > 0 ? 'var(--status-maintenance-text)' : 'var(--status-available-text)',
                     }}
                   >
-                    $ {totalDebt.toLocaleString()}
+                    ${totalDebt.toLocaleString()}
                   </span>
                 </div>
               </div>
