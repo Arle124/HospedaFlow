@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { syncService } from '../services/syncService';
 import { getInitialTheme, applyTheme, type ThemeMode } from '../services/themeService';
+import { springTouch, springSegment } from '../utils/motion';
 import {
   Hotel,
   Wifi,
@@ -10,7 +12,7 @@ import {
   Sparkles,
   BarChart3,
   Sun,
-  Moon
+  Moon,
 } from 'lucide-react';
 
 export type UserRole = 'receptionist' | 'housekeeper' | 'admin';
@@ -19,6 +21,12 @@ interface HeaderProps {
   currentRole: UserRole;
   onRoleChange: (role: UserRole) => void;
 }
+
+const ROLES: { id: UserRole; label: string; icon: React.FC<{ size?: number }> }[] = [
+  { id: 'receptionist', label: 'Recepción', icon: Layers },
+  { id: 'housekeeper', label: 'Aseo (Móvil)', icon: Sparkles },
+  { id: 'admin', label: 'Gerencia', icon: BarChart3 },
+];
 
 export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange }) => {
   const [isOnline, setIsOnline] = useState<boolean>(syncService.getOnlineStatus());
@@ -58,190 +66,116 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange }) => 
   };
 
   const toggleTheme = () => {
-    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
+    const nextTheme: ThemeMode = theme === 'light' ? 'dark' : 'light';
+    setTheme(nextTheme);
   };
 
   return (
-    <header
-      style={{
-        backgroundColor: 'var(--bg-surface)',
-        borderBottom: '1px solid var(--border-subtle)',
-        position: 'sticky',
-        top: 0,
-        zIndex: 100,
-        width: '100%',
-        transition: 'background-color 0.2s ease, border-color 0.2s ease',
-      }}
-    >
-      <div
-        style={{
-          width: '100%',
-          padding: '0 24px',
-          height: '56px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '16px',
-        }}
-      >
-        {/* Marca y Selector de Espacio Operacional */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <div
-              style={{
-                width: '28px',
-                height: '28px',
-                borderRadius: 'var(--radius-xs)',
-                backgroundColor: '#1d4ed8',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: '#ffffff',
-              }}
+    <header className="app-header">
+      <div className="header-container">
+        {/* Identidad y Selector de Entorno Operacional */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <motion.div
+              className="brand-badge"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              transition={springTouch}
             >
               <Hotel size={16} />
-            </div>
-            <div>
+            </motion.div>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
               <span style={{ fontSize: '15px', fontWeight: '700', letterSpacing: '-0.3px', color: 'var(--text-primary)' }}>
                 HospedaSync
               </span>
-              <span
-                style={{
-                  marginLeft: '6px',
-                  fontSize: '10px',
-                  fontWeight: '600',
-                  color: 'var(--text-muted)',
-                  border: '1px solid var(--border-subtle)',
-                  padding: '1px 5px',
-                  borderRadius: '3px',
-                }}
-              >
-                PMS
-              </span>
+              <span className="brand-tag">PMS</span>
             </div>
           </div>
 
-          {/* Separador vertical */}
-          <div style={{ width: '1px', height: '22px', backgroundColor: 'var(--border-subtle)' }} />
+          <div className="header-divider" />
 
-          {/* Selector de Entornos */}
-          <nav style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-            <button
-              type="button"
-              onClick={() => onRoleChange('receptionist')}
-              style={{
-                backgroundColor: currentRole === 'receptionist' ? 'var(--bg-surface-elevated)' : 'transparent',
-                color: currentRole === 'receptionist' ? 'var(--border-focus)' : 'var(--text-secondary)',
-                border: currentRole === 'receptionist' ? '1px solid var(--border-medium)' : '1px solid transparent',
-                borderRadius: 'var(--radius-xs)',
-                padding: '5px 10px',
-                fontSize: '12px',
-                fontWeight: currentRole === 'receptionist' ? 600 : 500,
-              }}
-            >
-              <Layers size={14} />
-              Recepción
-            </button>
-
-            <button
-              type="button"
-              onClick={() => onRoleChange('housekeeper')}
-              style={{
-                backgroundColor: currentRole === 'housekeeper' ? 'var(--bg-surface-elevated)' : 'transparent',
-                color: currentRole === 'housekeeper' ? 'var(--status-available-text)' : 'var(--text-secondary)',
-                border: currentRole === 'housekeeper' ? '1px solid var(--border-medium)' : '1px solid transparent',
-                borderRadius: 'var(--radius-xs)',
-                padding: '5px 10px',
-                fontSize: '12px',
-                fontWeight: currentRole === 'housekeeper' ? 600 : 500,
-              }}
-            >
-              <Sparkles size={14} />
-              Aseo (Móvil)
-            </button>
-
-            <button
-              type="button"
-              onClick={() => onRoleChange('admin')}
-              style={{
-                backgroundColor: currentRole === 'admin' ? 'var(--bg-surface-elevated)' : 'transparent',
-                color: currentRole === 'admin' ? '#8b5cf6' : 'var(--text-secondary)',
-                border: currentRole === 'admin' ? '1px solid var(--border-medium)' : '1px solid transparent',
-                borderRadius: 'var(--radius-xs)',
-                padding: '5px 10px',
-                fontSize: '12px',
-                fontWeight: currentRole === 'admin' ? 600 : 500,
-              }}
-            >
-              <BarChart3 size={14} />
-              Gerencia
-            </button>
+          {/* Segmented Control con Spring Physics nativo */}
+          <nav className="role-nav-group" aria-label="Navegación por rol">
+            {ROLES.map(({ id, label, icon: Icon }) => {
+              const isActive = currentRole === id;
+              return (
+                <motion.button
+                  key={id}
+                  type="button"
+                  onClick={() => onRoleChange(id)}
+                  className={`role-tab-btn ${isActive ? 'active' : ''}`}
+                  whileTap={{ scale: 0.97 }}
+                  transition={springTouch}
+                >
+                  {isActive && (
+                    <motion.div
+                      layoutId="roleIndicator"
+                      className="role-tab-indicator"
+                      transition={springSegment}
+                    />
+                  )}
+                  <Icon size={14} />
+                  <span>{label}</span>
+                </motion.button>
+              );
+            })}
           </nav>
         </div>
 
-        {/* Indicadores de Conectividad, Sincronización y Switcher de Tema */}
+        {/* Controles de Sistema: Conectividad, Sincronización y Modo Oscuro */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          {/* Botón de Modo Claro / Modo Oscuro */}
-          <button
+          {/* Conmutador de Tema con rotación spring */}
+          <motion.button
             type="button"
             onClick={toggleTheme}
+            className="theme-toggle-btn"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.95 }}
+            transition={springTouch}
             aria-label={`Cambiar a modo ${theme === 'light' ? 'oscuro' : 'claro'}`}
             title={`Cambiar a modo ${theme === 'light' ? 'oscuro' : 'claro'}`}
-            style={{
-              padding: '6px 9px',
-              backgroundColor: 'var(--bg-surface-elevated)',
-              border: '1px solid var(--border-medium)',
-              color: 'var(--text-secondary)',
-              borderRadius: 'var(--radius-xs)',
-              fontSize: '11px',
-              fontWeight: '500',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}
           >
-            {theme === 'light' ? <Moon size={13} /> : <Sun size={13} color="#f59e0b" />}
+            <motion.div
+              key={theme}
+              initial={{ rotate: -90, opacity: 0 }}
+              animate={{ rotate: 0, opacity: 1 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+              style={{ display: 'flex', alignItems: 'center' }}
+            >
+              {theme === 'light' ? <Moon size={13} /> : <Sun size={13} color="#f59e0b" />}
+            </motion.div>
             <span>{theme === 'light' ? 'Modo Oscuro' : 'Modo Claro'}</span>
-          </button>
+          </motion.button>
 
-          {/* Badge de Conectividad */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '5px 9px',
-              borderRadius: 'var(--radius-xs)',
-              fontSize: '11px',
-              fontWeight: '600',
-              backgroundColor: isOnline ? 'var(--status-available-bg)' : 'var(--status-dirty-bg)',
-              color: isOnline ? 'var(--status-available-text)' : 'var(--status-dirty-text)',
-              border: `1px solid ${isOnline ? 'var(--status-available-border)' : 'var(--status-dirty-border)'}`,
-            }}
-          >
+          {/* Indicador de Conectividad Offline-First */}
+          <div className={`network-badge ${isOnline ? 'online' : 'offline'}`}>
+            <span className="pulse-dot" />
             {isOnline ? <Wifi size={13} /> : <WifiOff size={13} />}
             <span>{isOnline ? 'En línea' : 'Sin conexión'}</span>
           </div>
 
-          {/* Cola de Sincronización */}
-          {pendingCount > 0 && (
-            <button
-              type="button"
-              onClick={handleSyncNow}
-              disabled={!isOnline || isSyncing}
-              style={{
-                fontSize: '11px',
-                padding: '5px 9px',
-                backgroundColor: 'var(--bg-surface-elevated)',
-                border: '1px solid var(--border-medium)',
-                color: 'var(--text-primary)',
-                borderRadius: 'var(--radius-xs)',
-              }}
-            >
-              <RefreshCw size={12} className={isSyncing ? 'animate-spin' : ''} />
-              <span>{pendingCount} {pendingCount === 1 ? 'pendiente' : 'pendientes'}</span>
-            </button>
-          )}
+          {/* Cola de Sincronización en Background */}
+          <AnimatePresence>
+            {pendingCount > 0 && (
+              <motion.button
+                type="button"
+                onClick={handleSyncNow}
+                disabled={!isOnline || isSyncing}
+                className="btn-secondary"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                whileTap={{ scale: 0.96 }}
+                transition={springTouch}
+                style={{ fontSize: '11px', padding: '5px 10px', height: '30px' }}
+              >
+                <RefreshCw size={12} className={isSyncing ? 'animate-spin' : ''} />
+                <span>
+                  {pendingCount} {pendingCount === 1 ? 'pendiente' : 'pendientes'}
+                </span>
+              </motion.button>
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </header>

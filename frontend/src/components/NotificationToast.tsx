@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { eventBus, type LiveNotification } from '../services/eventBus';
+import { springToast, springTouch } from '../utils/motion';
 import { Sparkles, AlertCircle, Info, X } from 'lucide-react';
 
 export const NotificationToast: React.FC = () => {
@@ -23,16 +25,16 @@ export const NotificationToast: React.FC = () => {
         osc.stop(ctx.currentTime + 0.35);
       }
     } catch {
-      // Audio bloqueado si no hay interacción de usuario
+      // Audio bloqueado si no hay interacción previa de usuario
     }
   };
 
   useEffect(() => {
     const unsubscribe = eventBus.subscribe((notif) => {
-      setNotifications((prev) => [notif, ...prev.slice(0, 4)]);
+      setNotifications((prev) => [notif, ...prev.slice(0, 3)]);
       playChime();
 
-      // Auto-eliminar después de 6 segundos
+      // Auto-dismiss tras 6 segundos
       setTimeout(() => {
         setNotifications((prev) => prev.filter((n) => n.id !== notif.id));
       }, 6000);
@@ -45,102 +47,90 @@ export const NotificationToast: React.FC = () => {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
   };
 
-  if (notifications.length === 0) return null;
-
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: '68px',
-        right: '24px',
-        zIndex: 9999,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '8px',
-        maxWidth: '380px',
-        width: 'calc(100% - 48px)',
-        pointerEvents: 'none',
-      }}
-    >
-      {notifications.map((n) => {
-        const isClean = n.type === 'room_cleaned';
-        const isIssue = n.type === 'room_issue';
+    <div className="toast-viewport" aria-live="polite">
+      <AnimatePresence mode="popLayout">
+        {notifications.map((n) => {
+          const isClean = n.type === 'room_cleaned';
+          const isIssue = n.type === 'room_issue';
 
-        const borderColor = isClean
-          ? 'var(--status-available-border)'
-          : isIssue
-          ? 'var(--status-dirty-border)'
-          : 'var(--border-focus)';
-        const bgColor = isClean
-          ? 'var(--status-available-bg)'
-          : isIssue
-          ? 'var(--status-dirty-bg)'
-          : 'var(--status-occupied-bg)';
-        const iconColor = isClean
-          ? 'var(--status-available-text)'
-          : isIssue
-          ? 'var(--status-dirty-text)'
-          : 'var(--status-occupied-text)';
+          const borderColor = isClean
+            ? 'var(--status-available-border)'
+            : isIssue
+            ? 'var(--status-dirty-border)'
+            : 'var(--border-focus)';
+          const bgColor = isClean
+            ? 'var(--status-available-bg)'
+            : isIssue
+            ? 'var(--status-dirty-bg)'
+            : 'var(--status-occupied-bg)';
+          const iconColor = isClean
+            ? 'var(--status-available-text)'
+            : isIssue
+            ? 'var(--status-dirty-text)'
+            : 'var(--status-occupied-text)';
 
-        return (
-          <div
-            key={n.id}
-            role="alert"
-            style={{
-              pointerEvents: 'auto',
-              backgroundColor: bgColor,
-              border: `1px solid ${borderColor}`,
-              borderLeft: `4px solid ${borderColor}`,
-              borderRadius: 'var(--radius-sm)',
-              padding: '12px 14px',
-              boxShadow: 'var(--shadow-modal)',
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: '12px',
-              animation: 'slideInRight 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-            }}
-          >
-            <div style={{ marginTop: '2px', flexShrink: 0 }}>
-              {isClean && <Sparkles size={18} color={iconColor} />}
-              {isIssue && <AlertCircle size={18} color={iconColor} />}
-              {!isClean && !isIssue && <Info size={18} color={iconColor} />}
-            </div>
-
-            <div style={{ flex: 1 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-                <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)', letterSpacing: '-0.2px' }}>
-                  {n.title}
-                </span>
-                <span className="tabular-nums" style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                  {n.timestamp}
-                </span>
-              </div>
-              <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '3px 0 0 0', lineHeight: 1.35 }}>
-                {n.message}
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => dismiss(n.id)}
-              aria-label="Cerrar notificación"
+          return (
+            <motion.div
+              key={n.id}
+              layout
+              role="alert"
+              className="toast-item"
+              initial={{ opacity: 0, y: -20, scale: 0.92 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.88, transition: { duration: 0.15 } }}
+              transition={springToast}
               style={{
-                background: 'transparent',
-                border: 'none',
-                color: 'var(--text-muted)',
-                cursor: 'pointer',
-                padding: '2px',
-                borderRadius: '4px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                backgroundColor: bgColor,
+                border: `1px solid ${borderColor}`,
+                borderLeftColor: borderColor,
               }}
             >
-              <X size={14} />
-            </button>
-          </div>
-        );
-      })}
+              <div style={{ marginTop: '2px', flexShrink: 0 }}>
+                {isClean && <Sparkles size={18} color={iconColor} />}
+                {isIssue && <AlertCircle size={18} color={iconColor} />}
+                {!isClean && !isIssue && <Info size={18} color={iconColor} />}
+              </div>
+
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                  <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)', letterSpacing: '-0.2px' }}>
+                    {n.title}
+                  </span>
+                  <span className="tabular-nums" style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                    {n.timestamp}
+                  </span>
+                </div>
+                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '3px 0 0 0', lineHeight: 1.4 }}>
+                  {n.message}
+                </p>
+              </div>
+
+              <motion.button
+                type="button"
+                onClick={() => dismiss(n.id)}
+                aria-label="Cerrar notificación"
+                whileHover={{ scale: 1.15 }}
+                whileTap={{ scale: 0.9 }}
+                transition={springTouch}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--text-muted)',
+                  cursor: 'pointer',
+                  padding: '2px',
+                  borderRadius: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <X size={14} />
+              </motion.button>
+            </motion.div>
+          );
+        })}
+      </AnimatePresence>
     </div>
   );
 };
