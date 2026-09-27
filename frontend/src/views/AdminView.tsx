@@ -15,12 +15,14 @@ import {
   ArrowDownRight,
   Receipt
 } from 'lucide-react';
+import { ConfirmIncidentModal } from '../components/ConfirmIncidentModal';
 
 export const AdminView: React.FC = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [shifts, setShifts] = useState<LocalShift[]>([]);
   const [products, setProducts] = useState<LocalProduct[]>([]);
   const [cashMovements, setCashMovements] = useState<CashMovement[]>([]);
+  const [selectedIncidentRoom, setSelectedIncidentRoom] = useState<Room | null>(null);
 
   const loadAdminData = async () => {
     const allRooms = await db.rooms.toArray();
@@ -50,10 +52,6 @@ export const AdminView: React.FC = () => {
   }, []);
 
   const handleResolveIncident = async (room: Room) => {
-    if (!window.confirm(`¿Confirmar que la avería o novedad en la Hab #${room.number} ("${room.notes}") ya fue reparada y resuelta?`)) {
-      return;
-    }
-
     // Si estaba bloqueada por mantenimiento, se pasa a 'dirty' para que aseo la desinfecte y aliste
     const nextStatus = room.status === 'maintenance' ? 'dirty' : room.status;
 
@@ -225,7 +223,7 @@ export const AdminView: React.FC = () => {
                 <motion.button
                   type="button"
                   className="btn-primary admin-incident-btn"
-                  onClick={() => handleResolveIncident(r)}
+                  onClick={() => setSelectedIncidentRoom(r)}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.97 }}
                   transition={springTouch}
@@ -591,6 +589,13 @@ export const AdminView: React.FC = () => {
           })}
         </div>
       </section>
+
+      <ConfirmIncidentModal
+        room={selectedIncidentRoom}
+        isOpen={Boolean(selectedIncidentRoom)}
+        onClose={() => setSelectedIncidentRoom(null)}
+        onConfirm={handleResolveIncident}
+      />
     </div>
   );
 };

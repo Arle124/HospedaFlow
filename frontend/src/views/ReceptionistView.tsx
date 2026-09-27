@@ -21,6 +21,7 @@ import { CheckOutModal } from './receptionist/CheckOutModal';
 import { OpenShiftModal, CloseShiftModal } from './receptionist/ShiftModals';
 import { MinibarModal } from './receptionist/MinibarModal';
 import { ExpenseModal } from './receptionist/ExpenseModal';
+import { ConfirmIncidentModal } from '../components/ConfirmIncidentModal';
 
 export const ReceptionistView: React.FC = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -38,6 +39,7 @@ export const ReceptionistView: React.FC = () => {
   const [showExpenseModal, setShowExpenseModal] = useState<boolean>(false);
   const [selectedRoomDetail, setSelectedRoomDetail] = useState<Room | null>(null);
   const [showCheckOutModal, setShowCheckOutModal] = useState<Room | null>(null);
+  const [incidentRoomToResolve, setIncidentRoomToResolve] = useState<Room | null>(null);
 
   // Estados de formularios
   const [initialCashInput, setInitialCashInput] = useState<string>('50000');
@@ -246,7 +248,11 @@ export const ReceptionistView: React.FC = () => {
   const handleMinibarSale = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeShift) {
-      alert('Debes tener un turno de caja abierto para registrar ventas.');
+      eventBus.emit({
+        type: 'shift_event',
+        title: 'Turno Requerido',
+        message: 'Debes tener un turno de caja abierto para registrar ventas de minibar.',
+      });
       return;
     }
 
@@ -258,7 +264,11 @@ export const ReceptionistView: React.FC = () => {
       .filter((item): item is { prod: LocalProduct; qty: number } => Boolean(item.prod && item.qty > 0));
 
     if (itemsToSell.length === 0) {
-      alert('Selecciona al menos 1 unidad de producto para registrar la venta.');
+      eventBus.emit({
+        type: 'room_issue',
+        title: 'Sin Productos',
+        message: 'Selecciona al menos 1 unidad de producto para registrar la venta.',
+      });
       return;
     }
 
@@ -345,18 +355,30 @@ export const ReceptionistView: React.FC = () => {
   const handleSupplierExpense = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeShift) {
-      alert('Debes tener un turno de caja abierto para registrar pagos a proveedores.');
+      eventBus.emit({
+        type: 'shift_event',
+        title: 'Turno Requerido',
+        message: 'Debes tener un turno de caja abierto para registrar pagos a proveedores.',
+      });
       return;
     }
 
     const amount = parseFloat(expenseAmount) || 0;
     if (amount <= 0) {
-      alert('Por favor ingresa un monto válido.');
+      eventBus.emit({
+        type: 'room_issue',
+        title: 'Monto Inválido',
+        message: 'Por favor ingresa un monto numérico válido mayor a cero.',
+      });
       return;
     }
 
     if (amount > activeShift.currentCash) {
-      alert(`El monto a retirar ($ ${amount.toLocaleString()}) supera el efectivo físico en gaveta ($ ${activeShift.currentCash.toLocaleString()}).`);
+      eventBus.emit({
+        type: 'shift_event',
+        title: 'Efectivo Insuficiente',
+        message: `El monto a retirar ($${amount.toLocaleString()}) supera el efectivo físico en gaveta ($${activeShift.currentCash.toLocaleString()}).`,
+      });
       return;
     }
 
@@ -403,10 +425,6 @@ export const ReceptionistView: React.FC = () => {
   };
 
   const handleClearRoomNotes = async (room: Room) => {
-    if (!window.confirm(`¿Confirmar que la novedad en la Hab #${room.number} ya fue atendida?`)) {
-      return;
-    }
-
     await db.rooms.update(room.id, {
       notes: undefined,
       updatedAt: new Date().toISOString(),
@@ -439,7 +457,11 @@ export const ReceptionistView: React.FC = () => {
     const finalTotal = totalBase + (surcharge || 0);
 
     if (finalTotal > 0 && !activeShift) {
-      alert('Debes tener un turno de caja abierto para registrar el cobro de la liquidación.');
+      eventBus.emit({
+        type: 'shift_event',
+        title: 'Turno Requerido',
+        message: 'Debes tener un turno de caja abierto para registrar el cobro de la liquidación.',
+      });
       return;
     }
 
@@ -552,7 +574,7 @@ export const ReceptionistView: React.FC = () => {
             onCheckInClick={setShowCheckInModal}
             onCheckOutClick={setShowCheckOutModal}
             onDetailClick={setSelectedRoomDetail}
-            onClearNotes={handleClearRoomNotes}
+            onClearNotes={setIncidentRoomToResolve}
           />
         ))}
       </div>
@@ -670,6 +692,13 @@ export const ReceptionistView: React.FC = () => {
           setExpenseAmount('');
           setExpenseReceipt('');
         }}
+      />
+
+      <ConfirmIncidentModal
+        room={incidentRoomToResolve}
+        isOpen={Boolean(incidentRoomToResolve)}
+        onClose={() => setIncidentRoomToResolve(null)}
+        onConfirm={handleClearRoomNotes}
       />
     </div>
   );
