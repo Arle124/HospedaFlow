@@ -153,36 +153,42 @@ export const MinibarModal: React.FC<MinibarModalProps> = ({
                   <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-secondary)' }}>
                     MEDIO DE PAGO
                   </span>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px' }}>
-                    <button
+                  <div className="payment-methods-grid">
+                    <motion.button
                       type="button"
                       onClick={() => onPaymentMethodChange('CASH')}
-                      className={`filter-pill ${paymentMethod === 'CASH' ? 'active' : ''}`}
-                      style={{ justifyContent: 'center', padding: '5px 8px', fontSize: '11px' }}
+                      className={`payment-method-tile ${paymentMethod === 'CASH' ? 'active' : ''}`}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.96 }}
+                      transition={springTouch}
                     >
-                      <Banknote size={12} />
+                      <Banknote size={16} />
                       <span>Efectivo</span>
-                    </button>
+                    </motion.button>
 
-                    <button
+                    <motion.button
                       type="button"
                       onClick={() => onPaymentMethodChange('TRANSFER')}
-                      className={`filter-pill ${paymentMethod === 'TRANSFER' ? 'active' : ''}`}
-                      style={{ justifyContent: 'center', padding: '5px 8px', fontSize: '11px' }}
+                      className={`payment-method-tile ${paymentMethod === 'TRANSFER' ? 'active' : ''}`}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.96 }}
+                      transition={springTouch}
                     >
-                      <QrCode size={12} />
-                      <span>Nequi/QR</span>
-                    </button>
+                      <QrCode size={16} />
+                      <span>Nequi / QR</span>
+                    </motion.button>
 
-                    <button
+                    <motion.button
                       type="button"
                       onClick={() => onPaymentMethodChange('CARD')}
-                      className={`filter-pill ${paymentMethod === 'CARD' ? 'active' : ''}`}
-                      style={{ justifyContent: 'center', padding: '5px 8px', fontSize: '11px' }}
+                      className={`payment-method-tile ${paymentMethod === 'CARD' ? 'active' : ''}`}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.96 }}
+                      transition={springTouch}
                     >
-                      <CreditCard size={12} />
+                      <CreditCard size={16} />
                       <span>Datáfono</span>
-                    </button>
+                    </motion.button>
                   </div>
 
                   {paymentMethod === 'TRANSFER' && (

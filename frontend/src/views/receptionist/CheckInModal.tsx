@@ -191,36 +191,42 @@ export const CheckInModal: React.FC<CheckInModalProps> = ({
                     MEDIO DE PAGO
                   </span>
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
-                    <button
+                  <div className="payment-methods-grid">
+                    <motion.button
                       type="button"
                       onClick={() => onPaymentMethodChange('CASH')}
-                      className={`filter-pill ${paymentMethod === 'CASH' ? 'active' : ''}`}
-                      style={{ justifyContent: 'center' }}
+                      className={`payment-method-tile ${paymentMethod === 'CASH' ? 'active' : ''}`}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.96 }}
+                      transition={springTouch}
                     >
-                      <Banknote size={13} />
+                      <Banknote size={16} />
                       <span>Efectivo</span>
-                    </button>
+                    </motion.button>
 
-                    <button
+                    <motion.button
                       type="button"
                       onClick={() => onPaymentMethodChange('TRANSFER')}
-                      className={`filter-pill ${paymentMethod === 'TRANSFER' ? 'active' : ''}`}
-                      style={{ justifyContent: 'center' }}
+                      className={`payment-method-tile ${paymentMethod === 'TRANSFER' ? 'active' : ''}`}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.96 }}
+                      transition={springTouch}
                     >
-                      <QrCode size={13} />
+                      <QrCode size={16} />
                       <span>Nequi / QR</span>
-                    </button>
+                    </motion.button>
 
-                    <button
+                    <motion.button
                       type="button"
                       onClick={() => onPaymentMethodChange('CARD')}
-                      className={`filter-pill ${paymentMethod === 'CARD' ? 'active' : ''}`}
-                      style={{ justifyContent: 'center' }}
+                      className={`payment-method-tile ${paymentMethod === 'CARD' ? 'active' : ''}`}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.96 }}
+                      transition={springTouch}
                     >
-                      <CreditCard size={13} />
+                      <CreditCard size={16} />
                       <span>Datáfono</span>
-                    </button>
+                    </motion.button>
                   </div>
 
                   {paymentMethod === 'TRANSFER' && (
