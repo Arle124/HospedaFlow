@@ -30,6 +30,10 @@ Historial de sesiones de trabajo, hitos completados y estado del proyecto.
      * Selector de medio de pago en Check-in, Check-out y Venta de Minibar.
      * Separación contable estricta: los pagos digitales NO contaminan la gaveta física de billetes.
      * Arqueo y Cierre de Turno con conciliación por canales: arqueo de efectivo físico independiente y resumen auditado de Nequi y Datáfonos.
+  8. **Soporte de Despliegue Móvil y Servidor Autónomo (`cel-server`):**
+     * Configuración de proxy inverso `/api` y escucha en todas las interfaces de red (`host: true`) en `vite.config.ts`.
+     * Capacidad en el router Chi de Go para servir la SPA de frontend directamente desde `frontend/dist` en el puerto 8080 si existe la compilación de producción.
+     * Cross-compilación de binario estático optimizado para ARM64 (`bin/hospedasync-arm64`) para ejecución nativa en Android / Termux.
 
 ### Sesión 4: Validación de Mercado y Modelo Econométrico
 * **Fecha:** 27 de Septiembre de 2026
