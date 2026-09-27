@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { db, type Room, type RoomConsumption, type LocalShift, type LocalProduct, type CashMovement } from '../db/db';
+import {
+  db,
+  type Room,
+  type RoomConsumption,
+  type LocalShift,
+  type LocalProduct,
+  type CashMovement,
+  type PaymentMethod,
+} from '../db/db';
 import { syncService } from '../services/syncService';
 import { eventBus } from '../services/eventBus';
 
@@ -18,7 +26,7 @@ export const ReceptionistView: React.FC = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [activeShift, setActiveShift] = useState<LocalShift | null>(null);
   const [products, setProducts] = useState<LocalProduct[]>([]);
-  const [, setShiftMovements] = useState<CashMovement[]>([]);
+  const [shiftMovements, setShiftMovements] = useState<CashMovement[]>([]);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
@@ -39,9 +47,16 @@ export const ReceptionistView: React.FC = () => {
   const [guestsCountInput, setGuestsCountInput] = useState<number>(1);
   const [checkInPaymentOption, setCheckInPaymentOption] = useState<'PENDING' | 'PAID'>('PENDING');
 
+  // Medio de pago en Check-in
+  const [checkInPaymentMethod, setCheckInPaymentMethod] = useState<PaymentMethod>('CASH');
+  const [checkInPaymentReference, setCheckInPaymentReference] = useState<string>('');
+  const [checkInApplySurcharge, setCheckInApplySurcharge] = useState<boolean>(false);
+
   // Minibar
   const [minibarQuantities, setMinibarQuantities] = useState<Record<number, number>>({});
   const [minibarDestination, setMinibarDestination] = useState<'cash' | 'room'>('cash');
+  const [minibarPaymentMethod, setMinibarPaymentMethod] = useState<PaymentMethod>('CASH');
+  const [minibarPaymentReference, setMinibarPaymentReference] = useState<string>('');
   const [minibarRoomId, setMinibarRoomId] = useState<string>('');
 
   // Gastos
@@ -80,6 +95,17 @@ export const ReceptionistView: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
+  // Conciliación por medios de pago para el turno activo
+  const totalTransfers = shiftMovements
+    .filter((m) => m.paymentMethod === 'TRANSFER')
+    .reduce((acc, m) => acc + m.amount, 0);
+
+  const totalCards = shiftMovements
+    .filter((m) => m.paymentMethod === 'CARD')
+    .reduce((acc, m) => acc + m.amount, 0);
+
+  const totalDigital = totalTransfers + totalCards;
+
   const handleOpenShift = async (e: React.FormEvent) => {
     e.preventDefault();
     const cash = parseFloat(initialCashInput) || 0;
@@ -105,7 +131,7 @@ export const ReceptionistView: React.FC = () => {
     eventBus.emit({
       type: 'shift_event',
       title: 'Turno de Caja Abierto',
-      message: `Base inicial de $ ${cash.toLocaleString()} registrada.`,
+      message: `Base inicial de $ ${cash.toLocaleString()} en gaveta registrada.`,
     });
 
     setActiveShift(newShift);
@@ -138,7 +164,7 @@ export const ReceptionistView: React.FC = () => {
     eventBus.emit({
       type: 'shift_event',
       title: 'Turno de Caja Cerrado',
-      message: `Arqueo finalizado: $ ${actual.toLocaleString()} en efectivo (Diferencia: $ ${diff.toLocaleString()}).`,
+      message: `Arqueo finalizado: $ ${actual.toLocaleString()} en gaveta. Diferencia: $ ${diff.toLocaleString()}.`,
     });
 
     setActiveShift(null);
@@ -153,30 +179,43 @@ export const ReceptionistView: React.FC = () => {
 
     const isPaidNow = checkInPaymentOption === 'PAID';
     const guests = Math.max(1, Number(guestsCountInput) || 1);
+    const surcharge = isPaidNow && checkInPaymentMethod === 'CARD' && checkInApplySurcharge ? Math.round(showCheckInModal.price * 0.06) : 0;
+    const totalPaid = showCheckInModal.price + surcharge;
 
     await db.rooms.update(showCheckInModal.id, {
       status: 'occupied',
       guestName: guestNameInput,
       guestsCount: guests,
       paymentStatus: isPaidNow ? 'PAID' : 'PENDING',
-      paidAmount: isPaidNow ? showCheckInModal.price : 0,
+      paidAmount: isPaidNow ? totalPaid : 0,
+      paymentMethod: isPaidNow ? checkInPaymentMethod : undefined,
+      paymentReference: isPaidNow ? checkInPaymentReference : undefined,
       consumptions: [],
       updatedAt: new Date().toISOString(),
     });
 
     if (isPaidNow && activeShift) {
-      const newCash = activeShift.currentCash + showCheckInModal.price;
-      await db.shifts.update(activeShift.id, { currentCash: newCash });
+      const isCash = checkInPaymentMethod === 'CASH';
+      const newCash = isCash ? activeShift.currentCash + totalPaid : activeShift.currentCash;
+
+      if (isCash) {
+        await db.shifts.update(activeShift.id, { currentCash: newCash });
+        setActiveShift({ ...activeShift, currentCash: newCash });
+      }
+
+      const methodLabel = checkInPaymentMethod === 'CASH' ? 'Efectivo' : checkInPaymentMethod === 'TRANSFER' ? 'Nequi / QR' : 'Datáfono';
       await db.cashMovements.add({
         id: `mov_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
         shiftId: activeShift.id,
         type: 'INCOME_ROOM',
-        amount: showCheckInModal.price,
-        concept: `Check-in Hab #${showCheckInModal.number} (${guestNameInput} - ${guests} pers.)`,
+        amount: totalPaid,
+        paymentMethod: checkInPaymentMethod,
+        reference: checkInPaymentReference || undefined,
+        surcharge: surcharge > 0 ? surcharge : undefined,
+        concept: `Check-in Hab #${showCheckInModal.number} (${guestNameInput}) · ${methodLabel}${surcharge ? ' (Recargo 6% incluido)' : ''}`,
         roomNumber: showCheckInModal.number,
         createdAt: new Date().toISOString(),
       });
-      setActiveShift({ ...activeShift, currentCash: newCash });
     }
 
     await syncService.enqueueAction('UPDATE_ROOM_STATUS', {
@@ -190,7 +229,7 @@ export const ReceptionistView: React.FC = () => {
     eventBus.emit({
       type: 'shift_event',
       title: `Check-in: Hab #${showCheckInModal.number}`,
-      message: `${guestNameInput} (${guests} ${guests === 1 ? 'persona' : 'personas'}). ${isPaidNow ? 'Pagado en check-in.' : 'Pago pendiente al check-out.'}`,
+      message: `${guestNameInput} (${guests} pers.). ${isPaidNow ? `Pagado inmediato (${checkInPaymentMethod}).` : 'Pago pendiente al check-out.'}`,
       roomNumber: showCheckInModal.number,
     });
 
@@ -198,6 +237,9 @@ export const ReceptionistView: React.FC = () => {
     setGuestNameInput('');
     setGuestsCountInput(1);
     setCheckInPaymentOption('PENDING');
+    setCheckInPaymentMethod('CASH');
+    setCheckInPaymentReference('');
+    setCheckInApplySurcharge(false);
     loadData();
   };
 
@@ -230,18 +272,25 @@ export const ReceptionistView: React.FC = () => {
     const itemsSummary = itemsToSell.map(({ prod, qty }) => `${qty}x ${prod.name}`).join(', ');
     const targetRoom = rooms.find((r) => r.id === minibarRoomId);
 
-    const isCash = minibarDestination === 'cash' || !targetRoom;
-    if (isCash) {
-      const newCash = activeShift.currentCash + totalSale;
-      await db.shifts.update(activeShift.id, { currentCash: newCash });
-      setActiveShift({ ...activeShift, currentCash: newCash });
+    const isDirect = minibarDestination === 'cash' || !targetRoom;
+    if (isDirect) {
+      const isPhysicalCash = minibarPaymentMethod === 'CASH';
+      const newCash = isPhysicalCash ? activeShift.currentCash + totalSale : activeShift.currentCash;
 
+      if (isPhysicalCash) {
+        await db.shifts.update(activeShift.id, { currentCash: newCash });
+        setActiveShift({ ...activeShift, currentCash: newCash });
+      }
+
+      const methodLabel = minibarPaymentMethod === 'CASH' ? 'Efectivo' : minibarPaymentMethod === 'TRANSFER' ? 'Nequi/QR' : 'Datáfono';
       await db.cashMovements.add({
         id: `mov_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
         shiftId: activeShift.id,
         type: 'INCOME_MINIBAR',
         amount: totalSale,
-        concept: `Venta Minibar (Efectivo): ${itemsSummary}`,
+        paymentMethod: minibarPaymentMethod,
+        reference: minibarPaymentReference || undefined,
+        concept: `Venta Minibar (${methodLabel}): ${itemsSummary}`,
         createdAt: new Date().toISOString(),
       });
     } else if (targetRoom) {
@@ -272,7 +321,8 @@ export const ReceptionistView: React.FC = () => {
       shiftId: activeShift.id,
       type: 'INCOME_MINIBAR',
       amount: totalSale,
-      isCash,
+      isDirect,
+      paymentMethod: isDirect ? minibarPaymentMethod : undefined,
       items: itemsToSell.map((i) => ({ id: i.prod.id, name: i.prod.name, qty: i.qty, price: i.prod.price })),
       roomId: targetRoom ? targetRoom.id : undefined,
     });
@@ -280,11 +330,13 @@ export const ReceptionistView: React.FC = () => {
     eventBus.emit({
       type: 'shift_event',
       title: 'Venta de Minibar Registrada',
-      message: `${isCash ? 'Cobro en efectivo ingresado a caja' : `Cargado a Hab #${targetRoom?.number}`}: $ ${totalSale.toLocaleString()} (${itemsSummary})`,
+      message: `${isDirect ? `Cobro directo (${minibarPaymentMethod})` : `Cargado a Hab #${targetRoom?.number}`}: $ ${totalSale.toLocaleString()} (${itemsSummary})`,
     });
 
     setMinibarQuantities({});
     setMinibarDestination('cash');
+    setMinibarPaymentMethod('CASH');
+    setMinibarPaymentReference('');
     setMinibarRoomId('');
     setShowMinibarModal(false);
     loadData();
@@ -304,7 +356,7 @@ export const ReceptionistView: React.FC = () => {
     }
 
     if (amount > activeShift.currentCash) {
-      alert(`El monto a retirar ($ ${amount.toLocaleString()}) supera el efectivo en caja ($ ${activeShift.currentCash.toLocaleString()}).`);
+      alert(`El monto a retirar ($ ${amount.toLocaleString()}) supera el efectivo físico en gaveta ($ ${activeShift.currentCash.toLocaleString()}).`);
       return;
     }
 
@@ -317,6 +369,7 @@ export const ReceptionistView: React.FC = () => {
       shiftId: activeShift.id,
       type: 'EXPENSE_SUPPLIER',
       amount,
+      paymentMethod: 'CASH',
       concept: expenseConcept,
       category: expenseCategory,
       supplier: expenseSupplier,
@@ -337,7 +390,7 @@ export const ReceptionistView: React.FC = () => {
     eventBus.emit({
       type: 'shift_event',
       title: 'Egreso de Caja: Pago a Proveedor',
-      message: `$ ${amount.toLocaleString()} a ${expenseSupplier} (${expenseConcept}). Descontado de caja.`,
+      message: `$ ${amount.toLocaleString()} a ${expenseSupplier} (${expenseConcept}). Descontado de gaveta.`,
     });
 
     setExpenseSupplier('');
@@ -374,35 +427,44 @@ export const ReceptionistView: React.FC = () => {
     loadData();
   };
 
-  const handleConfirmCheckOut = async (room: Room) => {
+  const handleConfirmCheckOut = async (
+    room: Room,
+    method: PaymentMethod = 'CASH',
+    reference?: string,
+    surcharge?: number
+  ) => {
     const roomCharge = room.paymentStatus === 'PAID' ? 0 : room.price;
     const minibarTotal = (room.consumptions || []).reduce((acc, c) => acc + c.total, 0);
-    const totalToCollect = roomCharge + minibarTotal;
+    const totalBase = roomCharge + minibarTotal;
+    const finalTotal = totalBase + (surcharge || 0);
 
-    if (totalToCollect > 0 && !activeShift) {
-      alert('Debes tener un turno de caja abierto para cobrar la liquidación del check-out.');
+    if (finalTotal > 0 && !activeShift) {
+      alert('Debes tener un turno de caja abierto para registrar el cobro de la liquidación.');
       return;
     }
 
-    if (totalToCollect > 0 && activeShift) {
-      const newCash = activeShift.currentCash + totalToCollect;
-      await db.shifts.update(activeShift.id, { currentCash: newCash });
+    if (finalTotal > 0 && activeShift) {
+      const isPhysicalCash = method === 'CASH';
+      const newCash = isPhysicalCash ? activeShift.currentCash + finalTotal : activeShift.currentCash;
 
-      const breakdownParts: string[] = [];
-      if (roomCharge > 0) breakdownParts.push(`Hospedaje: $${roomCharge.toLocaleString()}`);
-      if (minibarTotal > 0) breakdownParts.push(`Minibar: $${minibarTotal.toLocaleString()}`);
+      if (isPhysicalCash) {
+        await db.shifts.update(activeShift.id, { currentCash: newCash });
+        setActiveShift({ ...activeShift, currentCash: newCash });
+      }
 
+      const methodLabel = method === 'CASH' ? 'Efectivo' : method === 'TRANSFER' ? 'Nequi / QR' : 'Datáfono';
       await db.cashMovements.add({
         id: `mov_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
         shiftId: activeShift.id,
         type: 'INCOME_ROOM',
-        amount: totalToCollect,
-        concept: `Check-out Hab #${room.number} (${room.guestName || 'Huésped'}) · ${breakdownParts.join(' + ')}`,
+        amount: finalTotal,
+        paymentMethod: method,
+        reference: reference || undefined,
+        surcharge: surcharge && surcharge > 0 ? surcharge : undefined,
+        concept: `Check-out Hab #${room.number} (${room.guestName || 'Huésped'}) · ${methodLabel}${surcharge ? ' (Recargo 6% incluido)' : ''}`,
         roomNumber: room.number,
         createdAt: new Date().toISOString(),
       });
-
-      setActiveShift({ ...activeShift, currentCash: newCash });
     }
 
     await db.rooms.update(room.id, {
@@ -411,6 +473,8 @@ export const ReceptionistView: React.FC = () => {
       guestsCount: undefined,
       paymentStatus: undefined,
       paidAmount: undefined,
+      paymentMethod: undefined,
+      paymentReference: undefined,
       consumptions: [],
       updatedAt: new Date().toISOString(),
     });
@@ -423,7 +487,7 @@ export const ReceptionistView: React.FC = () => {
     eventBus.emit({
       type: 'room_issue',
       title: `Check-out: Hab #${room.number}`,
-      message: `Habitación desocupada. Liquidado: $ ${totalToCollect.toLocaleString()}. Pasa a personal de aseo.`,
+      message: `Habitación desocupada. Liquidado: $ ${finalTotal.toLocaleString()}. Pasa a personal de aseo.`,
       roomNumber: room.number,
     });
 
@@ -451,9 +515,10 @@ export const ReceptionistView: React.FC = () => {
 
   return (
     <div className="container-fluid" style={{ paddingBottom: '40px' }}>
-      {/* 1. Barra de Turno y Caja */}
+      {/* 1. Barra de Turno y Caja con desglose Digital */}
       <ShiftBanner
         activeShift={activeShift}
+        totalDigital={totalDigital}
         onOpenShiftClick={() => setShowOpenModal(true)}
         onCloseShiftClick={() => {
           if (activeShift) {
@@ -478,7 +543,7 @@ export const ReceptionistView: React.FC = () => {
         cleaningCount={cleaningCount}
       />
 
-      {/* 3. Rack de Habitaciones (Grid con Spring Physics) */}
+      {/* 3. Rack de Habitaciones */}
       <div className="room-grid">
         {filteredRooms.map((room) => (
           <RoomCard
@@ -492,7 +557,7 @@ export const ReceptionistView: React.FC = () => {
         ))}
       </div>
 
-      {/* 4. Modales Desacoplados */}
+      {/* 4. Modales Desacoplados con soporte Multimedio de Pago */}
       <RoomDetailModal
         room={selectedRoomDetail}
         onClose={() => setSelectedRoomDetail(null)}
@@ -512,12 +577,21 @@ export const ReceptionistView: React.FC = () => {
         onGuestsCountChange={setGuestsCountInput}
         paymentOption={checkInPaymentOption}
         onPaymentOptionChange={setCheckInPaymentOption}
+        paymentMethod={checkInPaymentMethod}
+        onPaymentMethodChange={setCheckInPaymentMethod}
+        paymentReference={checkInPaymentReference}
+        onPaymentReferenceChange={setCheckInPaymentReference}
+        applySurcharge={checkInApplySurcharge}
+        onApplySurchargeChange={setCheckInApplySurcharge}
         onConfirm={handleCheckIn}
         onClose={() => {
           setShowCheckInModal(null);
           setGuestNameInput('');
           setGuestsCountInput(1);
           setCheckInPaymentOption('PENDING');
+          setCheckInPaymentMethod('CASH');
+          setCheckInPaymentReference('');
+          setCheckInApplySurcharge(false);
         }}
       />
 
@@ -542,6 +616,8 @@ export const ReceptionistView: React.FC = () => {
         onActualCashChange={setActualCashInput}
         closeNotes={closeNotesInput}
         onCloseNotesChange={setCloseNotesInput}
+        totalTransfers={totalTransfers}
+        totalCards={totalCards}
         onSubmit={handleCloseShift}
         onClose={() => setShowCloseModal(false)}
       />
@@ -556,6 +632,10 @@ export const ReceptionistView: React.FC = () => {
         }
         destination={minibarDestination}
         onDestinationChange={setMinibarDestination}
+        paymentMethod={minibarPaymentMethod}
+        onPaymentMethodChange={setMinibarPaymentMethod}
+        paymentReference={minibarPaymentReference}
+        onPaymentReferenceChange={setMinibarPaymentReference}
         roomId={minibarRoomId}
         onRoomIdChange={setMinibarRoomId}
         onSubmit={handleMinibarSale}
@@ -563,6 +643,8 @@ export const ReceptionistView: React.FC = () => {
           setShowMinibarModal(false);
           setMinibarQuantities({});
           setMinibarDestination('cash');
+          setMinibarPaymentMethod('CASH');
+          setMinibarPaymentReference('');
           setMinibarRoomId('');
         }}
       />

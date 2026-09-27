@@ -1,12 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { Room } from '../../db/db';
+import type { Room, PaymentMethod } from '../../db/db';
 import { springModal, springTouch } from '../../utils/motion';
-import { X, LogOut, Receipt, Sparkles } from 'lucide-react';
+import { X, LogOut, Receipt, Sparkles, Banknote, QrCode, CreditCard } from 'lucide-react';
 
 interface CheckOutModalProps {
   room: Room | null;
-  onConfirmCheckOut: (room: Room) => void;
+  onConfirmCheckOut: (room: Room, method: PaymentMethod, reference?: string, surcharge?: number) => void;
   onClose: () => void;
 }
 
@@ -15,19 +15,26 @@ export const CheckOutModal: React.FC<CheckOutModalProps> = ({
   onConfirmCheckOut,
   onClose,
 }) => {
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CASH');
+  const [paymentReference, setPaymentReference] = useState<string>('');
+  const [applySurcharge, setApplySurcharge] = useState<boolean>(false);
+
   if (!room) return null;
 
   const roomDebt = room.paymentStatus === 'PAID' ? 0 : room.price;
   const consumptions = room.consumptions || [];
   const minibarDebt = consumptions.reduce((acc, c) => acc + c.total, 0);
-  const totalDebt = roomDebt + minibarDebt;
+  const baseDebt = roomDebt + minibarDebt;
+
+  const surcharge = paymentMethod === 'CARD' && applySurcharge ? Math.round(baseDebt * 0.06) : 0;
+  const totalDebt = baseDebt + surcharge;
 
   return (
     <AnimatePresence>
       <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true">
         <motion.div
           className="modal-dialog"
-          style={{ maxWidth: '500px' }}
+          style={{ maxWidth: '520px' }}
           onClick={(e) => e.stopPropagation()}
           initial={{ opacity: 0, scale: 0.94, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -88,6 +95,15 @@ export const CheckOutModal: React.FC<CheckOutModalProps> = ({
                   </span>
                 </div>
 
+                {surcharge > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--text-muted)' }}>
+                    <span>Recargo Datáfono (6%):</span>
+                    <span className="tabular-nums" style={{ fontWeight: '600' }}>
+                      +$ {surcharge.toLocaleString()}
+                    </span>
+                  </div>
+                )}
+
                 <div
                   style={{
                     borderTop: '1px solid var(--border-medium)',
@@ -112,6 +128,85 @@ export const CheckOutModal: React.FC<CheckOutModalProps> = ({
                 </div>
               </div>
             </div>
+
+            {/* Selector de Medio de Pago para el saldo */}
+            {baseDebt > 0 && (
+              <div
+                style={{
+                  backgroundColor: 'var(--bg-canvas)',
+                  border: '1px solid var(--border-medium)',
+                  borderRadius: 'var(--radius-sm)',
+                  padding: '12px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '10px',
+                }}
+              >
+                <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-secondary)' }}>
+                  MEDIO DE PAGO DE LA LIQUIDACIÓN
+                </span>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('CASH')}
+                    className={`filter-pill ${paymentMethod === 'CASH' ? 'active' : ''}`}
+                    style={{ justifyContent: 'center' }}
+                  >
+                    <Banknote size={13} />
+                    <span>Efectivo</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('TRANSFER')}
+                    className={`filter-pill ${paymentMethod === 'TRANSFER' ? 'active' : ''}`}
+                    style={{ justifyContent: 'center' }}
+                  >
+                    <QrCode size={13} />
+                    <span>Nequi / QR</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod('CARD')}
+                    className={`filter-pill ${paymentMethod === 'CARD' ? 'active' : ''}`}
+                    style={{ justifyContent: 'center' }}
+                  >
+                    <CreditCard size={13} />
+                    <span>Datáfono</span>
+                  </button>
+                </div>
+
+                {paymentMethod === 'TRANSFER' && (
+                  <div>
+                    <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '3px' }}>
+                      Nº de Comprobante / Aprobación Transferencia
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Ej. NQ-981248"
+                      value={paymentReference}
+                      onChange={(e) => setPaymentReference(e.target.value)}
+                    />
+                  </div>
+                )}
+
+                {paymentMethod === 'CARD' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12px' }}>
+                      <input
+                        type="checkbox"
+                        checked={applySurcharge}
+                        onChange={(e) => setApplySurcharge(e.target.checked)}
+                        style={{ width: 'auto' }}
+                      />
+                      <span>Aplicar recargo de datáfono (6%): <strong>+${Math.round(baseDebt * 0.06).toLocaleString()}</strong></span>
+                    </label>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Aviso de pase a aseo */}
             <div
@@ -145,7 +240,7 @@ export const CheckOutModal: React.FC<CheckOutModalProps> = ({
             <motion.button
               type="button"
               className="btn-primary"
-              onClick={() => onConfirmCheckOut(room)}
+              onClick={() => onConfirmCheckOut(room, paymentMethod, paymentReference, surcharge)}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.97 }}
               transition={springTouch}

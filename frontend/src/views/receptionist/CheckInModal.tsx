@@ -1,8 +1,8 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { Room } from '../../db/db';
+import type { Room, PaymentMethod } from '../../db/db';
 import { springModal, springTouch } from '../../utils/motion';
-import { X, LogIn, Users } from 'lucide-react';
+import { X, LogIn, Users, Banknote, QrCode, CreditCard } from 'lucide-react';
 
 interface CheckInModalProps {
   room: Room | null;
@@ -12,6 +12,12 @@ interface CheckInModalProps {
   onGuestsCountChange: (val: number) => void;
   paymentOption: 'PENDING' | 'PAID';
   onPaymentOptionChange: (opt: 'PENDING' | 'PAID') => void;
+  paymentMethod: PaymentMethod;
+  onPaymentMethodChange: (m: PaymentMethod) => void;
+  paymentReference: string;
+  onPaymentReferenceChange: (r: string) => void;
+  applySurcharge: boolean;
+  onApplySurchargeChange: (val: boolean) => void;
   onConfirm: (e: React.FormEvent) => void;
   onClose: () => void;
 }
@@ -24,16 +30,27 @@ export const CheckInModal: React.FC<CheckInModalProps> = ({
   onGuestsCountChange,
   paymentOption,
   onPaymentOptionChange,
+  paymentMethod,
+  onPaymentMethodChange,
+  paymentReference,
+  onPaymentReferenceChange,
+  applySurcharge,
+  onApplySurchargeChange,
   onConfirm,
   onClose,
 }) => {
   if (!room) return null;
+
+  const basePrice = room.price;
+  const surcharge = paymentMethod === 'CARD' && applySurcharge ? Math.round(basePrice * 0.06) : 0;
+  const totalPrice = basePrice + surcharge;
 
   return (
     <AnimatePresence>
       <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true">
         <motion.div
           className="modal-dialog"
+          style={{ maxWidth: '520px' }}
           onClick={(e) => e.stopPropagation()}
           initial={{ opacity: 0, scale: 0.94, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -94,7 +111,7 @@ export const CheckInModal: React.FC<CheckInModalProps> = ({
 
               <div>
                 <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                  Modalidad de Pago de la Habitación
+                  Modalidad de Pago
                 </label>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <label
@@ -145,17 +162,99 @@ export const CheckInModal: React.FC<CheckInModalProps> = ({
                       onChange={() => onPaymentOptionChange('PAID')}
                       style={{ width: 'auto', marginTop: '3px' }}
                     />
-                    <div>
+                    <div style={{ flex: 1 }}>
                       <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)', display: 'block' }}>
-                        Pagar de inmediato ($ {room.price.toLocaleString()})
+                        Pagar de inmediato (${totalPrice.toLocaleString()})
                       </span>
                       <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                        Ingresa el valor total de la noche directamente al turno de caja activo.
+                        Se registra el pago del hospedaje en el turno actual.
                       </span>
                     </div>
                   </label>
                 </div>
               </div>
+
+              {/* Sub-selector de Medio de Pago cuando paga de inmediato */}
+              {paymentOption === 'PAID' && (
+                <div
+                  style={{
+                    backgroundColor: 'var(--bg-canvas)',
+                    border: '1px solid var(--border-medium)',
+                    borderRadius: 'var(--radius-sm)',
+                    padding: '12px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '10px',
+                  }}
+                >
+                  <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-secondary)' }}>
+                    MEDIO DE PAGO
+                  </span>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+                    <button
+                      type="button"
+                      onClick={() => onPaymentMethodChange('CASH')}
+                      className={`filter-pill ${paymentMethod === 'CASH' ? 'active' : ''}`}
+                      style={{ justifyContent: 'center' }}
+                    >
+                      <Banknote size={13} />
+                      <span>Efectivo</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => onPaymentMethodChange('TRANSFER')}
+                      className={`filter-pill ${paymentMethod === 'TRANSFER' ? 'active' : ''}`}
+                      style={{ justifyContent: 'center' }}
+                    >
+                      <QrCode size={13} />
+                      <span>Nequi / QR</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => onPaymentMethodChange('CARD')}
+                      className={`filter-pill ${paymentMethod === 'CARD' ? 'active' : ''}`}
+                      style={{ justifyContent: 'center' }}
+                    >
+                      <CreditCard size={13} />
+                      <span>Datáfono</span>
+                    </button>
+                  </div>
+
+                  {paymentMethod === 'TRANSFER' && (
+                    <div>
+                      <label style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginBottom: '3px' }}>
+                        Nº de Comprobante / Aprobación Nequi o Bancolombia (Opcional)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Ej. M1892837"
+                        value={paymentReference}
+                        onChange={(e) => onPaymentReferenceChange(e.target.value)}
+                      />
+                    </div>
+                  )}
+
+                  {paymentMethod === 'CARD' && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '12px' }}>
+                        <input
+                          type="checkbox"
+                          checked={applySurcharge}
+                          onChange={(e) => onApplySurchargeChange(e.target.checked)}
+                          style={{ width: 'auto' }}
+                        />
+                        <span>Sumar recargo de datáfono (6%): <strong>+${Math.round(basePrice * 0.06).toLocaleString()}</strong></span>
+                      </label>
+                      <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                        Total a pasar en el datáfono: <strong className="tabular-nums" style={{ color: 'var(--text-primary)' }}>${totalPrice.toLocaleString()}</strong>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="modal-footer">

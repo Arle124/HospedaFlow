@@ -13,6 +13,8 @@ export interface RoomConsumption {
   createdAt: string;
 }
 
+export type PaymentMethod = 'CASH' | 'TRANSFER' | 'CARD';
+
 export interface Room {
   id: string;
   number: string;
@@ -24,6 +26,8 @@ export interface Room {
   guestsCount?: number;
   paymentStatus?: 'PAID' | 'PENDING';
   paidAmount?: number;
+  paymentMethod?: PaymentMethod;
+  paymentReference?: string;
   consumptions?: RoomConsumption[];
   notes?: string;
   updatedAt: string;
@@ -51,6 +55,9 @@ export interface CashMovement {
   shiftId: string;
   type: CashMovementType;
   amount: number;
+  paymentMethod?: PaymentMethod;
+  reference?: string;
+  surcharge?: number;
   concept: string;
   category?: string;
   supplier?: string;
@@ -99,6 +106,13 @@ export class HospedaSyncDatabase extends Dexie {
       syncQueue: 'id, status, createdAt',
       inventory: 'id, sku',
       cashMovements: 'id, shiftId, type, createdAt'
+    });
+    this.version(3).stores({
+      rooms: 'id, number, floor, status',
+      shifts: 'id, status, isSynced',
+      syncQueue: 'id, status, createdAt',
+      inventory: 'id, sku',
+      cashMovements: 'id, shiftId, type, paymentMethod, createdAt'
     });
   }
 }

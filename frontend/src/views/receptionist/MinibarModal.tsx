@@ -1,8 +1,8 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import type { LocalProduct, Room } from '../../db/db';
+import type { LocalProduct, Room, PaymentMethod } from '../../db/db';
 import { springModal, springTouch } from '../../utils/motion';
-import { X, ShoppingBag, Plus, Minus } from 'lucide-react';
+import { X, ShoppingBag, Plus, Minus, Banknote, QrCode, CreditCard } from 'lucide-react';
 
 interface MinibarModalProps {
   isOpen: boolean;
@@ -12,6 +12,10 @@ interface MinibarModalProps {
   onQuantityChange: (prodId: number, qty: number) => void;
   destination: 'cash' | 'room';
   onDestinationChange: (dest: 'cash' | 'room') => void;
+  paymentMethod: PaymentMethod;
+  onPaymentMethodChange: (m: PaymentMethod) => void;
+  paymentReference: string;
+  onPaymentReferenceChange: (r: string) => void;
   roomId: string;
   onRoomIdChange: (id: string) => void;
   onSubmit: (e: React.FormEvent) => void;
@@ -26,6 +30,10 @@ export const MinibarModal: React.FC<MinibarModalProps> = ({
   onQuantityChange,
   destination,
   onDestinationChange,
+  paymentMethod,
+  onPaymentMethodChange,
+  paymentReference,
+  onPaymentReferenceChange,
   roomId,
   onRoomIdChange,
   onSubmit,
@@ -100,7 +108,7 @@ export const MinibarModal: React.FC<MinibarModalProps> = ({
                       onChange={() => onDestinationChange('cash')}
                       style={{ width: 'auto' }}
                     />
-                    <span>Efectivo Directo (Caja)</span>
+                    <span>Cobro Inmediato (Recepción)</span>
                   </label>
 
                   <label
@@ -128,6 +136,66 @@ export const MinibarModal: React.FC<MinibarModalProps> = ({
                   </label>
                 </div>
               </div>
+
+              {/* Si es cobro inmediato, selector de medio de pago */}
+              {destination === 'cash' && (
+                <div
+                  style={{
+                    backgroundColor: 'var(--bg-canvas)',
+                    border: '1px solid var(--border-medium)',
+                    borderRadius: 'var(--radius-sm)',
+                    padding: '10px 12px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '8px',
+                  }}
+                >
+                  <span style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-secondary)' }}>
+                    MEDIO DE PAGO
+                  </span>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px' }}>
+                    <button
+                      type="button"
+                      onClick={() => onPaymentMethodChange('CASH')}
+                      className={`filter-pill ${paymentMethod === 'CASH' ? 'active' : ''}`}
+                      style={{ justifyContent: 'center', padding: '5px 8px', fontSize: '11px' }}
+                    >
+                      <Banknote size={12} />
+                      <span>Efectivo</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => onPaymentMethodChange('TRANSFER')}
+                      className={`filter-pill ${paymentMethod === 'TRANSFER' ? 'active' : ''}`}
+                      style={{ justifyContent: 'center', padding: '5px 8px', fontSize: '11px' }}
+                    >
+                      <QrCode size={12} />
+                      <span>Nequi/QR</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => onPaymentMethodChange('CARD')}
+                      className={`filter-pill ${paymentMethod === 'CARD' ? 'active' : ''}`}
+                      style={{ justifyContent: 'center', padding: '5px 8px', fontSize: '11px' }}
+                    >
+                      <CreditCard size={12} />
+                      <span>Datáfono</span>
+                    </button>
+                  </div>
+
+                  {paymentMethod === 'TRANSFER' && (
+                    <input
+                      type="text"
+                      placeholder="Nº comprobante Nequi (opcional)"
+                      value={paymentReference}
+                      onChange={(e) => onPaymentReferenceChange(e.target.value)}
+                      style={{ fontSize: '12px', padding: '6px 10px' }}
+                    />
+                  )}
+                </div>
+              )}
 
               {/* Selector de habitación si destino es habitación */}
               {destination === 'room' && (

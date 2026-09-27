@@ -2,10 +2,11 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import type { LocalShift } from '../../db/db';
 import { springTouch } from '../../utils/motion';
-import { ShoppingBag, ArrowDownRight, Lock, Unlock } from 'lucide-react';
+import { ShoppingBag, ArrowDownRight, Lock, Unlock, Smartphone } from 'lucide-react';
 
 interface ShiftBannerProps {
   activeShift: LocalShift | null;
+  totalDigital?: number;
   onOpenShiftClick: () => void;
   onCloseShiftClick: () => void;
   onMinibarClick: () => void;
@@ -14,6 +15,7 @@ interface ShiftBannerProps {
 
 export const ShiftBanner: React.FC<ShiftBannerProps> = ({
   activeShift,
+  totalDigital = 0,
   onOpenShiftClick,
   onCloseShiftClick,
   onMinibarClick,
@@ -21,7 +23,7 @@ export const ShiftBanner: React.FC<ShiftBannerProps> = ({
 }) => {
   return (
     <div className="shift-banner">
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <span
             className="pulse-dot"
@@ -35,20 +37,33 @@ export const ShiftBanner: React.FC<ShiftBannerProps> = ({
         </div>
 
         {activeShift && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '13px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '13px', flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-              <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>Fondo Base:</span>
+              <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>Base:</span>
               <span className="tabular-nums" style={{ fontWeight: '600', color: 'var(--text-primary)' }}>
                 $ {activeShift.initialCash.toLocaleString()}
               </span>
             </div>
             <div className="header-divider" style={{ height: '14px' }} />
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
-              <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>Efectivo Actual:</span>
+              <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>Gaveta Efectivo:</span>
               <span className="tabular-nums" style={{ fontWeight: '700', color: 'var(--status-available-text)', fontSize: '14px' }}>
                 $ {activeShift.currentCash.toLocaleString()}
               </span>
             </div>
+
+            {totalDigital > 0 && (
+              <>
+                <div className="header-divider" style={{ height: '14px' }} />
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Smartphone size={13} color="var(--border-focus)" />
+                  <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>Digital (Nequi/Tarj):</span>
+                  <span className="tabular-nums" style={{ fontWeight: '700', color: 'var(--border-focus)', fontSize: '13px' }}>
+                    $ {totalDigital.toLocaleString()}
+                  </span>
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>

@@ -2,7 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { LocalShift } from '../../db/db';
 import { springModal, springTouch } from '../../utils/motion';
-import { X, Unlock, Lock } from 'lucide-react';
+import { X, Unlock, Lock, Banknote, QrCode, CreditCard } from 'lucide-react';
 
 interface OpenShiftModalProps {
   isOpen: boolean;
@@ -55,7 +55,7 @@ export const OpenShiftModal: React.FC<OpenShiftModalProps> = ({
             <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '6px' }}>
-                  Fondo Inicial en Efectivo (Base de Caja)
+                  Fondo Inicial en Efectivo (Base de Gaveta)
                 </label>
                 <input
                   type="number"
@@ -68,7 +68,7 @@ export const OpenShiftModal: React.FC<OpenShiftModalProps> = ({
                   autoFocus
                 />
                 <span style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
-                  Ingresa el efectivo físico con el que recibes la gaveta de caja.
+                  Efectivo físico inicial con el que recibes el cajón de recepción.
                 </span>
               </div>
             </div>
@@ -108,6 +108,8 @@ interface CloseShiftModalProps {
   onActualCashChange: (val: string) => void;
   closeNotes: string;
   onCloseNotesChange: (val: string) => void;
+  totalTransfers: number;
+  totalCards: number;
   onSubmit: (e: React.FormEvent) => void;
   onClose: () => void;
 }
@@ -119,6 +121,8 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({
   onActualCashChange,
   closeNotes,
   onCloseNotesChange,
+  totalTransfers,
+  totalCards,
   onSubmit,
   onClose,
 }) => {
@@ -126,12 +130,15 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({
 
   const actual = parseFloat(actualCash) || 0;
   const difference = actual - activeShift.currentCash;
+  const totalDigital = totalTransfers + totalCards;
+  const grandTotalTurno = activeShift.currentCash + totalDigital;
 
   return (
     <AnimatePresence>
       <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true">
         <motion.div
           className="modal-dialog"
+          style={{ maxWidth: '520px' }}
           onClick={(e) => e.stopPropagation()}
           initial={{ opacity: 0, scale: 0.94, y: 15 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -159,6 +166,7 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({
             </div>
 
             <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {/* Desglose Contable por Medios de Pago */}
               <div
                 style={{
                   backgroundColor: 'var(--bg-surface-elevated)',
@@ -166,19 +174,66 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({
                   borderRadius: 'var(--radius-sm)',
                   padding: '12px 14px',
                   display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
+                  flexDirection: 'column',
+                  gap: '8px',
+                  fontSize: '12px',
                 }}
               >
-                <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Efectivo Calculado por Sistema:</span>
-                <span className="tabular-nums" style={{ fontSize: '16px', fontWeight: '800', color: 'var(--text-primary)' }}>
-                  $ {activeShift.currentCash.toLocaleString()}
-                </span>
+                <div style={{ fontWeight: '700', color: 'var(--text-secondary)', marginBottom: '2px' }}>
+                  CONCILIACIÓN POR MEDIOS DE PAGO DEL TURNO
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <Banknote size={13} color="var(--status-available-text)" />
+                    Efectivo Esperado en Gaveta:
+                  </span>
+                  <span className="tabular-nums" style={{ fontWeight: '700', fontSize: '14px', color: 'var(--status-available-text)' }}>
+                    $ {activeShift.currentCash.toLocaleString()}
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <QrCode size={13} color="var(--border-focus)" />
+                    Transferencias (Nequi / QR):
+                  </span>
+                  <span className="tabular-nums" style={{ fontWeight: '600', color: 'var(--text-primary)' }}>
+                    $ {totalTransfers.toLocaleString()}
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                    <CreditCard size={13} color="#8b5cf6" />
+                    Datáfono / Tarjetas:
+                  </span>
+                  <span className="tabular-nums" style={{ fontWeight: '600', color: 'var(--text-primary)' }}>
+                    $ {totalCards.toLocaleString()}
+                  </span>
+                </div>
+
+                <div
+                  style={{
+                    borderTop: '1px solid var(--border-subtle)',
+                    paddingTop: '6px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    fontWeight: '700',
+                  }}
+                >
+                  <span style={{ color: 'var(--text-muted)' }}>Total Operacional Recaudado:</span>
+                  <span className="tabular-nums" style={{ color: 'var(--text-primary)' }}>
+                    $ {grandTotalTurno.toLocaleString()}
+                  </span>
+                </div>
               </div>
 
+              {/* Conteo Real de Billetes en Gaveta */}
               <div>
                 <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '4px' }}>
-                  Efectivo Físico en Caja (Conteo real)
+                  Efectivo Físico en Gaveta (Conteo real de billetes)
                 </label>
                 <input
                   type="number"
@@ -190,6 +245,9 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({
                   onChange={(e) => onActualCashChange(e.target.value)}
                   autoFocus
                 />
+                <span style={{ display: 'block', fontSize: '11px', color: 'var(--text-muted)', marginTop: '3px' }}>
+                  Digita únicamente el dinero físico del cajón. Las transferencias y datáfonos se concilian por separado.
+                </span>
               </div>
 
               {/* Diferencia o Descuadre */}
@@ -206,7 +264,7 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({
                 }}
               >
                 <span style={{ color: difference === 0 ? 'var(--status-available-text)' : 'var(--status-dirty-text)', fontWeight: '600' }}>
-                  {difference === 0 ? 'Caja Cuadrada Exacta' : difference > 0 ? 'Sobrante en caja' : 'Faltante (Descuadre)'}:
+                  {difference === 0 ? 'Gaveta de Efectivo Cuadrada Exacta' : difference > 0 ? 'Sobrante en efectivo' : 'Faltante en efectivo (Descuadre)'}:
                 </span>
                 <span className="tabular-nums" style={{ fontWeight: '800', color: difference === 0 ? 'var(--status-available-text)' : 'var(--status-dirty-text)' }}>
                   $ {difference.toLocaleString()}
@@ -219,7 +277,7 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({
                 </label>
                 <textarea
                   rows={2}
-                  placeholder="Ej. Se dejan 50.000 para el siguiente turno..."
+                  placeholder="Ej. Se dejan 50.000 de base para el siguiente turno, lote datáfono #4182 cerrado..."
                   value={closeNotes}
                   onChange={(e) => onCloseNotesChange(e.target.value)}
                 />
