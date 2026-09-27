@@ -147,7 +147,7 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
                     required
                     min="100"
                     max={maxCash}
-                    step="100"
+                    step="any"
                     placeholder="Ej. 25000"
                     value={amount}
                     onChange={(e) => onAmountChange(e.target.value)}

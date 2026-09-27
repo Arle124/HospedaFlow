@@ -61,7 +61,7 @@ export const OpenShiftModal: React.FC<OpenShiftModalProps> = ({
                   type="number"
                   required
                   min="0"
-                  step="1000"
+                  step="any"
                   placeholder="50000"
                   value={initialCash}
                   onChange={(e) => onInitialCashChange(e.target.value)}
@@ -184,7 +184,7 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({
                   type="number"
                   required
                   min="0"
-                  step="100"
+                  step="any"
                   placeholder="0"
                   value={actualCash}
                   onChange={(e) => onActualCashChange(e.target.value)}
