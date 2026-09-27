@@ -1,0 +1,55 @@
+# HospedaSync - Directivas de Diseño y Calidad Frontend
+
+Este archivo gobierna todos los criterios estéticos, decisiones de diseño, animaciones y generación de código de interfaz de usuario en HospedaSync.
+
+---
+
+## Regla 1 - "Impeccable" (Sistemas de Diseño)
+* **Cero CSS ad-hoc:** Queda estrictamente prohibido el uso de valores arbitrarios o estilos inline dispersos (`style={{ ... }}`). Todo valor de espaciado, tipografía, radio de borde, elevación o color debe provenir de tokens semánticos definidos en `src/index.css` (ej. `var(--bg-canvas)`, `var(--bg-surface)`, `var(--border-subtle)`, `var(--text-primary)`, etc.).
+* **Layouts Semánticos y Modulares:** 
+  * Priorizar contenedores semánticos (`header`, `main`, `section`, `nav`, `aside`, `footer`, `article`).
+  * Estructuras de layout declarativas con Flexbox o CSS Grid, empleando `gap` estricto en lugar de márgenes disjuntos.
+* **Modularidad y Composición:** 
+  * Descomponer vistas monolíticas en componentes pequeños, cohesivos y componibles (archivos de no más de 150-250 líneas).
+  * Separar la capa de acceso a datos (Dexie.js) de la capa visual de presentación.
+  * Emplear utilidades `clsx` y `tailwind-merge` para clases y estados condicionales limpios.
+
+---
+
+## Regla 2 - "Taste Skill" (Filtro Anti-Slop)
+* **Eliminación del IA Slop:**
+  * Prohibido el uso de bordes grises genéricos planos o sombras por defecto no calibradas. Emplear bordes con contraste sutil y sombras multicapa suaves.
+  * Prohibido el uso de números mágicos o ajustes arbitrarios de márgenes/paddings. El espaciado responde a la escala modular (4px, 8px, 12px, 16px, 20px, 24px, 32px).
+* **Paleta Intencional Hotelera:**
+  * Modo Oscuro refinado: base suave en carbón pizarra (`#1b2230`), tarjetas en `#242c3d` y bordes sutiles. Prohibido el uso de negro puro (#000000) estridente.
+  * Semáforo de estados hotelero sobrio:
+    * *Disponible:* Acentos esmeralda/menta suaves (`--status-available-*`).
+    * *Ocupada:* Acentos índigo/zafiro sobrios (`--status-occupied-*`).
+    * *Requiere Aseo / Mantenimiento:* Acentos ámbar cálido (`--status-maintenance-*`).
+  * Alto contraste tipográfico y amplio espacio en blanco (*whitespace*) para respiración visual en pantallas de alta densidad operativa.
+* **Cero Abuso de Emojis:** Mantener un estilo corporativo, sobrio y profesional. Utilizar iconografía vectorial coherente con `lucide-react`.
+
+---
+
+## Regla 3 - "Emil Kowalski Skill" (Motion & Interacción Táctil)
+* **Prohibición de curvas de transición estándar:** Prohibido el uso de `ease`, `ease-in-out` o transiciones lineales en microinteracciones.
+* **Físicas de Resortes Obligatorias (Spring Physics):**
+  * Toda microinteracción (hovers de tarjeta, apertura de modales, popovers de minibar, drawer de check-in, check-out, toasts) debe implementar físicas de resorte mediante **Framer Motion**:
+    ```typescript
+    // Microinteracción táctil rápida (botones, tarjetas, chips de estado)
+    export const springTouch = {
+      type: "spring",
+      mass: 0.8,
+      stiffness: 320,
+      damping: 24,
+    };
+
+    // Componentes flotantes con inercia (modales, popovers)
+    export const springModal = {
+      type: "spring",
+      mass: 0.9,
+      stiffness: 280,
+      damping: 28,
+    };
+    ```
+* **Respuesta Inmediata:** Latencia perceptual cero, retroalimentación táctil inmediata al interactuar y respeto a las preferencias de accesibilidad (`prefers-reduced-motion`).
