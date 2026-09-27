@@ -54,7 +54,7 @@ func NewRouter(shiftHandler *ShiftHandler) http.Handler {
 
 	if distDir != "" {
 		fs := http.FileServer(http.Dir(distDir))
-		r.Get("/*", func(w http.ResponseWriter, r *http.Request) {
+		spaHandler := func(w http.ResponseWriter, r *http.Request) {
 			target := filepath.Join(distDir, filepath.Clean(r.URL.Path))
 			info, err := os.Stat(target)
 			if err == nil && !info.IsDir() {
@@ -62,7 +62,9 @@ func NewRouter(shiftHandler *ShiftHandler) http.Handler {
 				return
 			}
 			http.ServeFile(w, r, filepath.Join(distDir, "index.html"))
-		})
+		}
+		r.Get("/*", spaHandler)
+		r.Head("/*", spaHandler)
 	}
 
 	return r
