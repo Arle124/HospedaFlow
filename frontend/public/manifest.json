@@ -4,8 +4,8 @@
   "description": "Sistema de gestión hotelera offline-first para recepción, gobernanza y administración",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#090d16",
-  "theme_color": "#1e293b",
+  "background_color": "#1b2230",
+  "theme_color": "#1b2230",
   "orientation": "any",
   "icons": [
     {
