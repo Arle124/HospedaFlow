@@ -66,10 +66,49 @@ export interface CashMovement {
   createdAt: string;
 }
 
+export interface OpenShiftPayload {
+  localId: string;
+  user_id: number;
+  initial_cash: number;
+}
+
+export interface CloseShiftPayload {
+  shiftId?: number;
+  localShiftId?: string;
+  actual_cash: number;
+  notes?: string;
+}
+
+export interface UpdateRoomStatusPayload {
+  roomId: string;
+  status: RoomStatus;
+  notes?: string;
+}
+
+export interface AddTransactionPayload {
+  shiftId: string;
+  type: CashMovementType;
+  amount: number;
+  concept: string;
+  roomNumber?: string;
+}
+
+export interface ResolveIncidentPayload {
+  roomId: string;
+  resolution: string;
+}
+
+export type SyncPayload =
+  | OpenShiftPayload
+  | CloseShiftPayload
+  | UpdateRoomStatusPayload
+  | AddTransactionPayload
+  | ResolveIncidentPayload;
+
 export interface SyncQueueItem {
   id: string;
   action: 'OPEN_SHIFT' | 'CLOSE_SHIFT' | 'UPDATE_ROOM_STATUS' | 'ADD_TRANSACTION' | 'RESOLVE_INCIDENT';
-  payload: any;
+  payload: SyncPayload;
   status: 'pending' | 'synced' | 'failed';
   createdAt: string;
   retryCount: number;

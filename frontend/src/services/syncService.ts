@@ -1,4 +1,4 @@
-import { db, type SyncQueueItem } from '../db/db';
+import { db, type SyncQueueItem, type SyncPayload } from '../db/db';
 
 type OnlineStatusCallback = (isOnline: boolean) => void;
 
@@ -35,7 +35,7 @@ class SyncService {
     return this.isOnline;
   }
 
-  public async enqueueAction(action: SyncQueueItem['action'], payload: any): Promise<SyncQueueItem> {
+  public async enqueueAction(action: SyncQueueItem['action'], payload: SyncPayload): Promise<SyncQueueItem> {
     const item: SyncQueueItem = {
       id: `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       action,
@@ -84,10 +84,10 @@ class SyncService {
             });
             failed++;
           }
-        } catch (error: any) {
+        } catch (error: unknown) {
           await db.syncQueue.update(item.id, {
             retryCount: item.retryCount + 1,
-            error: error?.message || 'Error de conexión con el servidor',
+            error: error instanceof Error ? error.message : 'Error de conexion con el servidor',
           });
           failed++;
         }
@@ -157,11 +157,13 @@ class SyncService {
 
         case 'UPDATE_ROOM_STATUS': {
           // Mock o endpoint de habitaciones cuando esté conectado
-          return true;
+          // TODO: Implementar endpoint PUT /api/v1/rooms/{id}/status
+          return false;
         }
 
         default:
-          return true;
+          // Acciones no implementadas no deben marcarse como sincronizadas
+          return false;
       }
     } catch {
       return false;
