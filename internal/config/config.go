@@ -1,6 +1,7 @@
 package config
 
 import (
+	"log"
 	"os"
 	"time"
 )
@@ -23,7 +24,8 @@ func Load() *Config {
 
 	dbURL := os.Getenv("DATABASE_URL")
 	if dbURL == "" {
-		dbURL = "postgres://postgres:postgres@localhost:5432/hospedasync?sslmode=disable"
+		log.Println("DATABASE_URL no está configurada")
+		dbURL = ""
 	}
 
 	env := os.Getenv("APP_ENV")
