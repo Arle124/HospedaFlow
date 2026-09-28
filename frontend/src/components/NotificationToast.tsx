@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { eventBus, type LiveNotification } from '../services/eventBus';
 import { springToast, springTouch } from '../utils/motion';
 import { Sparkles, AlertCircle, Info, X } from 'lucide-react';
@@ -59,7 +59,7 @@ export const NotificationToast: React.FC = () => {
           if (isIssue) toastTypeClass = 'toast-issue';
 
           return (
-            <motion.div
+            <m.div
               key={n.id}
               layout
               role="alert"
@@ -89,7 +89,7 @@ export const NotificationToast: React.FC = () => {
                 </p>
               </div>
 
-              <motion.button
+              <m.button
                 type="button"
                 onClick={() => dismiss(n.id)}
                 aria-label="Cerrar notificación"
@@ -99,8 +99,8 @@ export const NotificationToast: React.FC = () => {
                 className="toast-close-btn"
               >
                 <X size={14} />
-              </motion.button>
-            </motion.div>
+              </m.button>
+            </m.div>
           );
         })}
       </AnimatePresence>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { Search } from 'lucide-react';
 import { springTouch } from '../../utils/motion';
 
@@ -50,7 +50,7 @@ export const RoomFilterBar: React.FC<RoomFilterBarProps> = ({
         {tabs.map((tab) => {
           const isActive = filterStatus === tab.id;
           return (
-            <motion.button
+            <m.button
               key={tab.id}
               type="button"
               onClick={() => onFilterChange(tab.id)}
@@ -71,7 +71,7 @@ export const RoomFilterBar: React.FC<RoomFilterBarProps> = ({
                 />
               )}
               <span>{tab.label}</span>
-            </motion.button>
+            </m.button>
           );
         })}
       </div>

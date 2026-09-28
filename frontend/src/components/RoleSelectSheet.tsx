@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { Layers, Sparkles, BarChart3, Lock, Check, X } from 'lucide-react';
 import { springTouch } from '../utils/motion';
 import type { UserRole } from './Header';
@@ -52,7 +52,7 @@ export const RoleSelectSheet: React.FC<RoleSelectSheetProps> = ({
   return (
     <AnimatePresence>
       <div className="modal-backdrop" onClick={onClose} style={{ alignItems: 'flex-end', padding: 0 }}>
-        <motion.div
+        <m.div
           className="modal-card"
           onClick={(e) => e.stopPropagation()}
           initial={{ y: '100%' }}
@@ -106,7 +106,7 @@ export const RoleSelectSheet: React.FC<RoleSelectSheetProps> = ({
             {ROLE_OPTIONS.map(({ id, label, sublabel, icon: Icon, isRestricted }) => {
               const isSelected = currentRole === id;
               return (
-                <motion.button
+                <m.button
                   key={id}
                   type="button"
                   onClick={() => onSelectRole(id)}
@@ -188,11 +188,11 @@ export const RoleSelectSheet: React.FC<RoleSelectSheetProps> = ({
                       <Check size={14} />
                     </div>
                   )}
-                </motion.button>
+                </m.button>
               );
             })}
           </div>
-        </motion.div>
+        </m.div>
       </div>
     </AnimatePresence>
   );

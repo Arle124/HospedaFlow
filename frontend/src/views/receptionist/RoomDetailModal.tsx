@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import type { Room } from '../../db/db';
 import { springModal, springTouch } from '../../utils/motion';
 import { X, Users, ShoppingBag, LogOut } from 'lucide-react';
@@ -27,7 +27,7 @@ export const RoomDetailModal: React.FC<RoomDetailModalProps> = ({
   return (
     <AnimatePresence>
       <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true">
-        <motion.div
+        <m.div
           className="modal-dialog"
           style={{ maxWidth: '540px' }}
           onClick={(e) => e.stopPropagation()}
@@ -42,7 +42,7 @@ export const RoomDetailModal: React.FC<RoomDetailModalProps> = ({
               <span className="room-number">Habitación #{room.number}</span>
               <span className="status-pill status-occupied">Ocupada</span>
             </div>
-            <motion.button
+            <m.button
               type="button"
               onClick={onClose}
               whileHover={{ scale: 1.1 }}
@@ -53,7 +53,7 @@ export const RoomDetailModal: React.FC<RoomDetailModalProps> = ({
               aria-label="Cerrar modal"
             >
               <X size={16} />
-            </motion.button>
+            </m.button>
           </div>
 
           {/* Cuerpo */}
@@ -103,7 +103,7 @@ export const RoomDetailModal: React.FC<RoomDetailModalProps> = ({
                   <ShoppingBag size={14} color="var(--border-focus)" />
                   Consumos de Minibar ({consumptions.length})
                 </span>
-                <motion.button
+                <m.button
                   type="button"
                   className="btn-secondary"
                   onClick={() => onOpenMinibarForRoom(room.id)}
@@ -113,7 +113,7 @@ export const RoomDetailModal: React.FC<RoomDetailModalProps> = ({
                   style={{ fontSize: '11px', padding: '4px 8px' }}
                 >
                   + Agregar consumo
-                </motion.button>
+                </m.button>
               </div>
 
               {consumptions.length === 0 ? (
@@ -194,7 +194,7 @@ export const RoomDetailModal: React.FC<RoomDetailModalProps> = ({
 
           {/* Footer de Acciones */}
           <div className="modal-footer">
-            <motion.button
+            <m.button
               type="button"
               className="btn-secondary"
               onClick={onClose}
@@ -202,9 +202,9 @@ export const RoomDetailModal: React.FC<RoomDetailModalProps> = ({
               transition={springTouch}
             >
               Cerrar
-            </motion.button>
+            </m.button>
 
-            <motion.button
+            <m.button
               type="button"
               className="btn-primary"
               onClick={() => {
@@ -218,9 +218,9 @@ export const RoomDetailModal: React.FC<RoomDetailModalProps> = ({
             >
               <LogOut size={13} />
               <span>Proceder a Check-out</span>
-            </motion.button>
+            </m.button>
           </div>
-        </motion.div>
+        </m.div>
       </div>
     </AnimatePresence>
   );

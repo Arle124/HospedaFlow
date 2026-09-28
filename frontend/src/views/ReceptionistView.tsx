@@ -432,6 +432,7 @@ export const ReceptionistView: React.FC = () => {
 
     await syncService.enqueueAction('UPDATE_ROOM_STATUS', {
       roomId: room.id,
+      status: room.status,
       notes: '',
     });
 
@@ -535,6 +536,12 @@ export const ReceptionistView: React.FC = () => {
   const dirtyCount = rooms.filter((r) => r.status === 'dirty').length;
   const cleaningCount = rooms.filter((r) => r.status === 'cleaning').length;
 
+  // Memoized callbacks for RoomCard
+  const handleShowCheckInModal = React.useCallback((room: Room) => setShowCheckInModal(room), []);
+  const handleShowCheckOutModal = React.useCallback((room: Room) => setShowCheckOutModal(room), []);
+  const handleDetailClick = React.useCallback((room: Room) => setSelectedRoomDetail(room), []);
+  const handleClearNotesClick = React.useCallback((room: Room) => setIncidentRoomToResolve(room), []);
+
   return (
     <div className="container-fluid" style={{ paddingBottom: '40px' }}>
       {/* 1. Barra de Turno y Caja con desglose Digital */}
@@ -571,10 +578,10 @@ export const ReceptionistView: React.FC = () => {
           <RoomCard
             key={room.id}
             room={room}
-            onCheckInClick={setShowCheckInModal}
-            onCheckOutClick={setShowCheckOutModal}
-            onDetailClick={setSelectedRoomDetail}
-            onClearNotes={setIncidentRoomToResolve}
+            onCheckInClick={handleShowCheckInModal}
+            onCheckOutClick={handleShowCheckOutModal}
+            onDetailClick={handleDetailClick}
+            onClearNotes={handleClearNotesClick}
           />
         ))}
       </div>

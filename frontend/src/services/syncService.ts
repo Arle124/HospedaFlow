@@ -105,16 +105,17 @@ class SyncService {
     try {
       switch (item.action) {
         case 'OPEN_SHIFT': {
+          const payload = item.payload as import('../db/db').OpenShiftPayload;
           const res = await fetch(`${API_BASE}/shifts`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify(item.payload),
+            body: JSON.stringify(payload),
           });
           if (res.ok) {
             const data = await res.json();
             if (data?.data?.id) {
-              await db.shifts.update(item.payload.localId, {
+              await db.shifts.update(payload.localId, {
                 serverId: data.data.id,
                 isSynced: true,
               });
@@ -125,10 +126,11 @@ class SyncService {
         }
 
         case 'CLOSE_SHIFT': {
-          let targetServerId = item.payload.shiftId;
+          const payload = item.payload as import('../db/db').CloseShiftPayload;
+          let targetServerId = payload.shiftId;
           // Si no tiene serverId directo, buscar en Dexie por si OPEN_SHIFT ya se sincronizó
-          if (!targetServerId && item.payload.localShiftId) {
-            const localShift = await db.shifts.get(item.payload.localShiftId);
+          if (!targetServerId && payload.localShiftId) {
+            const localShift = await db.shifts.get(payload.localShiftId);
             if (localShift?.serverId) {
               targetServerId = localShift.serverId;
             }
@@ -144,13 +146,13 @@ class SyncService {
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
             body: JSON.stringify({
-              actual_cash: item.payload.actual_cash,
-              notes: item.payload.notes,
+              actual_cash: payload.actual_cash,
+              notes: payload.notes,
             }),
           });
           if (res.ok) {
-            if (item.payload.localShiftId) {
-              await db.shifts.update(item.payload.localShiftId, { isSynced: true });
+            if (payload.localShiftId) {
+              await db.shifts.update(payload.localShiftId, { isSynced: true });
             }
             return true;
           }

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import type { Room, PaymentMethod } from '../../db/db';
 import { springModal, springTouch } from '../../utils/motion';
 import { X, LogOut, Receipt, Sparkles, Banknote, QrCode, CreditCard } from 'lucide-react';
@@ -32,7 +32,7 @@ export const CheckOutModal: React.FC<CheckOutModalProps> = ({
   return (
     <AnimatePresence>
       <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true">
-        <motion.div
+        <m.div
           className="modal-dialog"
           style={{ maxWidth: '520px' }}
           onClick={(e) => e.stopPropagation()}
@@ -48,7 +48,7 @@ export const CheckOutModal: React.FC<CheckOutModalProps> = ({
                 Liquidación de Salida · Hab #{room.number}
               </span>
             </div>
-            <motion.button
+            <m.button
               type="button"
               onClick={onClose}
               whileHover={{ scale: 1.1 }}
@@ -59,7 +59,7 @@ export const CheckOutModal: React.FC<CheckOutModalProps> = ({
               aria-label="Cerrar modal"
             >
               <X size={16} />
-            </motion.button>
+            </m.button>
           </div>
 
           <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -150,7 +150,7 @@ export const CheckOutModal: React.FC<CheckOutModalProps> = ({
                 </span>
 
                 <div className="payment-methods-grid">
-                  <motion.button
+                  <m.button
                     type="button"
                     onClick={() => setPaymentMethod('CASH')}
                     className={`payment-method-tile ${paymentMethod === 'CASH' ? 'active' : ''}`}
@@ -160,9 +160,9 @@ export const CheckOutModal: React.FC<CheckOutModalProps> = ({
                   >
                     <Banknote size={16} />
                     <span>Efectivo</span>
-                  </motion.button>
+                  </m.button>
 
-                  <motion.button
+                  <m.button
                     type="button"
                     onClick={() => setPaymentMethod('TRANSFER')}
                     className={`payment-method-tile ${paymentMethod === 'TRANSFER' ? 'active' : ''}`}
@@ -172,9 +172,9 @@ export const CheckOutModal: React.FC<CheckOutModalProps> = ({
                   >
                     <QrCode size={16} />
                     <span>Nequi / QR</span>
-                  </motion.button>
+                  </m.button>
 
-                  <motion.button
+                  <m.button
                     type="button"
                     onClick={() => setPaymentMethod('CARD')}
                     className={`payment-method-tile ${paymentMethod === 'CARD' ? 'active' : ''}`}
@@ -184,7 +184,7 @@ export const CheckOutModal: React.FC<CheckOutModalProps> = ({
                   >
                     <CreditCard size={16} />
                     <span>Datáfono</span>
-                  </motion.button>
+                  </m.button>
                 </div>
 
                 {paymentMethod === 'TRANSFER' && (
@@ -237,7 +237,7 @@ export const CheckOutModal: React.FC<CheckOutModalProps> = ({
           </div>
 
           <div className="modal-footer">
-            <motion.button
+            <m.button
               type="button"
               className="btn-secondary"
               onClick={onClose}
@@ -245,8 +245,8 @@ export const CheckOutModal: React.FC<CheckOutModalProps> = ({
               transition={springTouch}
             >
               Cancelar
-            </motion.button>
-            <motion.button
+            </m.button>
+            <m.button
               type="button"
               className="btn-primary"
               onClick={() => onConfirmCheckOut(room, paymentMethod, paymentReference, surcharge)}
@@ -257,9 +257,9 @@ export const CheckOutModal: React.FC<CheckOutModalProps> = ({
             >
               <LogOut size={13} />
               <span>Confirmar Check-out y Cobro</span>
-            </motion.button>
+            </m.button>
           </div>
-        </motion.div>
+        </m.div>
       </div>
     </AnimatePresence>
   );

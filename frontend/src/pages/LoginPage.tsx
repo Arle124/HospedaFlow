@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { Building2, Eye, EyeOff, LogIn, ShieldAlert } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { springModal, springTouch } from '../utils/motion';
@@ -33,7 +33,7 @@ export const LoginPage: React.FC = () => {
 
   return (
     <div className="login-page">
-      <motion.div
+      <m.div
         className="login-card"
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ 
@@ -92,7 +92,7 @@ export const LoginPage: React.FC = () => {
 
           <AnimatePresence>
             {(localError || error) && (
-              <motion.div
+              <m.div
                 className="login-error"
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -100,11 +100,11 @@ export const LoginPage: React.FC = () => {
               >
                 <ShieldAlert size={14} />
                 <span>{localError || error}</span>
-              </motion.div>
+              </m.div>
             )}
           </AnimatePresence>
 
-          <motion.button
+          <m.button
             type="submit"
             className="login-button btn-primary"
             disabled={isSubmitting}
@@ -114,13 +114,13 @@ export const LoginPage: React.FC = () => {
           >
             <LogIn size={16} />
             {isSubmitting ? 'Verificando...' : 'Iniciar Sesión'}
-          </motion.button>
+          </m.button>
         </form>
 
         <div className="login-footer">
           HospedaSync PMS · Sistema de Gestion Hotelera
         </div>
-      </motion.div>
+      </m.div>
     </div>
   );
 };

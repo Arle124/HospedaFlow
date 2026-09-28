@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import { db, type Room, type LocalShift, type LocalProduct, type CashMovement } from '../db/db';
 import { syncService } from '../services/syncService';
 import { eventBus } from '../services/eventBus';
@@ -220,7 +220,7 @@ export const AdminView: React.FC = () => {
                     {r.notes}
                   </p>
                 </div>
-                <motion.button
+                <m.button
                   type="button"
                   className="btn-primary admin-incident-btn"
                   onClick={() => setSelectedIncidentRoom(r)}
@@ -230,7 +230,7 @@ export const AdminView: React.FC = () => {
                 >
                   <CheckCircle2 size={13} />
                   <span>Marcar Solucionado</span>
-                </motion.button>
+                </m.button>
               </div>
             ))}
           </div>

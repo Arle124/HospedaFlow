@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import type { LocalShift } from '../../db/db';
 import { springModal, springTouch } from '../../utils/motion';
 import { X, Unlock, Lock, Banknote, QrCode, CreditCard } from 'lucide-react';
@@ -24,7 +24,7 @@ export const OpenShiftModal: React.FC<OpenShiftModalProps> = ({
   return (
     <AnimatePresence>
       <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true">
-        <motion.div
+        <m.div
           className="modal-dialog"
           onClick={(e) => e.stopPropagation()}
           initial={{ opacity: 0, scale: 0.94, y: 15 }}
@@ -38,7 +38,7 @@ export const OpenShiftModal: React.FC<OpenShiftModalProps> = ({
                 <Unlock size={16} color="var(--border-focus)" />
                 <span className="room-number" style={{ fontSize: '16px' }}>Abrir Turno de Caja</span>
               </div>
-              <motion.button
+              <m.button
                 type="button"
                 onClick={onClose}
                 whileHover={{ scale: 1.1 }}
@@ -49,7 +49,7 @@ export const OpenShiftModal: React.FC<OpenShiftModalProps> = ({
                 aria-label="Cerrar modal"
               >
                 <X size={16} />
-              </motion.button>
+              </m.button>
             </div>
 
             <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -74,7 +74,7 @@ export const OpenShiftModal: React.FC<OpenShiftModalProps> = ({
             </div>
 
             <div className="modal-footer">
-              <motion.button
+              <m.button
                 type="button"
                 className="btn-secondary"
                 onClick={onClose}
@@ -82,8 +82,8 @@ export const OpenShiftModal: React.FC<OpenShiftModalProps> = ({
                 transition={springTouch}
               >
                 Cancelar
-              </motion.button>
-              <motion.button
+              </m.button>
+              <m.button
                 type="submit"
                 className="btn-primary"
                 whileHover={{ scale: 1.02 }}
@@ -92,10 +92,10 @@ export const OpenShiftModal: React.FC<OpenShiftModalProps> = ({
               >
                 <Unlock size={13} />
                 <span>Registrar e Iniciar Turno</span>
-              </motion.button>
+              </m.button>
             </div>
           </form>
-        </motion.div>
+        </m.div>
       </div>
     </AnimatePresence>
   );
@@ -136,7 +136,7 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({
   return (
     <AnimatePresence>
       <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true">
-        <motion.div
+        <m.div
           className="modal-dialog"
           style={{ maxWidth: '520px' }}
           onClick={(e) => e.stopPropagation()}
@@ -151,7 +151,7 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({
                 <Lock size={16} color="var(--status-dirty-text)" />
                 <span className="room-number" style={{ fontSize: '16px' }}>Arqueo y Cierre de Turno</span>
               </div>
-              <motion.button
+              <m.button
                 type="button"
                 onClick={onClose}
                 whileHover={{ scale: 1.1 }}
@@ -162,7 +162,7 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({
                 aria-label="Cerrar modal"
               >
                 <X size={16} />
-              </motion.button>
+              </m.button>
             </div>
 
             <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -285,7 +285,7 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({
             </div>
 
             <div className="modal-footer">
-              <motion.button
+              <m.button
                 type="button"
                 className="btn-secondary"
                 onClick={onClose}
@@ -293,8 +293,8 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({
                 transition={springTouch}
               >
                 Cancelar
-              </motion.button>
-              <motion.button
+              </m.button>
+              <m.button
                 type="submit"
                 className="btn-primary"
                 whileHover={{ scale: 1.02 }}
@@ -303,10 +303,10 @@ export const CloseShiftModal: React.FC<CloseShiftModalProps> = ({
               >
                 <Lock size={13} />
                 <span>Confirmar y Cerrar Turno</span>
-              </motion.button>
+              </m.button>
             </div>
           </form>
-        </motion.div>
+        </m.div>
       </div>
     </AnimatePresence>
   );

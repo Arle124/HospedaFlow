@@ -83,14 +83,24 @@ export interface UpdateRoomStatusPayload {
   roomId: string;
   status: RoomStatus;
   notes?: string;
+  guestName?: string;
+  guestsCount?: number;
+  paymentStatus?: 'PAID' | 'PENDING';
 }
 
 export interface AddTransactionPayload {
   shiftId: string;
   type: CashMovementType;
   amount: number;
-  concept: string;
+  concept?: string;
   roomNumber?: string;
+  isDirect?: boolean;
+  paymentMethod?: string;
+  items?: { id: number; name: string; qty: number; price: number }[];
+  roomId?: string;
+  supplier?: string;
+  category?: string;
+  receipt?: string;
 }
 
 export interface ResolveIncidentPayload {

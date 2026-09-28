@@ -1,3 +1,4 @@
+import { LazyMotion, domAnimation } from "framer-motion";
 import { useState, useEffect } from 'react';
 import { Header, type UserRole } from './components/Header';
 import { NotificationToast } from './components/NotificationToast';
@@ -60,11 +61,14 @@ function AppContent() {
   );
 }
 
+
 function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <LazyMotion features={domAnimation}>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </LazyMotion>
   );
 }
 

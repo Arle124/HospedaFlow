@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import type { Room } from '../../db/db';
 import { springTouch } from '../../utils/motion';
 import { LogIn, LogOut, Eye, Users, AlertTriangle, CheckCircle2 } from 'lucide-react';
@@ -12,7 +12,7 @@ interface RoomCardProps {
   onClearNotes: (room: Room) => void;
 }
 
-export const RoomCard: React.FC<RoomCardProps> = ({
+export const RoomCard: React.FC<RoomCardProps> = React.memo(({
   room,
   onCheckInClick,
   onCheckOutClick,
@@ -40,7 +40,7 @@ export const RoomCard: React.FC<RoomCardProps> = ({
   const statusInfo = statusLabels[room.status] || { label: room.status, className: 'status-available' };
 
   return (
-    <motion.div
+    <m.div
       className="room-card"
       whileHover={{ y: -3 }}
       transition={springTouch}
@@ -103,7 +103,7 @@ export const RoomCard: React.FC<RoomCardProps> = ({
                 {room.notes}
               </span>
             </div>
-            <motion.button
+            <m.button
               type="button"
               onClick={() => onClearNotes(room)}
               whileHover={{ scale: 1.05 }}
@@ -120,7 +120,7 @@ export const RoomCard: React.FC<RoomCardProps> = ({
             >
               <CheckCircle2 size={11} color="var(--status-available-text)" />
               <span>Resolver</span>
-            </motion.button>
+            </m.button>
           </div>
         )}
       </div>
@@ -128,7 +128,7 @@ export const RoomCard: React.FC<RoomCardProps> = ({
       {/* Acciones de la Tarjeta */}
       <div style={{ marginTop: '12px', paddingTop: '10px', borderTop: '1px solid var(--border-subtle)' }}>
         {isAvailable && (
-          <motion.button
+          <m.button
             type="button"
             className="btn-primary"
             onClick={() => onCheckInClick(room)}
@@ -139,12 +139,12 @@ export const RoomCard: React.FC<RoomCardProps> = ({
           >
             <LogIn size={13} />
             <span>Check-in</span>
-          </motion.button>
+          </m.button>
         )}
 
         {isOccupied && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-            <motion.button
+            <m.button
               type="button"
               className="btn-secondary"
               onClick={() => onDetailClick(room)}
@@ -154,9 +154,9 @@ export const RoomCard: React.FC<RoomCardProps> = ({
             >
               <Eye size={13} />
               <span>Detalles</span>
-            </motion.button>
+            </m.button>
 
-            <motion.button
+            <m.button
               type="button"
               className="btn-secondary"
               onClick={() => onCheckOutClick(room)}
@@ -167,7 +167,7 @@ export const RoomCard: React.FC<RoomCardProps> = ({
             >
               <LogOut size={13} />
               <span>Salida</span>
-            </motion.button>
+            </m.button>
           </div>
         )}
 
@@ -183,6 +183,6 @@ export const RoomCard: React.FC<RoomCardProps> = ({
           </div>
         )}
       </div>
-    </motion.div>
+    </m.div>
   );
-};
+});

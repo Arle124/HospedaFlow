@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { Lock, Delete, X, Sparkles } from 'lucide-react';
 import { springModal, springTouch } from '../utils/motion';
 
@@ -70,7 +70,7 @@ export const GerenciaPinModal: React.FC<GerenciaPinModalProps> = ({
   return (
     <AnimatePresence>
       <div className="modal-backdrop" onClick={onClose}>
-        <motion.div
+        <m.div
           className="modal-card"
           style={{ maxWidth: '360px', width: '100%', padding: '24px 20px', textAlign: 'center' }}
           onClick={(e) => e.stopPropagation()}
@@ -126,7 +126,7 @@ export const GerenciaPinModal: React.FC<GerenciaPinModalProps> = ({
             {[0, 1, 2, 3].map((index) => {
               const isFilled = pin.length > index;
               return (
-                <motion.div
+                <m.div
                   key={index}
                   animate={{
                     scale: isFilled ? [1, 1.2, 1] : 1,
@@ -147,13 +147,13 @@ export const GerenciaPinModal: React.FC<GerenciaPinModalProps> = ({
 
           {/* Mensaje de Error */}
           {error && (
-            <motion.p
+            <m.p
               initial={{ opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
               style={{ fontSize: '12px', color: 'var(--status-dirty-text)', marginBottom: '12px', fontWeight: '600' }}
             >
               {error}
-            </motion.p>
+            </m.p>
           )}
 
           {/* Teclado Numérico Táctil */}
@@ -167,7 +167,7 @@ export const GerenciaPinModal: React.FC<GerenciaPinModalProps> = ({
             }}
           >
             {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map((digit) => (
-              <motion.button
+              <m.button
                 key={digit}
                 type="button"
                 onClick={() => handleKeyPress(digit)}
@@ -182,10 +182,10 @@ export const GerenciaPinModal: React.FC<GerenciaPinModalProps> = ({
                 }}
               >
                 {digit}
-              </motion.button>
+              </m.button>
             ))}
 
-            <motion.button
+            <m.button
               type="button"
               onClick={handleClear}
               whileTap={{ scale: 0.92 }}
@@ -194,9 +194,9 @@ export const GerenciaPinModal: React.FC<GerenciaPinModalProps> = ({
               style={{ height: '48px', fontSize: '11px', fontWeight: '600', color: 'var(--text-muted)' }}
             >
               Borrar
-            </motion.button>
+            </m.button>
 
-            <motion.button
+            <m.button
               type="button"
               onClick={() => handleKeyPress('0')}
               whileTap={{ scale: 0.92 }}
@@ -210,9 +210,9 @@ export const GerenciaPinModal: React.FC<GerenciaPinModalProps> = ({
               }}
             >
               0
-            </motion.button>
+            </m.button>
 
-            <motion.button
+            <m.button
               type="button"
               onClick={handleDelete}
               whileTap={{ scale: 0.92 }}
@@ -222,12 +222,12 @@ export const GerenciaPinModal: React.FC<GerenciaPinModalProps> = ({
               aria-label="Retroceder"
             >
               <Delete size={16} />
-            </motion.button>
+            </m.button>
           </div>
 
           {/* Atajo Rápido para Demostraciones Comerciales */}
           <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '14px', marginTop: '10px' }}>
-            <motion.button
+            <m.button
               type="button"
               onClick={handleDemoBypass}
               whileHover={{ scale: 1.02 }}
@@ -247,12 +247,12 @@ export const GerenciaPinModal: React.FC<GerenciaPinModalProps> = ({
             >
               <Sparkles size={14} />
               <span>Autocompletar Acceso Demo (PIN: 1234)</span>
-            </motion.button>
+            </m.button>
             <p style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '6px' }}>
               En producción este botón no existe y la camarera no puede acceder sin autorización.
             </p>
           </div>
-        </motion.div>
+        </m.div>
       </div>
     </AnimatePresence>
   );

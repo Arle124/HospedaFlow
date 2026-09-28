@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import type { LocalProduct, Room, PaymentMethod } from '../../db/db';
 import { springModal, springTouch } from '../../utils/motion';
 import { X, ShoppingBag, Plus, Minus, Banknote, QrCode, CreditCard } from 'lucide-react';
@@ -51,7 +51,7 @@ export const MinibarModal: React.FC<MinibarModalProps> = ({
   return (
     <AnimatePresence>
       <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true">
-        <motion.div
+        <m.div
           className="modal-dialog"
           style={{ maxWidth: '520px' }}
           onClick={(e) => e.stopPropagation()}
@@ -66,7 +66,7 @@ export const MinibarModal: React.FC<MinibarModalProps> = ({
                 <ShoppingBag size={16} color="var(--border-focus)" />
                 <span className="room-number" style={{ fontSize: '16px' }}>Venta y Consumos de Minibar</span>
               </div>
-              <motion.button
+              <m.button
                 type="button"
                 onClick={onClose}
                 whileHover={{ scale: 1.1 }}
@@ -77,7 +77,7 @@ export const MinibarModal: React.FC<MinibarModalProps> = ({
                 aria-label="Cerrar modal"
               >
                 <X size={16} />
-              </motion.button>
+              </m.button>
             </div>
 
             <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -154,7 +154,7 @@ export const MinibarModal: React.FC<MinibarModalProps> = ({
                     MEDIO DE PAGO
                   </span>
                   <div className="payment-methods-grid">
-                    <motion.button
+                    <m.button
                       type="button"
                       onClick={() => onPaymentMethodChange('CASH')}
                       className={`payment-method-tile ${paymentMethod === 'CASH' ? 'active' : ''}`}
@@ -164,9 +164,9 @@ export const MinibarModal: React.FC<MinibarModalProps> = ({
                     >
                       <Banknote size={16} />
                       <span>Efectivo</span>
-                    </motion.button>
+                    </m.button>
 
-                    <motion.button
+                    <m.button
                       type="button"
                       onClick={() => onPaymentMethodChange('TRANSFER')}
                       className={`payment-method-tile ${paymentMethod === 'TRANSFER' ? 'active' : ''}`}
@@ -176,9 +176,9 @@ export const MinibarModal: React.FC<MinibarModalProps> = ({
                     >
                       <QrCode size={16} />
                       <span>Nequi / QR</span>
-                    </motion.button>
+                    </m.button>
 
-                    <motion.button
+                    <m.button
                       type="button"
                       onClick={() => onPaymentMethodChange('CARD')}
                       className={`payment-method-tile ${paymentMethod === 'CARD' ? 'active' : ''}`}
@@ -188,7 +188,7 @@ export const MinibarModal: React.FC<MinibarModalProps> = ({
                     >
                       <CreditCard size={16} />
                       <span>Datáfono</span>
-                    </motion.button>
+                    </m.button>
                   </div>
 
                   {paymentMethod === 'TRANSFER' && (
@@ -258,7 +258,7 @@ export const MinibarModal: React.FC<MinibarModalProps> = ({
                           </div>
 
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <motion.button
+                            <m.button
                               type="button"
                               onClick={() => onQuantityChange(p.id, Math.max(0, qty - 1))}
                               disabled={qty <= 0}
@@ -268,11 +268,11 @@ export const MinibarModal: React.FC<MinibarModalProps> = ({
                               style={{ width: '26px', height: '26px', padding: 0 }}
                             >
                               <Minus size={12} />
-                            </motion.button>
+                            </m.button>
                             <span className="tabular-nums" style={{ fontSize: '13px', fontWeight: '700', minWidth: '20px', textAlign: 'center' }}>
                               {qty}
                             </span>
-                            <motion.button
+                            <m.button
                               type="button"
                               onClick={() => onQuantityChange(p.id, Math.min(p.stock, qty + 1))}
                               disabled={qty >= p.stock}
@@ -282,7 +282,7 @@ export const MinibarModal: React.FC<MinibarModalProps> = ({
                               style={{ width: '26px', height: '26px', padding: 0 }}
                             >
                               <Plus size={12} />
-                            </motion.button>
+                            </m.button>
                           </div>
                         </div>
                       );
@@ -311,7 +311,7 @@ export const MinibarModal: React.FC<MinibarModalProps> = ({
             </div>
 
             <div className="modal-footer">
-              <motion.button
+              <m.button
                 type="button"
                 className="btn-secondary"
                 onClick={onClose}
@@ -319,8 +319,8 @@ export const MinibarModal: React.FC<MinibarModalProps> = ({
                 transition={springTouch}
               >
                 Cancelar
-              </motion.button>
-              <motion.button
+              </m.button>
+              <m.button
                 type="submit"
                 className="btn-primary"
                 disabled={totalSale <= 0}
@@ -330,10 +330,10 @@ export const MinibarModal: React.FC<MinibarModalProps> = ({
               >
                 <ShoppingBag size={13} />
                 <span>Confirmar Venta</span>
-              </motion.button>
+              </m.button>
             </div>
           </form>
-        </motion.div>
+        </m.div>
       </div>
     </AnimatePresence>
   );

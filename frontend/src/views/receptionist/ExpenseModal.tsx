@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { springModal, springTouch } from '../../utils/motion';
 import { X, ArrowDownRight } from 'lucide-react';
 
@@ -50,7 +50,7 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
   return (
     <AnimatePresence>
       <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true">
-        <motion.div
+        <m.div
           className="modal-dialog"
           onClick={(e) => e.stopPropagation()}
           initial={{ opacity: 0, scale: 0.94, y: 15 }}
@@ -64,7 +64,7 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
                 <ArrowDownRight size={16} color="var(--status-maintenance-text)" />
                 <span className="room-number" style={{ fontSize: '16px' }}>Registro de Egreso / Pago a Proveedor</span>
               </div>
-              <motion.button
+              <m.button
                 type="button"
                 onClick={onClose}
                 whileHover={{ scale: 1.1 }}
@@ -75,7 +75,7 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
                 aria-label="Cerrar modal"
               >
                 <X size={16} />
-              </motion.button>
+              </m.button>
             </div>
 
             <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -169,7 +169,7 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
             </div>
 
             <div className="modal-footer">
-              <motion.button
+              <m.button
                 type="button"
                 className="btn-secondary"
                 onClick={onClose}
@@ -177,8 +177,8 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
                 transition={springTouch}
               >
                 Cancelar
-              </motion.button>
-              <motion.button
+              </m.button>
+              <m.button
                 type="submit"
                 className="btn-primary"
                 whileHover={{ scale: 1.02 }}
@@ -188,10 +188,10 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
               >
                 <ArrowDownRight size={13} />
                 <span>Registrar y Descontar de Caja</span>
-              </motion.button>
+              </m.button>
             </div>
           </form>
-        </motion.div>
+        </m.div>
       </div>
     </AnimatePresence>
   );

@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import type { Room } from '../db/db';
 import { springModal, springTouch } from '../utils/motion';
 import { CheckCircle2, X, Wrench, Sparkles } from 'lucide-react';
@@ -24,7 +24,7 @@ export const ConfirmIncidentModal: React.FC<ConfirmIncidentModalProps> = ({
   return (
     <AnimatePresence>
       <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true">
-        <motion.div
+        <m.div
           className="modal-dialog"
           style={{ maxWidth: '440px' }}
           onClick={(e) => e.stopPropagation()}
@@ -41,7 +41,7 @@ export const ConfirmIncidentModal: React.FC<ConfirmIncidentModalProps> = ({
                 Solucionar Novedad · Hab #{room.number}
               </span>
             </div>
-            <motion.button
+            <m.button
               type="button"
               onClick={onClose}
               whileHover={{ scale: 1.1 }}
@@ -52,7 +52,7 @@ export const ConfirmIncidentModal: React.FC<ConfirmIncidentModalProps> = ({
               aria-label="Cerrar modal"
             >
               <X size={16} />
-            </motion.button>
+            </m.button>
           </div>
 
           {/* Cuerpo */}
@@ -117,7 +117,7 @@ export const ConfirmIncidentModal: React.FC<ConfirmIncidentModalProps> = ({
 
           {/* Footer */}
           <div className="modal-footer">
-            <motion.button
+            <m.button
               type="button"
               className="btn-secondary"
               onClick={onClose}
@@ -125,8 +125,8 @@ export const ConfirmIncidentModal: React.FC<ConfirmIncidentModalProps> = ({
               transition={springTouch}
             >
               Cancelar
-            </motion.button>
-            <motion.button
+            </m.button>
+            <m.button
               type="button"
               className="btn-primary"
               onClick={() => {
@@ -140,9 +140,9 @@ export const ConfirmIncidentModal: React.FC<ConfirmIncidentModalProps> = ({
             >
               <CheckCircle2 size={14} />
               <span>Confirmar Solución</span>
-            </motion.button>
+            </m.button>
           </div>
-        </motion.div>
+        </m.div>
       </div>
     </AnimatePresence>
   );

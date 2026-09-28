@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { m } from 'framer-motion';
 import type { LocalShift } from '../../db/db';
 import { springTouch } from '../../utils/motion';
 import { ShoppingBag, ArrowDownRight, Lock, Unlock, Smartphone } from 'lucide-react';
@@ -71,7 +71,7 @@ export const ShiftBanner: React.FC<ShiftBannerProps> = ({
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
         {activeShift && (
           <>
-            <motion.button
+            <m.button
               type="button"
               className="btn-secondary"
               onClick={onMinibarClick}
@@ -82,9 +82,9 @@ export const ShiftBanner: React.FC<ShiftBannerProps> = ({
             >
               <ShoppingBag size={13} color="var(--border-focus)" />
               <span>Venta Minibar</span>
-            </motion.button>
+            </m.button>
 
-            <motion.button
+            <m.button
               type="button"
               className="btn-secondary"
               onClick={onExpenseClick}
@@ -95,12 +95,12 @@ export const ShiftBanner: React.FC<ShiftBannerProps> = ({
             >
               <ArrowDownRight size={13} color="var(--status-maintenance-text)" />
               <span>Pago a Proveedor</span>
-            </motion.button>
+            </m.button>
           </>
         )}
 
         {activeShift ? (
-          <motion.button
+          <m.button
             type="button"
             className="btn-secondary"
             onClick={onCloseShiftClick}
@@ -110,9 +110,9 @@ export const ShiftBanner: React.FC<ShiftBannerProps> = ({
           >
             <Lock size={13} />
             <span>Arqueo y Cierre</span>
-          </motion.button>
+          </m.button>
         ) : (
-          <motion.button
+          <m.button
             type="button"
             className="btn-primary"
             onClick={onOpenShiftClick}
@@ -122,7 +122,7 @@ export const ShiftBanner: React.FC<ShiftBannerProps> = ({
           >
             <Unlock size={13} />
             <span>Abrir Turno de Caja</span>
-          </motion.button>
+          </m.button>
         )}
       </div>
     </div>

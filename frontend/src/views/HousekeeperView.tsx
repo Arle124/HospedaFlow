@@ -86,6 +86,7 @@ export const HousekeeperView: React.FC = () => {
 
     await syncService.enqueueAction('UPDATE_ROOM_STATUS', {
       roomId: selectedRoomForNote.id,
+      status: selectedRoomForNote.status,
       notes: quickNote,
     });
 

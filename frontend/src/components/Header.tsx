@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { m, AnimatePresence } from 'framer-motion';
 import { syncService } from '../services/syncService';
 import { getInitialTheme, applyTheme, type ThemeMode } from '../services/themeService';
 import { springTouch, springSegment } from '../utils/motion';
@@ -103,14 +103,14 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange }) => 
           {/* Identidad y Selector de Entorno Operacional */}
           <div className="header-left-group">
             <div className="header-brand-group">
-              <motion.div
+              <m.div
                 className="brand-badge"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 transition={springTouch}
               >
                 <Hotel size={16} />
-              </motion.div>
+              </m.div>
               <div className="header-nav-wrapper">
                 <span className="brand-title">
                   HospedaSync
@@ -128,7 +128,7 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange }) => 
                 const isRestricted = id === 'admin' && !isUnlocked;
 
                 return (
-                  <motion.button
+                  <m.button
                     key={id}
                     type="button"
                     onClick={() => handleRoleClick(id)}
@@ -137,7 +137,7 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange }) => 
                     transition={springTouch}
                   >
                     {isActive && (
-                      <motion.div
+                      <m.div
                         layoutId="roleIndicator"
                         className="role-tab-indicator"
                         transition={springSegment}
@@ -148,13 +148,13 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange }) => 
                     {isRestricted && (
                       <Lock size={10} className="header-lock-icon" />
                     )}
-                  </motion.button>
+                  </m.button>
                 );
               })}
             </nav>
 
             {/* Selector de Rol Móvil (Pill Compacto con Dropdown Sheet) */}
-            <motion.button
+            <m.button
               type="button"
               onClick={() => setShowRoleSheet(true)}
               className="role-nav-mobile"
@@ -167,13 +167,13 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange }) => 
                 {currentRoleObj.label.replace(' (Móvil)', '')}
               </span>
               <ChevronDown size={12} className="header-chevron-icon" />
-            </motion.button>
+            </m.button>
           </div>
 
           {/* Controles de Sistema: Conectividad, Sincronización y Modo Oscuro */}
           <div className="header-brand-group">
             {/* Conmutador de Tema con rotación spring */}
-            <motion.button
+            <m.button
               type="button"
               onClick={toggleTheme}
               className="theme-toggle-btn"
@@ -183,7 +183,7 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange }) => 
               aria-label={`Cambiar a modo ${theme === 'light' ? 'oscuro' : 'claro'}`}
               title={`Cambiar a modo ${theme === 'light' ? 'oscuro' : 'claro'}`}
             >
-              <motion.div
+              <m.div
                 key={theme}
                 initial={{ rotate: -90, opacity: 0 }}
                 animate={{ rotate: 0, opacity: 1 }}
@@ -191,9 +191,9 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange }) => 
                 className="header-nav-wrapper"
               >
                 {theme === 'light' ? <Moon size={13} /> : <Sun size={13} color="#f59e0b" />}
-              </motion.div>
+              </m.div>
               <span className="hide-on-mobile">{theme === 'light' ? 'Modo Oscuro' : 'Modo Claro'}</span>
-            </motion.button>
+            </m.button>
 
             {/* Indicador de Conectividad Offline-First */}
             <div className={`network-badge ${isOnline ? 'online' : 'offline'}`} title={isOnline ? 'Conectado a la red' : 'Operando offline'}>
@@ -205,26 +205,25 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange }) => 
             {/* Cola de Sincronización en Background */}
             <AnimatePresence>
               {pendingCount > 0 && (
-                <motion.button
+                <m.button
                   type="button"
                   onClick={handleSyncNow}
                   disabled={!isOnline || isSyncing}
-                  className="btn-secondary"
+                  className="btn-secondary header-btn-small"
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.8 }}
                   whileTap={{ scale: 0.96 }}
                   transition={springTouch}
-                  className="header-btn-small"
                 >
                   <RefreshCw size={12} className={isSyncing ? 'animate-spin' : ''} />
                   <span className="hide-on-mobile">
                     {pendingCount} {pendingCount === 1 ? 'pendiente' : 'pendientes'}
                   </span>
-                  <span className="show-on-mobile tabular-nums" className="header-mobile-time">
+                  <span className="show-on-mobile tabular-nums header-mobile-time">
                     {pendingCount}
                   </span>
-                </motion.button>
+                </m.button>
               )}
             </AnimatePresence>
           </div>
