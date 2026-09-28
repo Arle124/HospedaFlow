@@ -1,4 +1,4 @@
-const CACHE_NAME = 'hospedasync-v1';
+const CACHE_NAME = 'hospedasync-v2';
 const ASSETS = [
   '/',
   '/index.html',
@@ -32,10 +32,26 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Estrategia Network-First para navegación (HTML) con fallback a caché offline
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const clone = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
+          return networkResponse;
+        })
+        .catch(() => caches.match('/index.html'))
+    );
+    return;
+  }
+
+  // Estrategia Stale-While-Revalidate para recursos estáticos
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
-        // Devolver caché e intentar actualizar en background (stale-while-revalidate)
         fetch(event.request)
           .then((networkResponse) => {
             if (networkResponse && networkResponse.status === 200) {
@@ -53,11 +69,6 @@ self.addEventListener('fetch', (event) => {
           return networkResponse;
         });
       });
-    }).catch(() => {
-      // Fallback a index.html si navega offline
-      if (event.request.mode === 'navigate') {
-        return caches.match('/index.html');
-      }
     })
   );
 });
