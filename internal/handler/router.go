@@ -9,14 +9,19 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/Arle124/HospedaSync/internal/config"
+	customMiddleware "github.com/Arle124/HospedaSync/internal/middleware"
 	"github.com/Arle124/HospedaSync/pkg/response"
 )
 
 // NewRouter configura y retorna el enrutador HTTP de Chi con middlewares y endpoints.
-func NewRouter(corsOrigins string, shiftHandler *ShiftHandler, roomHandler *RoomHandler) http.Handler {
+func NewRouter(cfg *config.Config, authMiddleware func(http.Handler) http.Handler, authHandler *AuthHandler, shiftHandler *ShiftHandler, roomHandler *RoomHandler) http.Handler {
 	r := chi.NewRouter()
 
-	allowedOrigins := strings.Split(corsOrigins, ",")
+	allowedOrigins := strings.Split(cfg.CORSOrigins, ",")
+
+	// Middleware de Cabeceras de Seguridad
+	r.Use(customMiddleware.SecurityHeaders)
 
 	// Middleware CORS manual (permite orígenes específicos)
 	r.Use(func(next http.Handler) http.Handler {
@@ -65,20 +70,36 @@ func NewRouter(corsOrigins string, shiftHandler *ShiftHandler, roomHandler *Room
 		})
 	})
 
-	// Rutas API v1
-	r.Route("/api/v1", func(r chi.Router) {
-		if shiftHandler != nil {
-			r.Route("/shifts", func(r chi.Router) {
-				r.Post("/", shiftHandler.OpenShift)
-				r.Get("/{id}", shiftHandler.GetShift)
-				r.Post("/{id}/close", shiftHandler.CloseShift)
-			})
+	if authHandler != nil {
+		r.With(customMiddleware.RateLimitLogin).Post("/api/auth/login", authHandler.Login)
+	}
+
+	// Rutas Protegidas
+	r.Group(func(r chi.Router) {
+		if authMiddleware != nil {
+			r.Use(authMiddleware)
 		}
-		if roomHandler != nil {
-			r.Route("/rooms", func(r chi.Router) {
-				r.Put("/{id}/status", roomHandler.UpdateRoomStatus)
-			})
+
+		if authHandler != nil {
+			r.Post("/api/auth/logout", authHandler.Logout)
+			r.Get("/api/auth/me", authHandler.Me)
 		}
+
+		// Rutas API v1
+		r.Route("/api/v1", func(r chi.Router) {
+			if shiftHandler != nil {
+				r.Route("/shifts", func(r chi.Router) {
+					r.Post("/", shiftHandler.OpenShift)
+					r.Get("/{id}", shiftHandler.GetShift)
+					r.Post("/{id}/close", shiftHandler.CloseShift)
+				})
+			}
+			if roomHandler != nil {
+				r.Route("/rooms", func(r chi.Router) {
+					r.Put("/{id}/status", roomHandler.UpdateRoomStatus)
+				})
+			}
+		})
 	})
 
 	// Servir archivos estáticos del frontend (SPA) si existen

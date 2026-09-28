@@ -12,6 +12,7 @@ import (
 
 	"github.com/Arle124/HospedaSync/internal/config"
 	"github.com/Arle124/HospedaSync/internal/handler"
+	"github.com/Arle124/HospedaSync/internal/middleware"
 	"github.com/Arle124/HospedaSync/internal/repository"
 	"github.com/Arle124/HospedaSync/internal/service"
 )
@@ -27,6 +28,8 @@ func main() {
 	pool, err := repository.NewDBPool(dbCtx, cfg.DatabaseURL)
 	var shiftHandler *handler.ShiftHandler
 	var roomHandler *handler.RoomHandler
+	var authHandler *handler.AuthHandler
+	var authMW func(http.Handler) http.Handler
 
 	if err != nil {
 		log.Printf("ADVERTENCIA: No se pudo conectar a PostgreSQL (%v). El servidor iniciará en modo degradado (/healthz).", err)
@@ -35,6 +38,10 @@ func main() {
 		log.Println("Conexión exitosa a la base de datos PostgreSQL.")
 		repo := repository.NewPostgresRepository(pool)
 		
+		authService := service.NewAuthService(repo, cfg.JWTSecret, cfg.JWTExpiry)
+		authHandler = handler.NewAuthHandler(authService, cfg)
+		authMW = middleware.AuthRequired(cfg.JWTSecret, authService)
+
 		shiftService := service.NewShiftService(repo)
 		shiftHandler = handler.NewShiftHandler(shiftService)
 
@@ -43,7 +50,7 @@ func main() {
 	}
 
 	// Inicialización del enrutador Chi con dependencias inyectadas
-	r := handler.NewRouter(cfg.CORSOrigins, shiftHandler, roomHandler)
+	r := handler.NewRouter(cfg, authMW, authHandler, shiftHandler, roomHandler)
 
 	server := &http.Server{
 		Addr:         ":" + cfg.Port,

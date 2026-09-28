@@ -12,4 +12,10 @@ var (
 	ErrNegativeAmount      = errors.New("el monto no puede ser negativo")
 	ErrInsufficientStock   = errors.New("stock insuficiente para completar la operación")
 	ErrUnauthorizedAction  = errors.New("acción no autorizada en el estado actual")
+
+	// Errores de Autenticación
+	ErrInvalidCredentials  = errors.New("credenciales inválidas")
+	ErrSessionRevoked      = errors.New("la sesión ha sido revocada")
+	ErrSessionExpired      = errors.New("la sesión ha expirado")
+	ErrUserInactive        = errors.New("la cuenta de usuario está inactiva")
 )

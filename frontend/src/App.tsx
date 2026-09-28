@@ -5,8 +5,11 @@ import { ReceptionistView } from './views/ReceptionistView';
 import { HousekeeperView } from './views/HousekeeperView';
 import { AdminView } from './views/AdminView';
 import { seedInitialDataIfNeeded } from './db/db';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { LoginPage } from './pages/LoginPage';
 
-function App() {
+function AppContent() {
+  const { user, isAuthenticated, isLoading } = useAuth();
   const [currentRole, setCurrentRole] = useState<UserRole>('receptionist');
   const [isInitialized, setIsInitialized] = useState<boolean>(false);
 
@@ -16,12 +19,22 @@ function App() {
     });
   }, []);
 
-  if (!isInitialized) {
+  useEffect(() => {
+    if (user?.role) {
+      setCurrentRole(user.role);
+    }
+  }, [user]);
+
+  if (isLoading || !isInitialized) {
     return (
       <div className="app-loading">
         Iniciando almacén local de HospedaSync...
       </div>
     );
+  }
+
+  if (!isAuthenticated) {
+    return <LoginPage />;
   }
 
   return (
@@ -44,6 +57,14 @@ function App() {
         </div>
       </footer>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 

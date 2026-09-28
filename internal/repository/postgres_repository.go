@@ -323,3 +323,142 @@ func (r *postgresRepository) UpdateRoomStatus(ctx context.Context, id string, st
 
 	return nil
 }
+
+
+// GetUserByEmail busca un usuario por su email.
+func (r *postgresRepository) GetUserByEmail(ctx context.Context, email string) (*domain.User, error) {
+	query := `
+		SELECT id, name, email, password_hash, role, active, created_at
+		FROM users
+		WHERE email = $1
+		LIMIT 1;
+	`
+
+	var u domain.User
+	err := r.pool.QueryRow(ctx, query, email).Scan(
+		&u.ID,
+		&u.Name,
+		&u.Email,
+		&u.PasswordHash,
+		&u.Role,
+		&u.Active,
+		&u.CreatedAt,
+	)
+
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, domain.ErrNotFound
+		}
+		return nil, fmt.Errorf("error al obtener usuario por email %s: %w", email, err)
+	}
+	return &u, nil
+}
+
+// GetUserByID busca un usuario por su ID.
+func (r *postgresRepository) GetUserByID(ctx context.Context, id int64) (*domain.User, error) {
+	query := `
+		SELECT id, name, email, password_hash, role, active, created_at
+		FROM users
+		WHERE id = $1
+		LIMIT 1;
+	`
+
+	var u domain.User
+	err := r.pool.QueryRow(ctx, query, id).Scan(
+		&u.ID,
+		&u.Name,
+		&u.Email,
+		&u.PasswordHash,
+		&u.Role,
+		&u.Active,
+		&u.CreatedAt,
+	)
+
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, domain.ErrNotFound
+		}
+		return nil, fmt.Errorf("error al obtener usuario por id %d: %w", id, err)
+	}
+	return &u, nil
+}
+
+// CreateSession inserta una nueva sesión en la base de datos.
+func (r *postgresRepository) CreateSession(ctx context.Context, session *domain.UserSession) error {
+	query := `
+		INSERT INTO user_sessions (
+			user_id, token_hash, ip_address, user_agent, expires_at, created_at
+		) VALUES (
+			$1, $2, $3, $4, $5, NOW()
+		)
+		RETURNING id, created_at;
+	`
+	err := r.pool.QueryRow(ctx, query,
+		session.UserID,
+		session.TokenHash,
+		session.IPAddress,
+		session.UserAgent,
+		session.ExpiresAt,
+	).Scan(&session.ID, &session.CreatedAt)
+
+	if err != nil {
+		return fmt.Errorf("error al crear sesión: %w", err)
+	}
+	return nil
+}
+
+// GetActiveSession obtiene una sesión activa (no revocada y no expirada) por el hash de token.
+func (r *postgresRepository) GetActiveSession(ctx context.Context, tokenHash string) (*domain.UserSession, error) {
+	query := `
+		SELECT id, user_id, token_hash, ip_address, user_agent, expires_at, revoked_at, created_at
+		FROM user_sessions
+		WHERE token_hash = $1 AND revoked_at IS NULL AND expires_at > NOW()
+		LIMIT 1;
+	`
+	var s domain.UserSession
+	err := r.pool.QueryRow(ctx, query, tokenHash).Scan(
+		&s.ID,
+		&s.UserID,
+		&s.TokenHash,
+		&s.IPAddress,
+		&s.UserAgent,
+		&s.ExpiresAt,
+		&s.RevokedAt,
+		&s.CreatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, domain.ErrNotFound
+		}
+		return nil, fmt.Errorf("error al obtener sesión activa: %w", err)
+	}
+	return &s, nil
+}
+
+// RevokeSession revoca una sesión marcando su fecha de revocación.
+func (r *postgresRepository) RevokeSession(ctx context.Context, tokenHash string) error {
+	query := `
+		UPDATE user_sessions
+		SET revoked_at = NOW()
+		WHERE token_hash = $1 AND revoked_at IS NULL;
+	`
+	_, err := r.pool.Exec(ctx, query, tokenHash)
+	if err != nil {
+		return fmt.Errorf("error al revocar sesión: %w", err)
+	}
+	return nil
+}
+
+// RevokeAllUserSessions revoca todas las sesiones activas de un usuario.
+func (r *postgresRepository) RevokeAllUserSessions(ctx context.Context, userID int64) error {
+	query := `
+		UPDATE user_sessions
+		SET revoked_at = NOW()
+		WHERE user_id = $1 AND revoked_at IS NULL;
+	`
+	_, err := r.pool.Exec(ctx, query, userID)
+	if err != nil {
+		return fmt.Errorf("error al revocar todas las sesiones del usuario %d: %w", userID, err)
+	}
+	return nil
+}

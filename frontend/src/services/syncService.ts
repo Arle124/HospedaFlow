@@ -108,6 +108,7 @@ class SyncService {
           const res = await fetch(`${API_BASE}/shifts`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify(item.payload),
           });
           if (res.ok) {
@@ -141,6 +142,7 @@ class SyncService {
           const res = await fetch(`${API_BASE}/shifts/${targetServerId}/close`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify({
               actual_cash: item.payload.actual_cash,
               notes: item.payload.notes,
@@ -160,6 +162,7 @@ class SyncService {
           const res = await fetch(`${API_BASE}/rooms/${roomPayload.roomId}/status`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
             body: JSON.stringify({
               status: roomPayload.status,
               notes: roomPayload.notes || '',

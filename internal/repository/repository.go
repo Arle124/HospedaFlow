@@ -14,6 +14,17 @@ type Repository interface {
 	ShiftRepository
 	InventoryRepository
 	RoomRepository
+	UserRepository
+}
+
+// UserRepository define las operaciones de persistencia para usuarios y sesiones.
+type UserRepository interface {
+	GetUserByEmail(ctx context.Context, email string) (*domain.User, error)
+	GetUserByID(ctx context.Context, id int64) (*domain.User, error)
+	CreateSession(ctx context.Context, session *domain.UserSession) error
+	GetActiveSession(ctx context.Context, tokenHash string) (*domain.UserSession, error)
+	RevokeSession(ctx context.Context, tokenHash string) error
+	RevokeAllUserSessions(ctx context.Context, userID int64) error
 }
 
 // ShiftRepository define las operaciones de persistencia para turnos y caja.
