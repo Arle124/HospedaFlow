@@ -42,6 +42,16 @@ func (h *ShiftHandler) OpenShift(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if req.UserID <= 0 {
+		response.Error(w, http.StatusBadRequest, "user_id debe ser un valor positivo")
+		return
+	}
+
+	if req.InitialCash > 50000000 {
+		response.Error(w, http.StatusBadRequest, "monto inicial excede el limite permitido")
+		return
+	}
+
 	shift, err := h.shiftService.OpenShift(r.Context(), req.UserID, req.InitialCash)
 	if err != nil {
 		switch {
@@ -70,6 +80,11 @@ func (h *ShiftHandler) CloseShift(w http.ResponseWriter, r *http.Request) {
 	var req closeShiftRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		response.Error(w, http.StatusBadRequest, "formato JSON inválido")
+		return
+	}
+
+	if req.ActualCash > 100000000 {
+		response.Error(w, http.StatusBadRequest, "monto declarado excede el limite permitido")
 		return
 	}
 
