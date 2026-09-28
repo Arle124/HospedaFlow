@@ -6,6 +6,29 @@ Historial de sesiones de trabajo, hitos completados y estado del proyecto.
 
 ## Sesiones Recientes
 
+### Sesión 8: Autenticación Integral, Seguridad Perimetral y Cierre de Deuda Técnica (C2)
+* **Fecha:** 28 de Septiembre de 2026
+* **Fuente:** Análisis de patrones del proyecto Novapalma (Express) adaptados a Go
+* **Hitos completados:**
+  1. **Core de Autenticación en Go:**
+     * Hashing seguro con `bcrypt` (costo 10).
+     * JWT (JSON Web Tokens) firmados con expiración de 12 horas.
+     * Revocación stateful en base de datos (`user_sessions`).
+  2. **Middlewares de Seguridad (Reemplazo de Helmet/Zod):**
+     * `SecurityHeaders`: Inyección de cabeceras de seguridad estrictas (XSS, Sniffing, Frame-Options).
+     * `Rate Limiting`: 15 intentos cada 15 minutos por IP en el endpoint de login.
+     * `AuthMiddleware`: Validación robusta de cookies HttpOnly con fallback a Bearer token.
+     * `RoleMiddleware`: RBAC (Control de Acceso Basado en Roles) para `admin`, `receptionist`, `housekeeper`.
+  3. **Transporte Seguro (Offline-First Preservado):**
+     * Tokens transmitidos 100% mediante **Cookies HttpOnly**, invisibles para XSS.
+     * Frontend adaptado con `credentials: 'include'` en `syncService.ts`. Dexie jamás toca las credenciales, manteniendo la operación offline intacta tras el login.
+  4. **Frontend Auth UI:**
+     * `AuthContext` global con caché en `localStorage` del perfil del usuario.
+     * `LoginPage` desarrollada siguiendo las 3 Reglas de Diseño: Cero inline styles, paleta oscura, y **Framer Motion spring physics** para animaciones de entrada y feedback de error (shake).
+* **Verificaciones:**
+  * Tests automáticos pasando (`go test ./...`).
+  * Análisis de tipos estricto (`tsc --noEmit`) sin errores.
+
 ### Sesión 7: Correcciones Críticas de Auditoría — Precisión Financiera, Sync Real y Seguridad
 * **Fecha:** 28 de Septiembre de 2026
 * **Fuente:** Auditoría exhaustiva de sesión anterior (4 críticos, 8 altos, 6 medios, 3 bajos)
