@@ -6,6 +6,22 @@ Historial de sesiones de trabajo, hitos completados y estado del proyecto.
 
 ## Sesiones Recientes
 
+### Sesión 9: Optimización de Rendimiento y Migración a PWA Nativa
+* **Fecha:** 28 de Septiembre de 2026
+* **Hitos completados:**
+  1. **Refactor de Rendimiento (A3):**
+     * `ReceptionistView.tsx` refactorizado aplicando `React.memo` a `RoomCard` y envolviendo funciones handlers con `useCallback`. Esto evita el masivo re-renderizado del grid de habitaciones cuando se manipula un modal de cobro.
+  2. **Lazy Loading de Animaciones (M6):**
+     * Framer Motion migrado a carga diferida con `<LazyMotion features={domAnimation}>`.
+     * Todas las etiquetas `<motion.div>` migradas a `<m.div>`. Esto divide el peso de la librería para que no bloquee el hilo principal en carga inicial.
+  3. **Migración PWA (A2 y M1):**
+     * Service Worker manual eliminado. Implementado `vite-plugin-pwa` para caché robusta mediante Workbox.
+     * Manifest inyectado dinámicamente, asegurando que `theme_color` y `background_color` sean el corporativo `#1b2230`.
+     * El tamaño pre-cacheado total es de apenas ~550 KB.
+* **Verificaciones:**
+  * Build optimizado usando _Code Splitting_ (vendors, db, motion, app).
+  * 0 errores de TypeScript (`npx tsc --noEmit`).
+
 ### Sesión 8: Autenticación Integral, Seguridad Perimetral y Cierre de Deuda Técnica (C2)
 * **Fecha:** 28 de Septiembre de 2026
 * **Fuente:** Análisis de patrones del proyecto Novapalma (Express) adaptados a Go
