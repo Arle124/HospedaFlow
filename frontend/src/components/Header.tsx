@@ -209,7 +209,7 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange }) => 
                   type="button"
                   onClick={handleSyncNow}
                   disabled={!isOnline || isSyncing}
-                  className="btn-secondary header-btn-small"
+                  className="theme-toggle-btn"
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.8 }}

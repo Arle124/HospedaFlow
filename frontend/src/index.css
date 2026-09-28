@@ -1436,3 +1436,39 @@ button:disabled {
   border-top: 1px solid var(--border-subtle);
   padding-top: 16px;
 }
+
+/* === Missing Header Classes from Session 7 Refactor === */
+.header-left-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.header-brand-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.header-nav-wrapper {
+  display: flex;
+  align-items: center;
+}
+.header-lock-icon {
+  opacity: 0.7;
+  margin-left: 2px;
+}
+.header-role-text {
+  font-weight: 600;
+  font-size: 12px;
+}
+.header-chevron-icon {
+  opacity: 0.7;
+}
+.header-btn-small {
+  font-size: 11px;
+  padding: 5px 8px;
+  height: 30px;
+}
+.header-mobile-time {
+  font-size: 10px;
+  font-weight: 700;
+}
