@@ -6,6 +6,21 @@ Historial de sesiones de trabajo, hitos completados y estado del proyecto.
 
 ## Sesiones Recientes
 
+### Sesión 6: Sincronización de Entornos, Aislamiento de Orígenes y Purga de Caché de Service Worker
+* **Fecha:** 27 de Septiembre de 2026
+* **Hitos completados:**
+  1. **Diagnóstico de Discrepancia de Versiones (Tailscale vs Localhost / LAN):**
+     * Identificación del comportamiento del Service Worker (`sw.js`) con política `stale-while-revalidate` (`hospedasync-v1`), el cual servía bundles y HTML antiguos cacheados bajo el origen local (`http://192.168.1.18:5173` y `http://localhost:5173`).
+     * Explicación de la separación de orígenes (*Origin Scoping*): los navegadores aíslan `CacheStorage` estrictamente por `protocolo + dominio + puerto`. Al abrir por primera vez la IP Tailscale (`100.94.80.83:5173` o `100.84.162.38`), el navegador no tenía caché previa y servía la versión en vivo.
+  2. **Desactivación de Service Worker en Entornos de Desarrollo:**
+     * Modificación de `frontend/index.html` para detectar el puerto `5173` o `localhost` y proceder a desregistrar automáticamente cualquier Service Worker activo y vaciar `CacheStorage`, garantizando HMR en vivo sin interferencias.
+  3. **Actualización de Service Worker a v2 con Estrategia Network-First:**
+     * Actualización de `frontend/public/sw.js` a `hospedasync-v2` con eliminación de cachés obsoletas en el evento `activate`.
+     * Implementación de estrategia Network-First para peticiones de navegación (`mode === 'navigate'`) con fallback a `/index.html` solo cuando el dispositivo esté offline.
+  4. **Compilación y Sincronización en Homelab Móvil (`cel-server`):**
+     * Compilación de producción con TypeScript y Vite.
+     * Despliegue de `frontend/dist` en `cel-server:~/HospedaSync/frontend/dist` vía SSH (puerto 8022) y purga de bundles anteriores.
+
 ### Sesión 5: Renovación Estética del Frontend, Eliminación de IA Slop y Motion Táctil
 * **Fecha:** 27 de Septiembre de 2026
 * **Hitos completados:**
