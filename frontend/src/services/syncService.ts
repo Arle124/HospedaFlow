@@ -1,4 +1,4 @@
-import { db, type SyncQueueItem, type SyncPayload } from '../db/db';
+import { db, type SyncQueueItem, type SyncPayload, type UpdateRoomStatusPayload } from '../db/db';
 
 type OnlineStatusCallback = (isOnline: boolean) => void;
 
@@ -156,9 +156,16 @@ class SyncService {
         }
 
         case 'UPDATE_ROOM_STATUS': {
-          // Mock o endpoint de habitaciones cuando esté conectado
-          // TODO: Implementar endpoint PUT /api/v1/rooms/{id}/status
-          return false;
+          const roomPayload = item.payload as UpdateRoomStatusPayload;
+          const res = await fetch(`${API_BASE}/rooms/${roomPayload.roomId}/status`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              status: roomPayload.status,
+              notes: roomPayload.notes || '',
+            }),
+          });
+          return res.ok;
         }
 
         default:

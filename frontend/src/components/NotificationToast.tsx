@@ -54,54 +54,37 @@ export const NotificationToast: React.FC = () => {
           const isClean = n.type === 'room_cleaned';
           const isIssue = n.type === 'room_issue';
 
-          const borderColor = isClean
-            ? 'var(--status-available-border)'
-            : isIssue
-            ? 'var(--status-dirty-border)'
-            : 'var(--border-focus)';
-          const bgColor = isClean
-            ? 'var(--status-available-bg)'
-            : isIssue
-            ? 'var(--status-dirty-bg)'
-            : 'var(--status-occupied-bg)';
-          const iconColor = isClean
-            ? 'var(--status-available-text)'
-            : isIssue
-            ? 'var(--status-dirty-text)'
-            : 'var(--status-occupied-text)';
+          let toastTypeClass = 'toast-default';
+          if (isClean) toastTypeClass = 'toast-clean';
+          if (isIssue) toastTypeClass = 'toast-issue';
 
           return (
             <motion.div
               key={n.id}
               layout
               role="alert"
-              className="toast-item"
+              className={`toast-item ${toastTypeClass}`}
               initial={{ opacity: 0, y: -20, scale: 0.92 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, scale: 0.88, transition: { duration: 0.15 } }}
               transition={springToast}
-              style={{
-                backgroundColor: bgColor,
-                border: `1px solid ${borderColor}`,
-                borderLeftColor: borderColor,
-              }}
             >
-              <div style={{ marginTop: '2px', flexShrink: 0 }}>
-                {isClean && <Sparkles size={18} color={iconColor} />}
-                {isIssue && <AlertCircle size={18} color={iconColor} />}
-                {!isClean && !isIssue && <Info size={18} color={iconColor} />}
+              <div className="toast-icon-wrapper">
+                {isClean && <Sparkles size={18} />}
+                {isIssue && <AlertCircle size={18} />}
+                {!isClean && !isIssue && <Info size={18} />}
               </div>
 
-              <div style={{ flex: 1 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
-                  <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)', letterSpacing: '-0.2px' }}>
+              <div className="toast-content">
+                <div className="toast-header">
+                  <span className="toast-title">
                     {n.title}
                   </span>
-                  <span className="tabular-nums" style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                  <span className="tabular-nums toast-time">
                     {n.timestamp}
                   </span>
                 </div>
-                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '3px 0 0 0', lineHeight: 1.4 }}>
+                <p className="toast-message">
                   {n.message}
                 </p>
               </div>
@@ -113,17 +96,7 @@ export const NotificationToast: React.FC = () => {
                 whileHover={{ scale: 1.15 }}
                 whileTap={{ scale: 0.9 }}
                 transition={springTouch}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: 'var(--text-muted)',
-                  cursor: 'pointer',
-                  padding: '2px',
-                  borderRadius: '4px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
+                className="toast-close-btn"
               >
                 <X size={14} />
               </motion.button>

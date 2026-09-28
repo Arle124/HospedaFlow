@@ -26,6 +26,7 @@ func main() {
 
 	pool, err := repository.NewDBPool(dbCtx, cfg.DatabaseURL)
 	var shiftHandler *handler.ShiftHandler
+	var roomHandler *handler.RoomHandler
 
 	if err != nil {
 		log.Printf("ADVERTENCIA: No se pudo conectar a PostgreSQL (%v). El servidor iniciará en modo degradado (/healthz).", err)
@@ -33,12 +34,16 @@ func main() {
 		defer pool.Close()
 		log.Println("Conexión exitosa a la base de datos PostgreSQL.")
 		repo := repository.NewPostgresRepository(pool)
+		
 		shiftService := service.NewShiftService(repo)
 		shiftHandler = handler.NewShiftHandler(shiftService)
+
+		roomService := service.NewRoomService(repo)
+		roomHandler = handler.NewRoomHandler(roomService)
 	}
 
 	// Inicialización del enrutador Chi con dependencias inyectadas
-	r := handler.NewRouter(shiftHandler)
+	r := handler.NewRouter(cfg.CORSOrigins, shiftHandler, roomHandler)
 
 	server := &http.Server{
 		Addr:         ":" + cfg.Port,

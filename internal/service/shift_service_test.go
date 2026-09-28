@@ -72,7 +72,7 @@ func TestOpenShift_Success(t *testing.T) {
 		t.Errorf("se esperaba estado OPEN, se obtuvo: %s", shift.Status)
 	}
 	if shift.InitialCash != 50000 || shift.CurrentCash != 50000 {
-		t.Errorf("montos incorrectos: inicial=%f, actual=%f", shift.InitialCash, shift.CurrentCash)
+		t.Errorf("montos incorrectos: inicial=%d, actual=%d", shift.InitialCash, shift.CurrentCash)
 	}
 }
 
@@ -107,10 +107,10 @@ func TestOpenShift_AlreadyOpen(t *testing.T) {
 func TestCloseShift_Calculations(t *testing.T) {
 	tests := []struct {
 		name          string
-		initialCash   float64
-		currentCash   float64
-		actualCash    float64
-		expectedDiff  float64
+		initialCash   int64
+		currentCash   int64
+		actualCash    int64
+		expectedDiff  int64
 	}{
 		{
 			name:         "Cuadre perfecto (sin diferencia)",
@@ -161,7 +161,7 @@ func TestCloseShift_Calculations(t *testing.T) {
 				t.Errorf("actualCash incorrecto")
 			}
 			if closedShift.Difference == nil || *closedShift.Difference != tt.expectedDiff {
-				t.Errorf("diferencia esperada %f, obtenida %v", tt.expectedDiff, closedShift.Difference)
+				t.Errorf("diferencia esperada %d, obtenida %v", tt.expectedDiff, closedShift.Difference)
 			}
 			if closedShift.EndedAt == nil || closedShift.EndedAt.After(time.Now().UTC().Add(time.Minute)) {
 				t.Errorf("fecha de fin no asignada adecuadamente")

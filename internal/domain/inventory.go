@@ -7,7 +7,7 @@ type Product struct {
 	ID        int64     `json:"id"`
 	Name      string    `json:"name"`
 	SKU       string    `json:"sku"`
-	Price     float64   `json:"price"`
+	Price     int64 // Precio en pesos (sin decimales)   `json:"price"`
 	Stock     int       `json:"stock"`
 	MinStock  int       `json:"min_stock"`
 	CreatedAt time.Time `json:"created_at"`

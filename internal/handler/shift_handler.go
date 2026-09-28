@@ -26,11 +26,11 @@ func NewShiftHandler(shiftService service.ShiftService) *ShiftHandler {
 
 type openShiftRequest struct {
 	UserID      int64   `json:"user_id"`
-	InitialCash float64 `json:"initial_cash"`
+	InitialCash int64 `json:"initial_cash"`
 }
 
 type closeShiftRequest struct {
-	ActualCash float64 `json:"actual_cash"`
+	ActualCash int64 `json:"actual_cash"`
 	Notes      string  `json:"notes"`
 }
 

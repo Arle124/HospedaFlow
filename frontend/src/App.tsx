@@ -18,48 +18,24 @@ function App() {
 
   if (!isInitialized) {
     return (
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          minHeight: '100vh',
-          backgroundColor: 'var(--bg-canvas)',
-          color: 'var(--text-secondary)',
-          fontSize: '13px',
-          fontFamily: 'var(--font-sans)',
-        }}
-      >
+      <div className="app-loading">
         Iniciando almacén local de HospedaSync...
       </div>
     );
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--bg-canvas)' }}>
+    <div className="app-shell">
       <Header currentRole={currentRole} onRoleChange={setCurrentRole} />
       <NotificationToast />
 
-      <main style={{ flex: 1 }}>
+      <main className="app-main">
         {currentRole === 'receptionist' && <ReceptionistView />}
         {currentRole === 'housekeeper' && <HousekeeperView />}
         {currentRole === 'admin' && <AdminView />}
       </main>
 
-      <footer
-        style={{
-          borderTop: '1px solid var(--border-subtle)',
-          padding: '12px 24px',
-          textAlign: 'center',
-          fontSize: '11px',
-          color: 'var(--text-muted)',
-          backgroundColor: 'var(--bg-surface)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          width: '100%',
-        }}
-      >
+      <footer className="app-footer">
         <div>
           <span>HospedaSync PMS</span> · <span>Terminal Local Autónomo</span>
         </div>

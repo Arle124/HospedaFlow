@@ -101,8 +101,8 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange }) => 
       <header className="app-header">
         <div className="header-container">
           {/* Identidad y Selector de Entorno Operacional */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div className="header-left-group">
+            <div className="header-brand-group">
               <motion.div
                 className="brand-badge"
                 whileHover={{ scale: 1.05 }}
@@ -111,7 +111,7 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange }) => 
               >
                 <Hotel size={16} />
               </motion.div>
-              <div style={{ display: 'flex', alignItems: 'center' }}>
+              <div className="header-nav-wrapper">
                 <span className="brand-title">
                   HospedaSync
                 </span>
@@ -146,7 +146,7 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange }) => 
                     <Icon size={14} />
                     <span>{label}</span>
                     {isRestricted && (
-                      <Lock size={10} style={{ opacity: 0.7, marginLeft: '2px' }} />
+                      <Lock size={10} className="header-lock-icon" />
                     )}
                   </motion.button>
                 );
@@ -163,15 +163,15 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange }) => 
               aria-label="Cambiar entorno operacional"
             >
               <CurrentIcon size={13} />
-              <span style={{ fontWeight: '600', fontSize: '12px' }}>
+              <span className="header-role-text">
                 {currentRoleObj.label.replace(' (Móvil)', '')}
               </span>
-              <ChevronDown size={12} style={{ opacity: 0.7 }} />
+              <ChevronDown size={12} className="header-chevron-icon" />
             </motion.button>
           </div>
 
           {/* Controles de Sistema: Conectividad, Sincronización y Modo Oscuro */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div className="header-brand-group">
             {/* Conmutador de Tema con rotación spring */}
             <motion.button
               type="button"
@@ -188,7 +188,7 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange }) => 
                 initial={{ rotate: -90, opacity: 0 }}
                 animate={{ rotate: 0, opacity: 1 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                style={{ display: 'flex', alignItems: 'center' }}
+                className="header-nav-wrapper"
               >
                 {theme === 'light' ? <Moon size={13} /> : <Sun size={13} color="#f59e0b" />}
               </motion.div>
@@ -215,13 +215,13 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange }) => 
                   exit={{ opacity: 0, scale: 0.8 }}
                   whileTap={{ scale: 0.96 }}
                   transition={springTouch}
-                  style={{ fontSize: '11px', padding: '5px 8px', height: '30px' }}
+                  className="header-btn-small"
                 >
                   <RefreshCw size={12} className={isSyncing ? 'animate-spin' : ''} />
                   <span className="hide-on-mobile">
                     {pendingCount} {pendingCount === 1 ? 'pendiente' : 'pendientes'}
                   </span>
-                  <span className="show-on-mobile tabular-nums" style={{ fontSize: '10px', fontWeight: '700' }}>
+                  <span className="show-on-mobile tabular-nums" className="header-mobile-time">
                     {pendingCount}
                   </span>
                 </motion.button>

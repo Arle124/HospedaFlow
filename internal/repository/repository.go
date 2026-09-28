@@ -13,6 +13,7 @@ import (
 type Repository interface {
 	ShiftRepository
 	InventoryRepository
+	RoomRepository
 }
 
 // ShiftRepository define las operaciones de persistencia para turnos y caja.
@@ -27,6 +28,11 @@ type ShiftRepository interface {
 type InventoryRepository interface {
 	GetProductByID(ctx context.Context, id int64) (*domain.Product, error)
 	UpdateProductStock(ctx context.Context, id int64, newStock int) error
+}
+
+// RoomRepository define las operaciones de persistencia para habitaciones.
+type RoomRepository interface {
+	UpdateRoomStatus(ctx context.Context, id string, status string, notes string) error
 }
 
 // NewDBPool inicializa y valida un pool de conexiones PostgreSQL con pgx/v5.

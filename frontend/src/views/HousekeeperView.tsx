@@ -111,23 +111,14 @@ export const HousekeeperView: React.FC = () => {
   const cleaningCount = rooms.filter((r) => r.status === 'cleaning').length;
 
   return (
-    <div style={{ maxWidth: '580px', margin: '0 auto', padding: '16px 16px 80px 16px' }}>
+    <div className="hk-container">
       {/* Alerta sin conexión amigable para camarera */}
       {!isOnline && (
         <div
-          style={{
-            backgroundColor: 'var(--status-dirty-bg)',
-            border: '1px solid var(--status-dirty-border)',
-            borderRadius: 'var(--radius-sm)',
-            padding: '10px 14px',
-            marginBottom: '14px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-          }}
+className="hk-offline-alert"
         >
-          <WifiOff size={18} color="var(--status-dirty-text)" style={{ flexShrink: 0 }} />
-          <div style={{ fontSize: '12px', color: 'var(--status-dirty-text)', lineHeight: 1.3 }}>
+          <WifiOff size={18} color="var(--status-dirty-text)" className="hk-offline-alert-icon" />
+          <div className="hk-offline-alert-text">
             <strong>Modo sin señal:</strong> Puedes seguir marcando habitaciones. Se guardan en el teléfono y se enviarán a recepción apenas haya Wi-Fi.
           </div>
         </div>
@@ -135,35 +126,21 @@ export const HousekeeperView: React.FC = () => {
 
       {/* Barra de progreso de aseo */}
       <div
-        style={{
-          backgroundColor: 'var(--bg-surface)',
-          border: '1px solid var(--border-subtle)',
-          borderRadius: 'var(--radius-md)',
-          padding: '14px 16px',
-          marginBottom: '16px',
-        }}
+className="hk-progress-card"
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="hk-progress-header">
           <div>
-            <h1 style={{ fontSize: '17px', fontWeight: '700', color: 'var(--text-primary)' }}>
+            <h1 className="hk-progress-title">
               Aseo de Habitaciones
             </h1>
-            <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+            <p className="hk-progress-subtitle">
               {dirtyCount > 0
                 ? `${dirtyCount} por asear · ${cleaningCount} en proceso`
                 : 'Piso al día: no hay habitaciones sucias pendientes'}
             </p>
           </div>
           <div
-            style={{
-              padding: '6px 12px',
-              backgroundColor: dirtyCount > 0 ? 'var(--status-dirty-bg)' : 'var(--status-available-bg)',
-              color: dirtyCount > 0 ? 'var(--status-dirty-text)' : 'var(--status-available-text)',
-              border: `1px solid ${dirtyCount > 0 ? 'var(--status-dirty-border)' : 'var(--status-available-border)'}`,
-              borderRadius: 'var(--radius-xs)',
-              fontSize: '12px',
-              fontWeight: '700',
-            }}
+className={`hk-progress-badge ${dirtyCount > 0 ? "dirty" : "clean"}`}
           >
             {dirtyCount} pendientes
           </div>
@@ -171,7 +148,7 @@ export const HousekeeperView: React.FC = () => {
       </div>
 
       {/* Lista táctil vertical de habitaciones */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div className="hk-room-list">
         {sortedRooms.map((room) => {
           const isDirty = room.status === 'dirty';
           const isCleaning = room.status === 'cleaning';
@@ -181,25 +158,15 @@ export const HousekeeperView: React.FC = () => {
           return (
             <div
               key={room.id}
-              style={{
-                backgroundColor: 'var(--bg-surface)',
-                border: isDirty
-                  ? '1px solid var(--status-dirty-border)'
-                  : isCleaning
-                  ? '1px solid var(--border-focus)'
-                  : '1px solid var(--border-subtle)',
-                borderRadius: 'var(--radius-md)',
-                padding: '14px 16px',
-                boxShadow: 'var(--shadow-sm)',
-              }}
+className={`hk-room-card ${isDirty ? "dirty" : isCleaning ? "cleaning" : "default"}`}
             >
               {/* Encabezado de la tarjeta */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+              <div className="hk-room-header">
                 <div>
-                  <span style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.4px', fontWeight: '600' }}>
+                  <span className="hk-room-meta">
                     Piso {room.floor} · {room.type}
                   </span>
-                  <div style={{ fontSize: '26px', fontWeight: '800', letterSpacing: '-0.5px', color: 'var(--text-primary)', lineHeight: 1.1 }}>
+                  <div className="hk-room-number">
                     #{room.number}
                   </div>
                 </div>
@@ -210,14 +177,7 @@ export const HousekeeperView: React.FC = () => {
                   {isAvailable && <span className="status-pill status-available">Limpia / Lista</span>}
                   {isOccupied && (
                     <span
-                      style={{
-                        padding: '2px 7px',
-                        backgroundColor: 'var(--bg-input)',
-                        border: '1px solid var(--border-subtle)',
-                        borderRadius: 'var(--radius-xs)',
-                        fontSize: '11px',
-                        color: 'var(--text-muted)',
-                      }}
+className="hk-room-occupied-badge"
                     >
                       Huésped adentro
                     </span>
@@ -228,39 +188,20 @@ export const HousekeeperView: React.FC = () => {
               {/* Novedad reportada si existe */}
               {room.notes && (
                 <div
-                  style={{
-                    padding: '8px 10px',
-                    backgroundColor: 'var(--status-dirty-bg)',
-                    borderLeft: '3px solid var(--status-dirty-border)',
-                    borderRadius: 'var(--radius-xs)',
-                    fontSize: '12px',
-                    color: 'var(--status-dirty-text)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    marginBottom: '12px',
-                  }}
+className="hk-room-notes"
                 >
-                  <AlertTriangle size={15} color="var(--status-dirty-text)" style={{ flexShrink: 0 }} />
+                  <AlertTriangle size={15} color="var(--status-dirty-text)" className="hk-offline-alert-icon" />
                   <span>{room.notes}</span>
                 </div>
               )}
 
               {/* Acciones principales de campo (1 solo toque grande) */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '6px' }}>
+              <div className="hk-room-actions">
                 {isDirty && (
                   <button
                     type="button"
                     onClick={() => handleStartCleaning(room.id)}
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      fontSize: '14px',
-                      fontWeight: '600',
-                      backgroundColor: '#1d4ed8',
-                      color: '#ffffff',
-                      borderRadius: 'var(--radius-sm)',
-                    }}
+className="hk-btn-start"
                   >
                     <Brush size={16} />
                     <span>Comenzar a Limpiar</span>
@@ -271,15 +212,7 @@ export const HousekeeperView: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleFinishCleaning(room.id)}
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      fontSize: '14px',
-                      fontWeight: '700',
-                      backgroundColor: '#047857',
-                      color: '#ffffff',
-                      borderRadius: 'var(--radius-sm)',
-                    }}
+className="hk-btn-finish"
                   >
                     <CheckCircle2 size={17} />
                     <span>¡Limpia y Lista para Recepción!</span>
@@ -293,14 +226,7 @@ export const HousekeeperView: React.FC = () => {
                     setSelectedRoomForNote(room);
                     setQuickNote(room.notes || '');
                   }}
-                  style={{
-                    backgroundColor: 'transparent',
-                    border: '1px solid var(--border-medium)',
-                    color: 'var(--text-secondary)',
-                    padding: '7px',
-                    fontSize: '12px',
-                    borderRadius: 'var(--radius-xs)',
-                  }}
+className="hk-btn-note"
                 >
                   <Wrench size={13} />
                   <span>{room.notes ? 'Modificar aviso a recepción' : 'Aviso a recepción (avería o insumos)'}</span>
@@ -316,25 +242,25 @@ export const HousekeeperView: React.FC = () => {
         <div className="modal-overlay" onClick={() => setSelectedRoomForNote(null)}>
           <div className="modal-dialog" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <span style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>
+              <span className="hk-modal-title">
                 Aviso a Recepción · Hab #{selectedRoomForNote.number}
               </span>
               <button
                 type="button"
                 onClick={() => setSelectedRoomForNote(null)}
-                style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)' }}
+                className="hk-modal-close"
               >
                 ✕
               </button>
             </div>
 
             <div className="modal-body">
-              <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '12px' }}>
+              <p className="hk-modal-subtitle">
                 Toca una opción rápida o escribe el detalle para que el recepcionista lo vea al instante:
               </p>
 
               {/* Chips rápidos de 1 toque */}
-              <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '14px' }}>
+              <div className="hk-chips-container">
                 {[
                   'Faltan toallas',
                   'Falta jabón / shampoo',
@@ -347,14 +273,7 @@ export const HousekeeperView: React.FC = () => {
                     key={preset}
                     type="button"
                     onClick={() => setQuickNote(preset)}
-                    style={{
-                      padding: '5px 9px',
-                      fontSize: '11px',
-                      backgroundColor: quickNote === preset ? 'var(--status-occupied-bg)' : 'var(--bg-input)',
-                      border: `1px solid ${quickNote === preset ? 'var(--border-focus)' : 'var(--border-medium)'}`,
-                      color: quickNote === preset ? 'var(--status-occupied-text)' : 'var(--text-secondary)',
-                      borderRadius: 'var(--radius-xs)',
-                    }}
+className={`hk-chip ${quickNote === preset ? "active" : "inactive"}`}
                   >
                     {preset}
                   </button>
@@ -370,7 +289,7 @@ export const HousekeeperView: React.FC = () => {
                   required
                 />
 
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '14px' }}>
+                <div className="hk-modal-actions">
                   <button
                     type="button"
                     className="btn-secondary"

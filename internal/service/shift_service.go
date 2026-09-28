@@ -10,8 +10,8 @@ import (
 
 // ShiftService define las operaciones de negocio de turnos y arqueos.
 type ShiftService interface {
-	OpenShift(ctx context.Context, userID int64, initialCash float64) (*domain.Shift, error)
-	CloseShift(ctx context.Context, shiftID int64, actualCash float64, notes string) (*domain.Shift, error)
+	OpenShift(ctx context.Context, userID int64, initialCash int64) (*domain.Shift, error)
+	CloseShift(ctx context.Context, shiftID int64, actualCash int64, notes string) (*domain.Shift, error)
 	GetShift(ctx context.Context, shiftID int64) (*domain.Shift, error)
 }
 
@@ -26,7 +26,7 @@ func NewShiftService(repo repository.ShiftRepository) ShiftService {
 	}
 }
 
-func (s *shiftService) OpenShift(ctx context.Context, userID int64, initialCash float64) (*domain.Shift, error) {
+func (s *shiftService) OpenShift(ctx context.Context, userID int64, initialCash int64) (*domain.Shift, error) {
 	if initialCash < 0 {
 		return nil, domain.ErrNegativeAmount
 	}
@@ -50,7 +50,7 @@ func (s *shiftService) OpenShift(ctx context.Context, userID int64, initialCash 
 	return s.repo.CreateShift(ctx, newShift)
 }
 
-func (s *shiftService) CloseShift(ctx context.Context, shiftID int64, actualCash float64, notes string) (*domain.Shift, error) {
+func (s *shiftService) CloseShift(ctx context.Context, shiftID int64, actualCash int64, notes string) (*domain.Shift, error) {
 	if actualCash < 0 {
 		return nil, domain.ErrNegativeAmount
 	}

@@ -11,6 +11,7 @@ type Config struct {
 	Port         string
 	DatabaseURL  string
 	Environment  string
+	CORSOrigins  string
 	ReadTimeout  time.Duration
 	WriteTimeout time.Duration
 }
@@ -33,10 +34,16 @@ func Load() *Config {
 		env = "development"
 	}
 
+	corsOrigins := os.Getenv("CORS_ORIGINS")
+	if corsOrigins == "" {
+		corsOrigins = "http://localhost:5173,http://localhost:8080"
+	}
+
 	return &Config{
 		Port:         port,
 		DatabaseURL:  dbURL,
 		Environment:  env,
+		CORSOrigins:  corsOrigins,
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}

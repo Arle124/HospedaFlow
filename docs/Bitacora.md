@@ -6,6 +6,38 @@ Historial de sesiones de trabajo, hitos completados y estado del proyecto.
 
 ## Sesiones Recientes
 
+### Sesión 7: Correcciones Críticas de Auditoría — Precisión Financiera, Sync Real y Seguridad
+* **Fecha:** 28 de Septiembre de 2026
+* **Fuente:** Auditoría exhaustiva de sesión anterior (4 críticos, 8 altos, 6 medios, 3 bajos)
+* **Hitos completados:**
+  1. **A5 — Precisión Financiera (float64 → int64):**
+     * Migración completa de `float64` a `int64` en toda la capa Go para campos monetarios (`InitialCash`, `CurrentCash`, `ActualCash`, `Difference`, `Price`).
+     * Archivos: `domain/shift.go`, `domain/inventory.go`, `handler/shift_handler.go`, `service/shift_service.go`, `repository/postgres_repository.go`.
+     * Conversión DB↔Go: scan desde `NUMERIC(12,2)` a `float64` temporal → `int64(math.Round())`. Escritura directa de `int64` a NUMERIC.
+     * Tests actualizados y pasando: `shift_service_test.go` con todos los tipos migrados.
+  2. **C1 — Sincronización Real de Habitaciones (fin del mock):**
+     * **Backend:** Nuevo endpoint `PUT /api/v1/rooms/{id}/status` con clean architecture completa:
+       * `domain/room.go` — entidad Room con estados tipados.
+       * `service/room_service.go` — validación de estados permitidos.
+       * `handler/room_handler.go` — transporte HTTP con error handling semántico.
+       * `repository/postgres_repository.go` — `UpdateRoomStatus` con query parametrizada.
+     * **SQL:** Migración `sql/migrations/002_rooms.sql` con tabla `rooms`.
+     * **Frontend:** `syncService.ts` `UPDATE_ROOM_STATUS` ahora hace `fetch PUT` real al endpoint con payload tipado (`UpdateRoomStatusPayload`).
+  3. **C3 — CORS Restringido:**
+     * Reemplazo de `Access-Control-Allow-Origin: *` por verificación de orígenes configurables.
+     * Nueva variable de entorno `CORS_ORIGINS` (comma-separated) con default dev: `http://localhost:5173,http://localhost:8080`.
+     * `Access-Control-Allow-Credentials: true` solo cuando el origen coincide.
+  4. **A4 — Config Endurecida:**
+     * Campo `CORSOrigins` añadido a `config.Config` con lectura desde env.
+  5. **A1 — Erradicación de Estilos Inline (Regla 1 "Impeccable"):**
+     * `App.tsx`: 4 bloques `style={{}}` migrados a clases `.app-loading`, `.app-shell`, `.app-main`, `.app-footer`.
+     * `Header.tsx`, `NotificationToast.tsx`, `HousekeeperView.tsx`: todos los estilos inline migrados a clases semánticas en `index.css`.
+     * Verificación: `grep -rn 'style={{' src/` retorna 0 resultados en archivos corregidos.
+* **Verificaciones:**
+  * `go vet ./...` — limpio
+  * `go test ./...` — 6/6 tests PASS
+  * `npx tsc --noEmit` — 0 errores TypeScript
+
 ### Sesión 6: Sincronización de Entornos, Aislamiento de Orígenes y Purga de Caché de Service Worker
 * **Fecha:** 27 de Septiembre de 2026
 * **Hitos completados:**

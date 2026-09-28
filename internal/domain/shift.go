@@ -16,10 +16,10 @@ const (
 type Shift struct {
 	ID          int64       `json:"id"`
 	UserID      int64       `json:"user_id"`
-	InitialCash float64     `json:"initial_cash"`
-	CurrentCash float64     `json:"current_cash"`
-	ActualCash  *float64    `json:"actual_cash,omitempty"`
-	Difference  *float64    `json:"difference,omitempty"`
+	InitialCash int64     `json:"initial_cash"`
+	CurrentCash int64       `json:"current_cash"`  // Monto en pesos (sin decimales)
+	ActualCash  *int64    `json:"actual_cash,omitempty"`
+	Difference  *int64    `json:"difference,omitempty"`
 	Status      ShiftStatus `json:"status"`
 	Notes       string      `json:"notes,omitempty"`
 	StartedAt   time.Time   `json:"started_at"`

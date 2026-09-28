@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -12,13 +13,29 @@ import (
 )
 
 // NewRouter configura y retorna el enrutador HTTP de Chi con middlewares y endpoints.
-func NewRouter(shiftHandler *ShiftHandler) http.Handler {
+func NewRouter(corsOrigins string, shiftHandler *ShiftHandler, roomHandler *RoomHandler) http.Handler {
 	r := chi.NewRouter()
 
-	// Middleware CORS manual (permite orígenes para uso local y Tailscale)
+	allowedOrigins := strings.Split(corsOrigins, ",")
+
+	// Middleware CORS manual (permite orígenes específicos)
 	r.Use(func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Access-Control-Allow-Origin", "*")
+			origin := r.Header.Get("Origin")
+			originAllowed := false
+			
+			for _, allowed := range allowedOrigins {
+				if origin == strings.TrimSpace(allowed) {
+					originAllowed = true
+					break
+				}
+			}
+
+			if originAllowed {
+				w.Header().Set("Access-Control-Allow-Origin", origin)
+				w.Header().Set("Access-Control-Allow-Credentials", "true")
+			}
+
 			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
@@ -55,6 +72,11 @@ func NewRouter(shiftHandler *ShiftHandler) http.Handler {
 				r.Post("/", shiftHandler.OpenShift)
 				r.Get("/{id}", shiftHandler.GetShift)
 				r.Post("/{id}/close", shiftHandler.CloseShift)
+			})
+		}
+		if roomHandler != nil {
+			r.Route("/rooms", func(r chi.Router) {
+				r.Put("/{id}/status", roomHandler.UpdateRoomStatus)
 			})
 		}
 	})

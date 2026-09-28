@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -41,6 +42,8 @@ func (r *postgresRepository) CreateShift(ctx context.Context, s *domain.Shift) (
 
 	var created domain.Shift
 	var statusStr string
+	var initialCash, currentCash float64
+	var actualCash, difference *float64
 
 	err := r.pool.QueryRow(ctx, query,
 		s.UserID,
@@ -53,10 +56,10 @@ func (r *postgresRepository) CreateShift(ctx context.Context, s *domain.Shift) (
 	).Scan(
 		&created.ID,
 		&created.UserID,
-		&created.InitialCash,
-		&created.CurrentCash,
-		&created.ActualCash,
-		&created.Difference,
+		&initialCash,
+		&currentCash,
+		&actualCash,
+		&difference,
 		&statusStr,
 		&created.Notes,
 		&created.StartedAt,
@@ -70,6 +73,16 @@ func (r *postgresRepository) CreateShift(ctx context.Context, s *domain.Shift) (
 	}
 
 	created.Status = domain.ShiftStatus(statusStr)
+	created.InitialCash = int64(math.Round(initialCash))
+	created.CurrentCash = int64(math.Round(currentCash))
+	if actualCash != nil {
+		val := int64(math.Round(*actualCash))
+		created.ActualCash = &val
+	}
+	if difference != nil {
+		val := int64(math.Round(*difference))
+		created.Difference = &val
+	}
 	return &created, nil
 }
 
@@ -84,14 +97,16 @@ func (r *postgresRepository) GetShiftByID(ctx context.Context, id int64) (*domai
 
 	var s domain.Shift
 	var statusStr string
+	var initialCash, currentCash float64
+	var actualCash, difference *float64
 
 	err := r.pool.QueryRow(ctx, query, id).Scan(
 		&s.ID,
 		&s.UserID,
-		&s.InitialCash,
-		&s.CurrentCash,
-		&s.ActualCash,
-		&s.Difference,
+		&initialCash,
+		&currentCash,
+		&actualCash,
+		&difference,
 		&statusStr,
 		&s.Notes,
 		&s.StartedAt,
@@ -108,6 +123,16 @@ func (r *postgresRepository) GetShiftByID(ctx context.Context, id int64) (*domai
 	}
 
 	s.Status = domain.ShiftStatus(statusStr)
+	s.InitialCash = int64(math.Round(initialCash))
+	s.CurrentCash = int64(math.Round(currentCash))
+	if actualCash != nil {
+		val := int64(math.Round(*actualCash))
+		s.ActualCash = &val
+	}
+	if difference != nil {
+		val := int64(math.Round(*difference))
+		s.Difference = &val
+	}
 	return &s, nil
 }
 
@@ -122,14 +147,16 @@ func (r *postgresRepository) GetActiveShiftByUserID(ctx context.Context, userID 
 
 	var s domain.Shift
 	var statusStr string
+	var initialCash, currentCash float64
+	var actualCash, difference *float64
 
 	err := r.pool.QueryRow(ctx, query, userID).Scan(
 		&s.ID,
 		&s.UserID,
-		&s.InitialCash,
-		&s.CurrentCash,
-		&s.ActualCash,
-		&s.Difference,
+		&initialCash,
+		&currentCash,
+		&actualCash,
+		&difference,
 		&statusStr,
 		&s.Notes,
 		&s.StartedAt,
@@ -146,6 +173,16 @@ func (r *postgresRepository) GetActiveShiftByUserID(ctx context.Context, userID 
 	}
 
 	s.Status = domain.ShiftStatus(statusStr)
+	s.InitialCash = int64(math.Round(initialCash))
+	s.CurrentCash = int64(math.Round(currentCash))
+	if actualCash != nil {
+		val := int64(math.Round(*actualCash))
+		s.ActualCash = &val
+	}
+	if difference != nil {
+		val := int64(math.Round(*difference))
+		s.Difference = &val
+	}
 	return &s, nil
 }
 
@@ -166,6 +203,8 @@ func (r *postgresRepository) UpdateShift(ctx context.Context, s *domain.Shift) (
 
 	var updated domain.Shift
 	var statusStr string
+	var initialCash, currentCash float64
+	var actualCash, difference *float64
 
 	err := r.pool.QueryRow(ctx, query,
 		s.ID,
@@ -179,10 +218,10 @@ func (r *postgresRepository) UpdateShift(ctx context.Context, s *domain.Shift) (
 	).Scan(
 		&updated.ID,
 		&updated.UserID,
-		&updated.InitialCash,
-		&updated.CurrentCash,
-		&updated.ActualCash,
-		&updated.Difference,
+		&initialCash,
+		&currentCash,
+		&actualCash,
+		&difference,
 		&statusStr,
 		&updated.Notes,
 		&updated.StartedAt,
@@ -199,6 +238,16 @@ func (r *postgresRepository) UpdateShift(ctx context.Context, s *domain.Shift) (
 	}
 
 	updated.Status = domain.ShiftStatus(statusStr)
+	updated.InitialCash = int64(math.Round(initialCash))
+	updated.CurrentCash = int64(math.Round(currentCash))
+	if actualCash != nil {
+		val := int64(math.Round(*actualCash))
+		updated.ActualCash = &val
+	}
+	if difference != nil {
+		val := int64(math.Round(*difference))
+		updated.Difference = &val
+	}
 	return &updated, nil
 }
 
@@ -212,11 +261,12 @@ func (r *postgresRepository) GetProductByID(ctx context.Context, id int64) (*dom
 	`
 
 	var p domain.Product
+	var price float64
 	err := r.pool.QueryRow(ctx, query, id).Scan(
 		&p.ID,
 		&p.Name,
 		&p.SKU,
-		&p.Price,
+		&price,
 		&p.Stock,
 		&p.MinStock,
 		&p.CreatedAt,
@@ -230,6 +280,7 @@ func (r *postgresRepository) GetProductByID(ctx context.Context, id int64) (*dom
 		return nil, fmt.Errorf("error al obtener producto %d: %w", id, err)
 	}
 
+	p.Price = int64(math.Round(price))
 	return &p, nil
 }
 
@@ -244,6 +295,26 @@ func (r *postgresRepository) UpdateProductStock(ctx context.Context, id int64, n
 	cmdTag, err := r.pool.Exec(ctx, query, id, newStock)
 	if err != nil {
 		return fmt.Errorf("error al actualizar stock del producto %d: %w", id, err)
+	}
+
+	if cmdTag.RowsAffected() == 0 {
+		return domain.ErrNotFound
+	}
+
+	return nil
+}
+
+// UpdateRoomStatus actualiza el estado de una habitación.
+func (r *postgresRepository) UpdateRoomStatus(ctx context.Context, id string, status string, notes string) error {
+	query := `
+		UPDATE rooms
+		SET status = $2, notes = $3, updated_at = NOW()
+		WHERE id = $1;
+	`
+
+	cmdTag, err := r.pool.Exec(ctx, query, id, status, notes)
+	if err != nil {
+		return fmt.Errorf("error al actualizar estado de habitación %s: %w", id, err)
 	}
 
 	if cmdTag.RowsAffected() == 0 {
