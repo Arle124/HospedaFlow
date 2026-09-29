@@ -35,16 +35,7 @@ export const RoomFilterBar: React.FC<RoomFilterBarProps> = ({
   ];
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: '12px',
-        marginBottom: '16px',
-      }}
-    >
+    <div className="filter-bar-wrapper">
       {/* Pills de estado */}
       <div className="filter-group">
         {tabs.map((tab) => {
@@ -61,13 +52,8 @@ export const RoomFilterBar: React.FC<RoomFilterBarProps> = ({
             >
               {tab.dot && (
                 <span
-                  style={{
-                    width: '6px',
-                    height: '6px',
-                    borderRadius: '50%',
-                    backgroundColor: tab.dot,
-                    display: 'inline-block',
-                  }}
+                  className="filter-pill-dot"
+                  style={{ backgroundColor: tab.dot }}
                 />
               )}
               <span>{tab.label}</span>

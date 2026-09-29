@@ -1472,3 +1472,780 @@ button:disabled {
   font-size: 10px;
   font-weight: 700;
 }
+
+
+/* ═══════════════════════════════════════════════
+   Timeline de Reservas · Gantt hotelero
+   ═══════════════════════════════════════════════ */
+
+/* ─── Toggle Rack / Línea de Tiempo ─── */
+.view-mode-nav {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--bg-canvas);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 3px;
+  gap: 2px;
+  margin-bottom: 16px;
+}
+
+.view-mode-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  z-index: 1;
+}
+
+.view-mode-btn.active {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.view-mode-indicator {
+  position: absolute;
+  inset: 0;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+  z-index: -1;
+}
+
+/* ─── Contenedor del Timeline ─── */
+.timeline-container {
+  width: 100%;
+}
+
+.timeline-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.timeline-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.timeline-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.timeline-month-label {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.timeline-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.timeline-nav-btn:hover {
+  border-color: var(--border-medium);
+  color: var(--text-primary);
+}
+
+.timeline-nav-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+/* ─── Grid principal ─── */
+.timeline-scroll-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-surface);
+}
+
+.timeline-grid {
+  display: grid;
+  min-width: max-content;
+}
+
+/* Esquina superior izquierda */
+.timeline-corner {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  background-color: var(--bg-surface-elevated);
+  border-bottom: 1px solid var(--border-subtle);
+  border-right: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Header de cada día */
+.timeline-day-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border-subtle);
+  border-right: 1px solid var(--border-subtle);
+  background-color: var(--bg-surface-elevated);
+  font-size: 11px;
+  color: var(--text-secondary);
+  user-select: none;
+}
+
+.timeline-day-header.today {
+  background-color: var(--status-occupied-bg);
+  color: var(--status-occupied-text);
+  font-weight: 600;
+}
+
+.timeline-day-header.weekend {
+  background-color: var(--bg-surface-hover);
+}
+
+.timeline-day-header.today.weekend {
+  background-color: var(--status-occupied-bg);
+}
+
+.timeline-day-weekday {
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.timeline-day-num {
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Label de habitación (sticky a la izquierda) */
+.timeline-room-label {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background-color: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  border-right: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  padding: 4px 8px;
+}
+
+.timeline-room-num {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.timeline-room-type {
+  font-size: 9px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Celdas del grid */
+.timeline-cell {
+  position: relative;
+  border-bottom: 1px solid var(--border-subtle);
+  border-right: 1px solid var(--border-subtle);
+  cursor: pointer;
+  overflow: visible;
+}
+
+.timeline-cell:hover {
+  background-color: var(--bg-surface-hover);
+}
+
+.timeline-cell.today {
+  background-color: color-mix(in srgb, var(--status-occupied-bg) 40%, transparent);
+}
+
+.timeline-cell.weekend {
+  background-color: color-mix(in srgb, var(--bg-surface-hover) 50%, transparent);
+}
+
+.timeline-cell.today.weekend {
+  background-color: color-mix(in srgb, var(--status-occupied-bg) 40%, transparent);
+}
+
+/* ─── Barras de Reserva ─── */
+.timeline-bar {
+  position: absolute;
+  top: 4px;
+  left: 3px;
+  height: calc(100% - 8px);
+  border-radius: var(--radius-sm);
+  border: 1px solid;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  cursor: pointer;
+  z-index: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  transform-origin: left center;
+}
+
+.timeline-bar-text {
+  font-size: 11px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.timeline-bar-dates {
+  font-size: 9px;
+  font-weight: 500;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+/* ─── Leyenda ─── */
+.timeline-legend {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 10px;
+  padding: 8px 0;
+}
+
+.timeline-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.timeline-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ─── Modal LG (más ancho para crear reserva) ─── */
+.modal-dialog-lg {
+  max-width: 560px;
+}
+
+/* ─── Form helpers ─── */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.form-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.form-input {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 13px;
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  outline: none;
+}
+
+.form-input:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--border-focus) 20%, transparent);
+}
+
+select.form-input {
+  cursor: pointer;
+}
+
+textarea.form-input {
+  resize: vertical;
+  min-height: 48px;
+}
+
+/* ─── Botones de acción para modales ─── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.btn-primary {
+  background-color: var(--border-focus);
+  color: #fff;
+  border-color: var(--border-focus);
+}
+
+.btn-secondary {
+  background-color: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
+  border-color: var(--btn-secondary-border);
+}
+
+.btn-danger {
+  background-color: var(--status-maintenance-border);
+  color: #fff;
+  border-color: var(--status-maintenance-border);
+}
+
+.btn-ghost-danger {
+  background-color: transparent;
+  color: var(--status-maintenance-text);
+  border-color: transparent;
+}
+
+.btn-ghost-danger:hover {
+  background-color: var(--status-maintenance-bg);
+}
+
+/* ─── Footer spread (acciones a los lados) ─── */
+.modal-footer {
+  padding: 12px 18px;
+  border-top: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.modal-footer-spread {
+  justify-content: space-between;
+}
+
+.modal-footer-left {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ─── Badge de estado de reserva ─── */
+.reservation-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+
+.reservation-status-badge.status-pending {
+  background-color: var(--status-dirty-bg);
+  color: var(--status-dirty-text);
+}
+
+.reservation-status-badge.status-confirmed {
+  background-color: var(--status-occupied-bg);
+  color: var(--status-occupied-text);
+}
+
+.reservation-status-badge.status-checked_in {
+  background-color: var(--status-available-bg);
+  color: var(--status-available-text);
+}
+
+.reservation-status-badge.status-cancelled,
+.reservation-status-badge.status-no_show {
+  background-color: var(--status-maintenance-bg);
+  color: var(--status-maintenance-text);
+}
+
+/* ─── Detail grid (dentro del modal de detalle) ─── */
+.detail-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.detail-row {
+  display: grid;
+  grid-template-columns: 16px 90px 1fr;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.detail-icon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.detail-label {
+  font-weight: 600;
+  color: var(--text-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.detail-value {
+  color: var(--text-primary);
+}
+
+.detail-row-highlight {
+  background-color: var(--status-dirty-bg);
+  border-radius: var(--radius-sm);
+  padding: 6px 8px;
+  margin: 0 -8px;
+}
+
+.detail-row-highlight .detail-value {
+  color: var(--status-dirty-text);
+  font-weight: 700;
+}
+
+.text-muted {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+/* ─── Mobile: Timeline compacto ─── */
+@media (max-width: 640px) {
+  .timeline-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .timeline-toolbar-right {
+    justify-content: flex-end;
+  }
+
+  .view-mode-nav {
+    align-self: flex-start;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-row {
+    grid-template-columns: 16px 1fr;
+    gap: 4px;
+  }
+
+  .detail-label {
+    grid-column: 2;
+  }
+
+  .detail-value {
+    grid-column: 2;
+  }
+
+  .modal-footer-spread {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .modal-footer-left {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+
+/* ─── Alerta de solapamiento (overbooking) ─── */
+.overlap-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background-color: var(--status-maintenance-bg);
+  border: 1px solid var(--status-maintenance-border);
+  color: var(--status-maintenance-text);
+  font-size: 12px;
+  line-height: 1.4;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.overlap-warning svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ─── Barra de filtros wrapper (migrado de inline) ─── */
+.filter-bar-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+
+/* ─── Dot de estado en pills de filtro ─── */
+.filter-pill-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+
+/* ═══════════════════════════════════════════════
+   Importador CSV
+   ═══════════════════════════════════════════════ */
+
+.csv-dropzone {
+  border: 2px dashed var(--border-medium);
+  border-radius: var(--radius-md);
+  padding: 40px 20px;
+  text-align: center;
+  cursor: pointer;
+  background-color: var(--bg-canvas);
+  transition: all 0.2s ease;
+  margin-bottom: 20px;
+}
+
+.csv-dropzone:hover, .csv-dropzone.active {
+  border-color: var(--border-focus);
+  background-color: color-mix(in srgb, var(--border-focus) 10%, var(--bg-canvas));
+}
+
+.csv-dropzone-icon {
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.csv-dropzone:hover .csv-dropzone-icon, .csv-dropzone.active .csv-dropzone-icon {
+  color: var(--border-focus);
+}
+
+.csv-dropzone-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.csv-dropzone-hint {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.csv-format-hint {
+  background-color: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+}
+
+.csv-format-hint p {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+}
+
+.csv-format-example {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-primary);
+  background-color: var(--bg-input);
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  white-space: pre-wrap;
+}
+
+/* Modal extra ancho para tabla preview */
+.modal-dialog-xl {
+  max-width: 800px;
+}
+
+.csv-step-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.csv-preview-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-surface-elevated);
+  margin-bottom: 16px;
+}
+
+.csv-preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  text-align: left;
+}
+
+.csv-preview-table th,
+.csv-preview-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  white-space: nowrap;
+}
+
+.csv-preview-table th {
+  background-color: var(--bg-surface);
+  border-right: 1px solid var(--border-subtle);
+  font-weight: normal;
+}
+
+.csv-header-original {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.csv-map-select {
+  width: 100%;
+  padding: 4px;
+  font-size: 12px;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-xs);
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+}
+
+.csv-preview-table td {
+  color: var(--text-secondary);
+  border-right: 1px solid var(--border-subtle);
+}
+
+.csv-preview-table tr:last-child td {
+  border-bottom: none;
+}
+
+.csv-result {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px 0;
+}
+
+.csv-result-success,
+.csv-result-error {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border-radius: var(--radius-sm);
+}
+
+.csv-result-success {
+  background-color: var(--status-available-bg);
+  border: 1px solid var(--status-available-border);
+  color: var(--status-available-text);
+}
+
+.csv-result-error {
+  background-color: var(--status-maintenance-bg);
+  border: 1px solid var(--status-maintenance-border);
+  color: var(--status-maintenance-text);
+}
+
+.csv-result-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.csv-result-subtitle {
+  font-size: 13px;
+  opacity: 0.9;
+}
+
+.csv-error-list {
+  background-color: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+}
+
+.csv-error-list-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.csv-error-list ul {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}

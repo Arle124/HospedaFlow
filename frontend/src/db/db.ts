@@ -108,16 +108,25 @@ export interface ResolveIncidentPayload {
   resolution: string;
 }
 
+export interface CreateReservationPayload extends Reservation {}
+
+export interface UpdateReservationPayload {
+  id: string;
+  status: Reservation['status'];
+}
+
 export type SyncPayload =
   | OpenShiftPayload
   | CloseShiftPayload
   | UpdateRoomStatusPayload
   | AddTransactionPayload
-  | ResolveIncidentPayload;
+  | ResolveIncidentPayload
+  | CreateReservationPayload
+  | UpdateReservationPayload;
 
 export interface SyncQueueItem {
   id: string;
-  action: 'OPEN_SHIFT' | 'CLOSE_SHIFT' | 'UPDATE_ROOM_STATUS' | 'ADD_TRANSACTION' | 'RESOLVE_INCIDENT';
+  action: 'OPEN_SHIFT' | 'CLOSE_SHIFT' | 'UPDATE_ROOM_STATUS' | 'ADD_TRANSACTION' | 'RESOLVE_INCIDENT' | 'CREATE_RESERVATION' | 'UPDATE_RESERVATION';
   payload: SyncPayload;
   status: 'pending' | 'synced' | 'failed';
   createdAt: string;
@@ -134,12 +143,28 @@ export interface LocalProduct {
   minStock: number;
 }
 
+export interface Reservation {
+  id: string;
+  roomId: string;
+  guestName: string;
+  guestContact?: string;
+  checkInDate: string;
+  checkOutDate: string;
+  status: 'PENDING' | 'CONFIRMED' | 'CHECKED_IN' | 'CANCELLED' | 'NO_SHOW';
+  source: 'MANUAL' | 'EXCEL_IMPORT' | 'BOOKING' | 'AIRBNB';
+  totalPrice: number;
+  advancePayment: number;
+  notes?: string;
+  externalId?: string;
+}
+
 export class HospedaSyncDatabase extends Dexie {
   rooms!: Table<Room>;
   shifts!: Table<LocalShift>;
   syncQueue!: Table<SyncQueueItem>;
   inventory!: Table<LocalProduct>;
   cashMovements!: Table<CashMovement>;
+  reservations!: Table<Reservation>;
 
   constructor() {
     super('HospedaSyncDB');
@@ -162,6 +187,14 @@ export class HospedaSyncDatabase extends Dexie {
       syncQueue: 'id, status, createdAt',
       inventory: 'id, sku',
       cashMovements: 'id, shiftId, type, paymentMethod, createdAt'
+    });
+    this.version(4).stores({
+      rooms: 'id, number, floor, status',
+      shifts: 'id, status, isSynced',
+      syncQueue: 'id, status, createdAt',
+      inventory: 'id, sku',
+      cashMovements: 'id, shiftId, type, paymentMethod, createdAt',
+      reservations: 'id, roomId, checkInDate, checkOutDate, status, source'
     });
   }
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   db,
   type Room,
@@ -7,6 +7,7 @@ import {
   type LocalProduct,
   type CashMovement,
   type PaymentMethod,
+  type Reservation,
 } from '../db/db';
 import { syncService } from '../services/syncService';
 import { eventBus } from '../services/eventBus';
@@ -22,6 +23,11 @@ import { OpenShiftModal, CloseShiftModal } from './receptionist/ShiftModals';
 import { MinibarModal } from './receptionist/MinibarModal';
 import { ExpenseModal } from './receptionist/ExpenseModal';
 import { ConfirmIncidentModal } from '../components/ConfirmIncidentModal';
+import { ViewModeToggle, type ViewMode } from './receptionist/ViewModeToggle';
+import { ReservationTimeline } from './receptionist/ReservationTimeline';
+import { CreateReservationModal } from './receptionist/CreateReservationModal';
+import { ReservationDetailModal } from './receptionist/ReservationDetailModal';
+import { CsvImportModal } from './receptionist/CsvImportModal';
 
 export const ReceptionistView: React.FC = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
@@ -40,6 +46,15 @@ export const ReceptionistView: React.FC = () => {
   const [selectedRoomDetail, setSelectedRoomDetail] = useState<Room | null>(null);
   const [showCheckOutModal, setShowCheckOutModal] = useState<Room | null>(null);
   const [incidentRoomToResolve, setIncidentRoomToResolve] = useState<Room | null>(null);
+
+  // Timeline / Reservas
+  const [viewMode, setViewMode] = useState<ViewMode>('rack');
+  const [showCreateReservation, setShowCreateReservation] = useState(false);
+  const [createResRoomId, setCreateResRoomId] = useState<string | undefined>();
+  const [createResCheckIn, setCreateResCheckIn] = useState<string | undefined>();
+  const [createResCheckOut, setCreateResCheckOut] = useState<string | undefined>();
+  const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
+  const [showCsvImport, setShowCsvImport] = useState(false);
 
   // Estados de formularios
   const [initialCashInput, setInitialCashInput] = useState<string>('50000');
@@ -542,6 +557,18 @@ export const ReceptionistView: React.FC = () => {
   const handleDetailClick = React.useCallback((room: Room) => setSelectedRoomDetail(room), []);
   const handleClearNotesClick = React.useCallback((room: Room) => setIncidentRoomToResolve(room), []);
 
+  // Callbacks para el timeline de reservas
+  const handleCreateReservation = useCallback((roomId: string, checkIn: string, checkOut: string) => {
+    setCreateResRoomId(roomId);
+    setCreateResCheckIn(checkIn);
+    setCreateResCheckOut(checkOut);
+    setShowCreateReservation(true);
+  }, []);
+
+  const handleSelectReservation = useCallback((reservation: Reservation) => {
+    setSelectedReservation(reservation);
+  }, []);
+
   return (
     <div className="container-fluid" style={{ paddingBottom: '40px' }}>
       {/* 1. Barra de Turno y Caja con desglose Digital */}
@@ -559,32 +586,47 @@ export const ReceptionistView: React.FC = () => {
         onExpenseClick={() => setShowExpenseModal(true)}
       />
 
-      {/* 2. Barra de Filtros y Búsqueda */}
-      <RoomFilterBar
-        filterStatus={filterStatus}
-        onFilterChange={setFilterStatus}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        totalCount={rooms.length}
-        availableCount={availableCount}
-        occupiedCount={occupiedCount}
-        dirtyCount={dirtyCount}
-        cleaningCount={cleaningCount}
-      />
+      {/* 2. Toggle Rack / Línea de Tiempo */}
+      <ViewModeToggle mode={viewMode} onModeChange={setViewMode} />
 
-      {/* 3. Rack de Habitaciones */}
-      <div className="room-grid">
-        {filteredRooms.map((room) => (
-          <RoomCard
-            key={room.id}
-            room={room}
-            onCheckInClick={handleShowCheckInModal}
-            onCheckOutClick={handleShowCheckOutModal}
-            onDetailClick={handleDetailClick}
-            onClearNotes={handleClearNotesClick}
+      {viewMode === 'rack' ? (
+        <>
+          {/* 2a. Barra de Filtros y Búsqueda */}
+          <RoomFilterBar
+            filterStatus={filterStatus}
+            onFilterChange={setFilterStatus}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            totalCount={rooms.length}
+            availableCount={availableCount}
+            occupiedCount={occupiedCount}
+            dirtyCount={dirtyCount}
+            cleaningCount={cleaningCount}
           />
-        ))}
-      </div>
+
+          {/* 2b. Rack de Habitaciones */}
+          <div className="room-grid">
+            {filteredRooms.map((room) => (
+              <RoomCard
+                key={room.id}
+                room={room}
+                onCheckInClick={handleShowCheckInModal}
+                onCheckOutClick={handleShowCheckOutModal}
+                onDetailClick={handleDetailClick}
+                onClearNotes={handleClearNotesClick}
+              />
+            ))}
+          </div>
+        </>
+      ) : (
+        /* 2c. Línea de Tiempo de Reservas */
+        <ReservationTimeline
+          rooms={rooms}
+          onCreateReservation={handleCreateReservation}
+          onSelectReservation={handleSelectReservation}
+          onImportCsv={() => setShowCsvImport(true)}
+        />
+      )}
 
       {/* 4. Modales Desacoplados con soporte Multimedio de Pago */}
       <RoomDetailModal
@@ -706,6 +748,34 @@ export const ReceptionistView: React.FC = () => {
         isOpen={Boolean(incidentRoomToResolve)}
         onClose={() => setIncidentRoomToResolve(null)}
         onConfirm={handleClearRoomNotes}
+      />
+
+      {/* 5. Modales de Reservas */}
+      <CreateReservationModal
+        isOpen={showCreateReservation}
+        rooms={rooms}
+        initialRoomId={createResRoomId}
+        initialCheckIn={createResCheckIn}
+        initialCheckOut={createResCheckOut}
+        onClose={() => {
+          setShowCreateReservation(false);
+          setCreateResRoomId(undefined);
+          setCreateResCheckIn(undefined);
+          setCreateResCheckOut(undefined);
+        }}
+      />
+
+      <ReservationDetailModal
+        reservation={selectedReservation}
+        rooms={rooms}
+        onClose={() => setSelectedReservation(null)}
+      />
+
+      {/* 6. Importador CSV */}
+      <CsvImportModal
+        isOpen={showCsvImport}
+        rooms={rooms}
+        onClose={() => setShowCsvImport(false)}
       />
     </div>
   );
