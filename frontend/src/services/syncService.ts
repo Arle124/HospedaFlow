@@ -173,6 +173,29 @@ class SyncService {
           return res.ok;
         }
 
+        
+        case 'CREATE_RESERVATION': {
+          const payload = item.payload; // Already a reservation
+          const res = await fetch(`${API_BASE}/reservations`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify(payload),
+          });
+          return res.ok;
+        }
+
+        case 'UPDATE_RESERVATION': {
+          const payload = item.payload as any;
+          const res = await fetch(`${API_BASE}/reservations/${payload.id}/status`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ status: payload.status }),
+          });
+          return res.ok;
+        }
+
         default:
           // Acciones no implementadas no deben marcarse como sincronizadas
           return false;

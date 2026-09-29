@@ -29,6 +29,7 @@ func main() {
 	var shiftHandler *handler.ShiftHandler
 	var roomHandler *handler.RoomHandler
 	var authHandler *handler.AuthHandler
+	var reservationHandler *handler.ReservationHandler
 	var authMW func(http.Handler) http.Handler
 
 	if err != nil {
@@ -47,10 +48,13 @@ func main() {
 
 		roomService := service.NewRoomService(repo)
 		roomHandler = handler.NewRoomHandler(roomService)
+
+		reservationService := service.NewReservationService(repo)
+		reservationHandler = handler.NewReservationHandler(reservationService)
 	}
 
 	// Inicialización del enrutador Chi con dependencias inyectadas
-	r := handler.NewRouter(cfg, authMW, authHandler, shiftHandler, roomHandler)
+	r := handler.NewRouter(cfg, authMW, authHandler, shiftHandler, roomHandler, reservationHandler)
 
 	server := &http.Server{
 		Addr:         ":" + cfg.Port,

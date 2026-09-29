@@ -15,6 +15,7 @@ type Repository interface {
 	InventoryRepository
 	RoomRepository
 	UserRepository
+	ReservationRepository
 }
 
 // UserRepository define las operaciones de persistencia para usuarios y sesiones.
@@ -59,4 +60,12 @@ func NewDBPool(ctx context.Context, databaseURL string) (*pgxpool.Pool, error) {
 	}
 
 	return pool, nil
+}
+
+
+// ReservationRepository define las operaciones de persistencia para reservaciones.
+type ReservationRepository interface {
+	CreateReservation(ctx context.Context, res *domain.Reservation) error
+	UpdateReservationStatus(ctx context.Context, id string, status domain.ReservationStatus) error
+	GetReservationsByDateRange(ctx context.Context, start, end string) ([]*domain.Reservation, error)
 }

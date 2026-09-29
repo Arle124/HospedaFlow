@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"math"
 
 	"github.com/jackc/pgx/v5"
@@ -461,4 +462,85 @@ func (r *postgresRepository) RevokeAllUserSessions(ctx context.Context, userID i
 		return fmt.Errorf("error al revocar todas las sesiones del usuario %d: %w", userID, err)
 	}
 	return nil
+}
+
+func (r *postgresRepository) CreateReservation(ctx context.Context, res *domain.Reservation) error {
+	query := `
+		INSERT INTO reservations (
+			id, room_id, guest_name, guest_contact, check_in_date, check_out_date,
+			status, source, total_price, advance_payment, notes, external_id
+		) VALUES (
+			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
+		) RETURNING created_at, updated_at
+	`
+	
+	// Convert int64 back to float64 (NUMERIC(12,2)) for DB storage
+	totalPriceFloat := float64(res.TotalPrice) / 100.0
+	advancePaymentFloat := float64(res.AdvancePayment) / 100.0
+
+	err := r.pool.QueryRow(ctx, query,
+		res.ID,
+		res.RoomID,
+		res.GuestName,
+		res.GuestContact,
+		res.CheckInDate,
+		res.CheckOutDate,
+		res.Status,
+		res.Source,
+		totalPriceFloat,
+		advancePaymentFloat,
+		res.Notes,
+		res.ExternalID,
+	).Scan(&res.CreatedAt, &res.UpdatedAt)
+
+	if err != nil {
+		log.Printf("ERROR postgresRepository.CreateReservation: %v\n", err)
+		return err
+	}
+	return nil
+}
+
+func (r *postgresRepository) UpdateReservationStatus(ctx context.Context, id string, status domain.ReservationStatus) error {
+	query := `UPDATE reservations SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`
+	tag, err := r.pool.Exec(ctx, query, status, id)
+	if err != nil {
+		log.Printf("ERROR postgresRepository.UpdateReservationStatus: %v\n", err)
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return domain.ErrNotFound
+	}
+	return nil
+}
+
+func (r *postgresRepository) GetReservationsByDateRange(ctx context.Context, start, end string) ([]*domain.Reservation, error) {
+	query := `
+		SELECT id, room_id, guest_name, guest_contact, check_in_date, check_out_date,
+		       status, source, total_price, advance_payment, notes, external_id, created_at, updated_at
+		FROM reservations
+		WHERE check_in_date <= $2 AND check_out_date >= $1
+	`
+	rows, err := r.pool.Query(ctx, query, start, end)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var reservations []*domain.Reservation
+	for rows.Next() {
+		var res domain.Reservation
+		var tpFloat, apFloat float64
+		err := rows.Scan(
+			&res.ID, &res.RoomID, &res.GuestName, &res.GuestContact, &res.CheckInDate, &res.CheckOutDate,
+			&res.Status, &res.Source, &tpFloat, &apFloat, &res.Notes, &res.ExternalID, &res.CreatedAt, &res.UpdatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		// Convert NUMERIC(12,2) float back to int64
+		res.TotalPrice = int64(math.Round(tpFloat * 100))
+		res.AdvancePayment = int64(math.Round(apFloat * 100))
+		reservations = append(reservations, &res)
+	}
+	return reservations, nil
 }

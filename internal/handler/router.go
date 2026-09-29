@@ -15,7 +15,7 @@ import (
 )
 
 // NewRouter configura y retorna el enrutador HTTP de Chi con middlewares y endpoints.
-func NewRouter(cfg *config.Config, authMiddleware func(http.Handler) http.Handler, authHandler *AuthHandler, shiftHandler *ShiftHandler, roomHandler *RoomHandler) http.Handler {
+func NewRouter(cfg *config.Config, authMiddleware func(http.Handler) http.Handler, authHandler *AuthHandler, shiftHandler *ShiftHandler, roomHandler *RoomHandler, reservationHandler *ReservationHandler) http.Handler {
 	r := chi.NewRouter()
 
 	allowedOrigins := strings.Split(cfg.CORSOrigins, ",")
@@ -97,6 +97,13 @@ func NewRouter(cfg *config.Config, authMiddleware func(http.Handler) http.Handle
 			if roomHandler != nil {
 				r.Route("/rooms", func(r chi.Router) {
 					r.Put("/{id}/status", roomHandler.UpdateRoomStatus)
+				})
+			}
+			if reservationHandler != nil {
+				r.Route("/reservations", func(r chi.Router) {
+					r.Post("/", reservationHandler.CreateReservation)
+					r.Get("/", reservationHandler.GetReservations)
+					r.Put("/{id}/status", reservationHandler.UpdateReservationStatus)
 				})
 			}
 		})
