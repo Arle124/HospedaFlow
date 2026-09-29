@@ -6,6 +6,75 @@ Historial de sesiones de trabajo, hitos completados y estado del proyecto.
 
 ## Sesiones Recientes
 
+### Sesión 12: Estabilización de Reservas y Saneamiento
+* **Fecha:** 29 de Septiembre de 2026
+* **Hitos completados:**
+  1. **Estabilización de Frontend (Reservas Fase 1):** Resolución de errores TypeScript en `syncService.ts` tipando las acciones `CREATE_RESERVATION` y `UPDATE_RESERVATION`. Limpieza de dependencias y advertencias en el build de Vite.
+  2. **Saneamiento del Repositorio:** Limpieza profunda de archivos temporales de Go y logs de depuración del despliegue en homelab. Consolidación de la Fase 1 UI en la rama `main`.
+  3. **Preparación de Backend (Reservas):** Inicio de la implementación de la API en Go para persistencia de reservas y sincronización offline-first.
+
+### Sesión 10: Motor de Reservas (Fase 1) y Hotfixes en cel-server
+* **Fecha:** 28 de Septiembre de 2026
+* **Hitos completados:**
+  1. **Hotfix de Entorno y Despliegue en cel-server:**
+     * Diagnóstico y solución del error HTTP 401 en login: El servidor Go fallaba silenciosamente al no contar con la base de datos `hospedasync` y `DATABASE_URL`.
+     * Se crearon las bases de datos y se aplicaron las migraciones faltantes (`002` a `004`) en el `cel-server`.
+     * Despliegue exitoso de binario ARM64 sobre SSH (`scp .new`) e inicio en segundo plano usando `nohup`.
+  2. **Estrategia Channel Manager:**
+     * Creación del ADR/Documento técnico: `docs/Estrategia_Reservas.md` delineando la evolución de Excel a un sistema nativo Offline-First y posterior sincronización con Booking.com mediante `iCal`.
+  3. **Módulo de Reservas (Backend & BD local):**
+     * Migración SQL `005_reservations.sql` con esquema para reservas futuras.
+     * Actualización de Dexie.js a `version(4)` en `db.ts` añadiendo la colección `reservations` compatible con la arquitectura Offline-First.
+* **Próximos pasos (Pendientes para próxima sesión):**
+  * Crear la interfaz visual (Gantt/Timeline) en `ReceptionistView` mediante un Segmented Control para alternar entre "Rack" y "Línea de Tiempo".
+
+### Sesión 11: Interfaz Visual de Línea de Tiempo de Reservas (Fase 1 UI)
+* **Fecha:** 28 de Septiembre de 2026
+* **Hitos completados:**
+  1. **Segmented Control Rack / Línea de Tiempo:**
+     * Nuevo componente `ViewModeToggle.tsx` con patrón `layoutId` animado (resortes `springSegment`) para alternar fluidamente entre la vista de Rack de habitaciones y la Línea de Tiempo de reservas.
+  2. **Componente Gantt `ReservationTimeline.tsx`:**
+     * Grid CSS con eje Y = habitaciones (columna sticky) y eje X = 14 días visibles (scrollable horizontal).
+     * Navegación temporal: botones Semana anterior / siguiente + "Hoy" para saltar a la fecha actual.
+     * Barras de reserva coloreadas por estado (Pendiente/Confirmada/Hospedado) con `springTouch` y `scaleX` de entrada.
+     * Indicador visual del día actual y fines de semana con fondos diferenciados.
+     * Click en celda vacía abre modal de creación con habitación y fecha pre-pobladas.
+     * Click en barra de reserva abre modal de detalle.
+     * Leyenda visual de estados al pie del timeline.
+  3. **Modal `CreateReservationModal.tsx`:**
+     * Formulario completo: habitación, huésped, contacto, fechas de entrada/salida, origen (Manual/Booking/Airbnb), precio total (auto-calculado por noches × tarifa), anticipo y notas.
+     * Persistencia Offline-First en Dexie.js (`db.reservations`) con enqueue a `sync_queue` (`CREATE_RESERVATION`).
+  4. **Modal `ReservationDetailModal.tsx`:**
+     * Vista de detalle con grid de información: huésped, contacto, estancia, origen, tarifa, anticipo, saldo pendiente y notas.
+     * Acciones: Confirmar (PENDING→CONFIRMED), Cancelar (con doble confirmación de seguridad), No Show.
+     * Persistencia de cambios de estado con enqueue a sync.
+  5. **CSS Semántico (Regla 1 "Impeccable"):**
+     * ~300 líneas de CSS usando exclusivamente tokens semánticos de `index.css`. Cero estilos inline excepto el grid template dinámico calculado.
+     * Responsive mobile con colapso de formularios a columna única.
+* **Verificaciones:**
+  * `npx tsc --noEmit` — 0 errores TypeScript.
+  * `npx vite build` — Build exitoso en 239ms. Peso total del CSS: 31.21 KB (5.66 KB gzip).
+* **Iteración 11b: Refresh Reactivo, Anti-Overbooking y Limpieza de Estilos:**
+  1. **EventBus → Timeline:** `ReservationTimeline` suscrito al `eventBus`. Toda creación, cancelación o cambio de estado emite un evento que recarga automáticamente las barras del timeline sin cambiar de vista.
+  2. **Validación Anti-Overbooking en tiempo real:**
+     * Al seleccionar habitación + fechas en `CreateReservationModal`, se ejecuta una query Dexie que busca reservaciones activas con solapamiento (`checkInDate < checkOut && checkOutDate > checkIn`).
+     * Si detecta conflicto, muestra un banner animado con el nombre del huésped conflictivo y bloquea el botón de confirmación.
+  3. **Limpieza Regla 1 "Impeccable" — `RoomFilterBar.tsx`:**
+     * Wrapper `div` con `style={{...}}` migrado a clase `.filter-bar-wrapper`.
+     * Dot de estado inline migrado a clase `.filter-pill-dot` (el `backgroundColor` permanece dinámico por ser computado).
+  * Build verificado: 0 errores TS, build 240ms.
+* **Iteración 11c: Importador de CSV para Migración (Fase 1):**
+  1. **Parser CSV Nativo sin Dependencias:** Creación de `utils/csvParser.ts` con auto-detección de delimitador (coma, punto y coma, tab), soporte para celdas entre comillas, auto-mapeo basado en expresiones regulares (identifica términos en inglés y español), y parseo de fechas flexible con heurística para Colombia (DD/MM/YYYY vs MM/DD/YYYY).
+  2. **Interfaz de 3 Pasos (`CsvImportModal.tsx`):**
+     * **Paso 1:** Zona Drag & Drop interactiva con pista de formato esperado.
+     * **Paso 2:** Previsualización de tabla (las primeras 5 filas) con selectores para corregir el mapeo automático de columnas de manera manual.
+     * **Paso 3:** Resumen de importación con conteo de éxito e inserción directa (vía Dexie `.bulkAdd()`) más volcado de errores de validación.
+  3. **Integración:** El modal se enlazó a un botón de la barra de herramientas del timeline (`ReceptionistView` & `ReservationTimeline`), emitiendo un evento `shift_event` al completarse para recarga reactiva de los datos visuales.
+* **Próximos pasos:**
+  * Sincronización P2P en Background para la cola de reservas.
+  * Drag & Drop en el timeline para extender fechas o cambiar habitaciones visualmente.
+
+
 ### Sesión 9: Optimización de Rendimiento y Migración a PWA Nativa
 * **Fecha:** 28 de Septiembre de 2026
 * **Hitos completados:**
@@ -177,63 +246,3 @@ Historial de sesiones de trabajo, hitos completados y estado del proyecto.
 - [ ] **Reporte Exportable en PDF/Excel para Gerencia:** Descarga de auditoría de turnos cerrados y arqueos de caja.
 - [ ] **Módulo de Reservas Futuras:** Calendario tipo Timeline para agendar habitaciones con fechas de entrada y salida programadas.
 
-### Sesión 10: Motor de Reservas (Fase 1) y Hotfixes en cel-server
-* **Fecha:** 28 de Septiembre de 2026
-* **Hitos completados:**
-  1. **Hotfix de Entorno y Despliegue en cel-server:**
-     * Diagnóstico y solución del error HTTP 401 en login: El servidor Go fallaba silenciosamente al no contar con la base de datos `hospedasync` y `DATABASE_URL`.
-     * Se crearon las bases de datos y se aplicaron las migraciones faltantes (`002` a `004`) en el `cel-server`.
-     * Despliegue exitoso de binario ARM64 sobre SSH (`scp .new`) e inicio en segundo plano usando `nohup`.
-  2. **Estrategia Channel Manager:**
-     * Creación del ADR/Documento técnico: `docs/Estrategia_Reservas.md` delineando la evolución de Excel a un sistema nativo Offline-First y posterior sincronización con Booking.com mediante `iCal`.
-  3. **Módulo de Reservas (Backend & BD local):**
-     * Migración SQL `005_reservations.sql` con esquema para reservas futuras.
-     * Actualización de Dexie.js a `version(4)` en `db.ts` añadiendo la colección `reservations` compatible con la arquitectura Offline-First.
-* **Próximos pasos (Pendientes para próxima sesión):**
-  * Crear la interfaz visual (Gantt/Timeline) en `ReceptionistView` mediante un Segmented Control para alternar entre "Rack" y "Línea de Tiempo".
-
-### Sesión 11: Interfaz Visual de Línea de Tiempo de Reservas (Fase 1 UI)
-* **Fecha:** 28 de Septiembre de 2026
-* **Hitos completados:**
-  1. **Segmented Control Rack / Línea de Tiempo:**
-     * Nuevo componente `ViewModeToggle.tsx` con patrón `layoutId` animado (resortes `springSegment`) para alternar fluidamente entre la vista de Rack de habitaciones y la Línea de Tiempo de reservas.
-  2. **Componente Gantt `ReservationTimeline.tsx`:**
-     * Grid CSS con eje Y = habitaciones (columna sticky) y eje X = 14 días visibles (scrollable horizontal).
-     * Navegación temporal: botones Semana anterior / siguiente + "Hoy" para saltar a la fecha actual.
-     * Barras de reserva coloreadas por estado (Pendiente/Confirmada/Hospedado) con `springTouch` y `scaleX` de entrada.
-     * Indicador visual del día actual y fines de semana con fondos diferenciados.
-     * Click en celda vacía abre modal de creación con habitación y fecha pre-pobladas.
-     * Click en barra de reserva abre modal de detalle.
-     * Leyenda visual de estados al pie del timeline.
-  3. **Modal `CreateReservationModal.tsx`:**
-     * Formulario completo: habitación, huésped, contacto, fechas de entrada/salida, origen (Manual/Booking/Airbnb), precio total (auto-calculado por noches × tarifa), anticipo y notas.
-     * Persistencia Offline-First en Dexie.js (`db.reservations`) con enqueue a `sync_queue` (`CREATE_RESERVATION`).
-  4. **Modal `ReservationDetailModal.tsx`:**
-     * Vista de detalle con grid de información: huésped, contacto, estancia, origen, tarifa, anticipo, saldo pendiente y notas.
-     * Acciones: Confirmar (PENDING→CONFIRMED), Cancelar (con doble confirmación de seguridad), No Show.
-     * Persistencia de cambios de estado con enqueue a sync.
-  5. **CSS Semántico (Regla 1 "Impeccable"):**
-     * ~300 líneas de CSS usando exclusivamente tokens semánticos de `index.css`. Cero estilos inline excepto el grid template dinámico calculado.
-     * Responsive mobile con colapso de formularios a columna única.
-* **Verificaciones:**
-  * `npx tsc --noEmit` — 0 errores TypeScript.
-  * `npx vite build` — Build exitoso en 239ms. Peso total del CSS: 31.21 KB (5.66 KB gzip).
-* **Iteración 11b: Refresh Reactivo, Anti-Overbooking y Limpieza de Estilos:**
-  1. **EventBus → Timeline:** `ReservationTimeline` suscrito al `eventBus`. Toda creación, cancelación o cambio de estado emite un evento que recarga automáticamente las barras del timeline sin cambiar de vista.
-  2. **Validación Anti-Overbooking en tiempo real:**
-     * Al seleccionar habitación + fechas en `CreateReservationModal`, se ejecuta una query Dexie que busca reservaciones activas con solapamiento (`checkInDate < checkOut && checkOutDate > checkIn`).
-     * Si detecta conflicto, muestra un banner animado con el nombre del huésped conflictivo y bloquea el botón de confirmación.
-  3. **Limpieza Regla 1 "Impeccable" — `RoomFilterBar.tsx`:**
-     * Wrapper `div` con `style={{...}}` migrado a clase `.filter-bar-wrapper`.
-     * Dot de estado inline migrado a clase `.filter-pill-dot` (el `backgroundColor` permanece dinámico por ser computado).
-  * Build verificado: 0 errores TS, build 240ms.
-* **Iteración 11c: Importador de CSV para Migración (Fase 1):**
-  1. **Parser CSV Nativo sin Dependencias:** Creación de `utils/csvParser.ts` con auto-detección de delimitador (coma, punto y coma, tab), soporte para celdas entre comillas, auto-mapeo basado en expresiones regulares (identifica términos en inglés y español), y parseo de fechas flexible con heurística para Colombia (DD/MM/YYYY vs MM/DD/YYYY).
-  2. **Interfaz de 3 Pasos (`CsvImportModal.tsx`):**
-     * **Paso 1:** Zona Drag & Drop interactiva con pista de formato esperado.
-     * **Paso 2:** Previsualización de tabla (las primeras 5 filas) con selectores para corregir el mapeo automático de columnas de manera manual.
-     * **Paso 3:** Resumen de importación con conteo de éxito e inserción directa (vía Dexie `.bulkAdd()`) más volcado de errores de validación.
-  3. **Integración:** El modal se enlazó a un botón de la barra de herramientas del timeline (`ReceptionistView` & `ReservationTimeline`), emitiendo un evento `shift_event` al completarse para recarga reactiva de los datos visuales.
-* **Próximos pasos:**
-  * Sincronización P2P en Background para la cola de reservas.
-  * Drag & Drop en el timeline para extender fechas o cambiar habitaciones visualmente.
