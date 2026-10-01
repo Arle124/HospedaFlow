@@ -6,6 +6,27 @@ Historial de sesiones de trabajo, hitos completados y estado del proyecto.
 
 ## Sesiones Recientes
 
+### Sesión 13: Finalización de SyncService, API de Actualización y Tests Unitarios
+* **Fecha:** 01 de Octubre de 2026
+* **Hitos completados:**
+  1. **Finalización de `syncService.ts`:**
+     * Despacho completo para todas las acciones de la cola: `CREATE_RESERVATION`, `UPDATE_RESERVATION` (reprogramación y cambio de estado), `RESOLVE_INCIDENT` (normalización de habitación y notas) y `ADD_TRANSACTION` (ventas directas y gastos a proveedores).
+     * Resolución de IDs locales a identificadores de servidor para turnos aún no sincronizados.
+     * Corrección de detección del estado online en entornos no navegador (`navigator.onLine`).
+  2. **Drag & Drop de Reservas enlazado a Sincronización:**
+     * Enlace de `syncService.enqueueAction('UPDATE_RESERVATION', ...)` al evento de soltar (`onDrop`) en `ReservationTimeline.tsx`.
+     * Corrección de tipado TypeScript para eventos nativos de arrastre HTML5 sobre componentes Framer Motion.
+     * Actualización del modelo `Reservation` y payload en `db.ts` incorporando marcas temporales y campos opcionales de edición.
+  3. **Backend en Go (Actualización y Transacciones):**
+     * Corrección de precisión financiera en `postgres_repository.go`: erradicación de división y multiplicación por 100 en `TotalPrice` y `AdvancePayment`, alineándolo con la convención de enteros COP del sistema.
+     * Implementación de `UpdateReservation` en repository, service, handler y enrutador (`PUT /api/v1/reservations/{id}`).
+     * Implementación de registro de transacciones de turno `AddShiftTransaction` en repository, service, handler y enrutador (`POST /api/v1/shifts/{id}/transactions`) con ajuste reactivo del saldo en caja.
+  4. **Pruebas Unitarias Integrales:**
+     * **Go:** `reservation_service_test.go` y `shift_service_test.go` cubriendo creación, rangos de fechas, actualización, ingresos y egresos de caja (100% PASS).
+     * **Frontend:** Suite de pruebas con Vitest en `syncService.test.ts` evaluando encolado offline, procesamiento online, reintentos y mapeo de IDs (6/6 PASS).
+  5. **Disciplina Git:**
+     * 4 commits atómicos convencionales y descriptivos en la rama `main`.
+
 ### Sesión 12: Estabilización de Reservas y Saneamiento
 * **Fecha:** 29 de Septiembre de 2026
 * **Hitos completados:**
@@ -161,6 +182,31 @@ Historial de sesiones de trabajo, hitos completados y estado del proyecto.
      * Compilación de producción con TypeScript y Vite.
      * Despliegue de `frontend/dist` en `cel-server:~/HospedaSync/frontend/dist` vía SSH (puerto 8022) y purga de bundles anteriores.
 
+#### Sesión 7: Estabilización de Despliegue Remoto (cel-server) y Calendario Drag & Drop
+* **Fecha:** 30 de Septiembre de 2026
+* **Hitos completados:**
+  1. **Solución a Conexión de Base de Datos en Producción:** Identificación y parche de variable `DATABASE_URL` ausente en el entorno del servidor móvil que causaba errores 401 silenciosos al conectarse a una base de datos vacía por defecto de PostgreSQL.
+  2. **Refinamiento de Despliegue Automatizado (`manage.sh`):**
+     * Copiado automático de credenciales correctas (`u0_a285` local de Termux) mediante creación remota de `.env`.
+     * Solución al bloqueo de SSH por colgado de `stdin` agregando redirección `< /dev/null`.
+     * Reemplazo de `pkill -f` por `pkill -x` para prevenir autoterminación prematura de la conexión SSH de despliegue.
+  3. **Drag & Drop Nativo en Timeline de Reservas:**
+     * Implementación usando la API nativa de arrastre de HTML5 (preservando filosofía offline-first ligera sin librerías externas).
+     * Arrastre de barras de reserva entre celdas del calendario para reasignar fechas (`checkInDate`/`checkOutDate`) y habitaciones (`roomId`) visualmente.
+     * Actualización instantánea en IndexedDB y sincronización mediante `eventBus`.
+
+### Sesión 6: Calendario Visual de Reservas (Timeline) e Importación CSV
+* **Fecha:** 30 de Septiembre de 2026
+* **Hitos completados:**
+  1. **Motor de Búsqueda y Persistencia Temporal:**
+     * Renderizado eficiente de matriz temporal para 14 días con paginación horizontal y persistencia de memoria.
+  2. **Diseño Visual e Integración de Framer Motion:**
+     * Creación de grilla pegajosa (sticky headers) y renderizado de celdas según el estado dinámico (Días de Fin de Semana, Día Actual).
+  3. **Servicio y Adaptador de Eventos Frontend (`eventBus.ts`):**
+     * Mecanismo de notificaciones para comunicar actualizaciones de UI sin forzar re-renders masivos.
+  4. **Adaptación Offline-First PWA:**
+     * Configuración avanzada en Vite para desactivación estratégica del Service Worker durante el modo de desarrollo.
+
 ### Sesión 5: Renovación Estética del Frontend, Eliminación de IA Slop y Motion Táctil
 * **Fecha:** 27 de Septiembre de 2026
 * **Hitos completados:**
@@ -244,5 +290,5 @@ Historial de sesiones de trabajo, hitos completados y estado del proyecto.
 - [ ] **Sincronización WebSocket en Tiempo Real:** Reemplazar el polling de sincronización por eventos bidireccionales con WebSockets en Go para avisos inmediatos entre camarera y recepcionista.
 - [ ] **Impresión de Comprobante / Recibo:** Generación de recibo térmico (80mm) para check-out y minibar.
 - [ ] **Reporte Exportable en PDF/Excel para Gerencia:** Descarga de auditoría de turnos cerrados y arqueos de caja.
-- [ ] **Módulo de Reservas Futuras:** Calendario tipo Timeline para agendar habitaciones con fechas de entrada y salida programadas.
+- [x] **Módulo de Reservas Futuras:** Calendario tipo Timeline implementado con Drag & Drop y edición táctil.
 
