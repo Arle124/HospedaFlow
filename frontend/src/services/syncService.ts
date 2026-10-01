@@ -3,7 +3,7 @@ import { db, type SyncQueueItem, type SyncPayload, type UpdateRoomStatusPayload 
 type OnlineStatusCallback = (isOnline: boolean) => void;
 
 class SyncService {
-  private isOnline: boolean = typeof navigator !== 'undefined' ? navigator.onLine : true;
+  private isOnline: boolean = typeof navigator !== 'undefined' && typeof navigator.onLine === 'boolean' ? navigator.onLine : true;
   private listeners: Set<OnlineStatusCallback> = new Set();
   private isSyncing: boolean = false;
 
@@ -20,7 +20,7 @@ class SyncService {
     }
   }
 
-  private setOnlineStatus(status: boolean) {
+  public setOnlineStatus(status: boolean) {
     this.isOnline = status;
     this.listeners.forEach((callback) => callback(status));
   }
@@ -186,18 +186,59 @@ class SyncService {
         }
 
         case 'UPDATE_RESERVATION': {
-          const payload = item.payload as any;
-          const res = await fetch(`${API_BASE}/reservations/${payload.id}/status`, {
+          const payload = item.payload as import('../db/db').UpdateReservationPayload;
+          const res = await fetch(`${API_BASE}/reservations/${payload.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'include',
-            body: JSON.stringify({ status: payload.status }),
+            body: JSON.stringify(payload),
+          });
+          return res.ok;
+        }
+
+        case 'RESOLVE_INCIDENT': {
+          const payload = item.payload as import('../db/db').ResolveIncidentPayload & { status?: string; notes?: string };
+          const res = await fetch(`${API_BASE}/rooms/${payload.roomId}/status`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              status: payload.status || 'available',
+              notes: payload.notes || '',
+            }),
+          });
+          return res.ok;
+        }
+
+        case 'ADD_TRANSACTION': {
+          const payload = item.payload as import('../db/db').AddTransactionPayload;
+          let targetServerId = payload.shiftId;
+          // Si el shiftId es local (no numérico), resolver desde Dexie si OPEN_SHIFT ya sincronizó
+          if (isNaN(Number(targetServerId))) {
+            const localShift = await db.shifts.get(targetServerId);
+            if (localShift?.serverId) {
+              targetServerId = String(localShift.serverId);
+            }
+          }
+          if (isNaN(Number(targetServerId))) {
+            // Aún no tiene serverId asignado, posponer para la siguiente vuelta
+            return false;
+          }
+
+          const res = await fetch(`${API_BASE}/shifts/${targetServerId}/transactions`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              amount: payload.amount,
+              type: payload.type,
+              concept: payload.concept || (payload.type === 'INCOME_MINIBAR' ? 'Venta de Minibar' : 'Gasto de Caja'),
+            }),
           });
           return res.ok;
         }
 
         default:
-          // Acciones no implementadas no deben marcarse como sincronizadas
           return false;
       }
     } catch {
