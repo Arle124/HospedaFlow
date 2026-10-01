@@ -27,3 +27,13 @@ type Shift struct {
 	CreatedAt   time.Time   `json:"created_at"`
 	UpdatedAt   time.Time   `json:"updated_at"`
 }
+
+// ShiftTransaction representa una transacción económica registrada dentro de un turno de caja.
+type ShiftTransaction struct {
+	ID        int64     `json:"id"`
+	ShiftID   int64     `json:"shift_id"`
+	Amount    int64     `json:"amount"` // Monto en pesos COP
+	Type      string    `json:"type"`   // INCOME_MINIBAR, EXPENSE_SUPPLIER, etc.
+	Concept   string    `json:"concept"`
+	CreatedAt time.Time `json:"created_at"`
+}

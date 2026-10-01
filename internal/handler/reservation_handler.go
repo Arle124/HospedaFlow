@@ -33,6 +33,27 @@ func (h *ReservationHandler) CreateReservation(w http.ResponseWriter, r *http.Re
 	response.JSON(w, http.StatusCreated, res)
 }
 
+func (h *ReservationHandler) UpdateReservation(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+
+	var update domain.UpdateReservationInput
+	if err := json.NewDecoder(r.Body).Decode(&update); err != nil {
+		response.Error(w, http.StatusBadRequest, "Payload inválido")
+		return
+	}
+
+	if err := h.reservationService.UpdateReservation(r.Context(), id, &update); err != nil {
+		if err == domain.ErrNotFound {
+			response.Error(w, http.StatusNotFound, "Reservación no encontrada")
+			return
+		}
+		response.Error(w, http.StatusInternalServerError, "Error al actualizar reservación")
+		return
+	}
+
+	response.JSON(w, http.StatusOK, map[string]string{"message": "Reservación actualizada"})
+}
+
 func (h *ReservationHandler) UpdateReservationStatus(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	

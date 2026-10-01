@@ -92,6 +92,7 @@ func NewRouter(cfg *config.Config, authMiddleware func(http.Handler) http.Handle
 					r.Post("/", shiftHandler.OpenShift)
 					r.Get("/{id}", shiftHandler.GetShift)
 					r.Post("/{id}/close", shiftHandler.CloseShift)
+					r.Post("/{id}/transactions", shiftHandler.AddTransaction)
 				})
 			}
 			if roomHandler != nil {
@@ -103,6 +104,7 @@ func NewRouter(cfg *config.Config, authMiddleware func(http.Handler) http.Handle
 				r.Route("/reservations", func(r chi.Router) {
 					r.Post("/", reservationHandler.CreateReservation)
 					r.Get("/", reservationHandler.GetReservations)
+					r.Put("/{id}", reservationHandler.UpdateReservation)
 					r.Put("/{id}/status", reservationHandler.UpdateReservationStatus)
 				})
 			}

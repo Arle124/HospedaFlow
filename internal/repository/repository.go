@@ -34,6 +34,7 @@ type ShiftRepository interface {
 	GetShiftByID(ctx context.Context, id int64) (*domain.Shift, error)
 	GetActiveShiftByUserID(ctx context.Context, userID int64) (*domain.Shift, error)
 	UpdateShift(ctx context.Context, shift *domain.Shift) (*domain.Shift, error)
+	AddShiftTransaction(ctx context.Context, tx *domain.ShiftTransaction) error
 }
 
 // InventoryRepository define las operaciones de persistencia para inventario.
@@ -66,6 +67,7 @@ func NewDBPool(ctx context.Context, databaseURL string) (*pgxpool.Pool, error) {
 // ReservationRepository define las operaciones de persistencia para reservaciones.
 type ReservationRepository interface {
 	CreateReservation(ctx context.Context, res *domain.Reservation) error
+	UpdateReservation(ctx context.Context, id string, update *domain.UpdateReservationInput) error
 	UpdateReservationStatus(ctx context.Context, id string, status domain.ReservationStatus) error
 	GetReservationsByDateRange(ctx context.Context, start, end string) ([]*domain.Reservation, error)
 }

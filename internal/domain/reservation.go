@@ -38,3 +38,16 @@ type Reservation struct {
 	CreatedAt      time.Time         `json:"createdAt"`
 	UpdatedAt      time.Time         `json:"updatedAt"`
 }
+
+// UpdateReservationInput representa los campos actualizables de una reservación.
+type UpdateReservationInput struct {
+	RoomID         *string            `json:"roomId,omitempty"`
+	GuestName      *string            `json:"guestName,omitempty"`
+	GuestContact   *string            `json:"guestContact,omitempty"`
+	CheckInDate    *string            `json:"checkInDate,omitempty"`
+	CheckOutDate   *string            `json:"checkOutDate,omitempty"`
+	Status         *ReservationStatus `json:"status,omitempty"`
+	TotalPrice     *int64             `json:"totalPrice,omitempty"`
+	AdvancePayment *int64             `json:"advancePayment,omitempty"`
+	Notes          *string            `json:"notes,omitempty"`
+}

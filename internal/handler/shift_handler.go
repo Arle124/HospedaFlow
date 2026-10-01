@@ -127,3 +127,48 @@ func (h *ShiftHandler) GetShift(w http.ResponseWriter, r *http.Request) {
 
 	response.JSON(w, http.StatusOK, shift)
 }
+
+type addTransactionRequest struct {
+	Amount  int64  `json:"amount"`
+	Type    string `json:"type"`
+	Concept string `json:"concept"`
+}
+
+// AddTransaction registra un movimiento o transacción dentro de un turno.
+func (h *ShiftHandler) AddTransaction(w http.ResponseWriter, r *http.Request) {
+	idParam := chi.URLParam(r, "id")
+	shiftID, err := strconv.ParseInt(idParam, 10, 64)
+	if err != nil {
+		response.Error(w, http.StatusBadRequest, "id de turno inválido")
+		return
+	}
+
+	var req addTransactionRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		response.Error(w, http.StatusBadRequest, "formato JSON inválido")
+		return
+	}
+
+	if req.Amount <= 0 {
+		response.Error(w, http.StatusBadRequest, "el monto debe ser mayor a cero")
+		return
+	}
+	if req.Concept == "" {
+		req.Concept = req.Type
+	}
+
+	tx, err := h.shiftService.AddTransaction(r.Context(), shiftID, req.Amount, req.Type, req.Concept)
+	if err != nil {
+		switch {
+		case errors.Is(err, domain.ErrNotFound):
+			response.Error(w, http.StatusNotFound, err.Error())
+		case errors.Is(err, domain.ErrShiftAlreadyClosed):
+			response.Error(w, http.StatusConflict, err.Error())
+		default:
+			response.Error(w, http.StatusInternalServerError, "error al registrar transacción")
+		}
+		return
+	}
+
+	response.JSON(w, http.StatusCreated, tx)
+}

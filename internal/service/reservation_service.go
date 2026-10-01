@@ -9,6 +9,7 @@ import (
 
 type ReservationService interface {
 	CreateReservation(ctx context.Context, res *domain.Reservation) error
+	UpdateReservation(ctx context.Context, id string, update *domain.UpdateReservationInput) error
 	UpdateReservationStatus(ctx context.Context, id string, status string) error
 	GetReservationsByDateRange(ctx context.Context, start, end string) ([]*domain.Reservation, error)
 }
@@ -26,8 +27,15 @@ func (s *reservationService) CreateReservation(ctx context.Context, res *domain.
 	return s.repo.CreateReservation(ctx, res)
 }
 
+func (s *reservationService) UpdateReservation(ctx context.Context, id string, update *domain.UpdateReservationInput) error {
+	return s.repo.UpdateReservation(ctx, id, update)
+}
+
 func (s *reservationService) UpdateReservationStatus(ctx context.Context, id string, status string) error {
-	return s.repo.UpdateReservationStatus(ctx, id, domain.ReservationStatus(status))
+	st := domain.ReservationStatus(status)
+	return s.repo.UpdateReservation(ctx, id, &domain.UpdateReservationInput{
+		Status: &st,
+	})
 }
 
 func (s *reservationService) GetReservationsByDateRange(ctx context.Context, start, end string) ([]*domain.Reservation, error) {

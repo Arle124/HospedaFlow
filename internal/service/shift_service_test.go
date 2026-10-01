@@ -55,6 +55,11 @@ func (m *mockShiftRepository) UpdateShift(_ context.Context, s *domain.Shift) (*
 	return s, nil
 }
 
+func (m *mockShiftRepository) AddShiftTransaction(_ context.Context, tx *domain.ShiftTransaction) error {
+	tx.ID = int64(len(m.shifts)*100 + 1)
+	return nil
+}
+
 func TestOpenShift_Success(t *testing.T) {
 	repo := newMockShiftRepository()
 	svc := service.NewShiftService(repo)
@@ -196,5 +201,48 @@ func TestCloseShift_NotFound(t *testing.T) {
 	_, err := svc.CloseShift(ctx, 9999, 10000, "Turno inexistente")
 	if !errors.Is(err, domain.ErrNotFound) {
 		t.Errorf("se esperaba ErrNotFound, se obtuvo: %v", err)
+	}
+}
+
+func TestAddTransaction_IncomeAndExpense(t *testing.T) {
+	repo := newMockShiftRepository()
+	svc := service.NewShiftService(repo)
+	ctx := context.Background()
+
+	shift, err := svc.OpenShift(ctx, 1, 100000)
+	if err != nil {
+		t.Fatalf("error al abrir turno: %v", err)
+	}
+
+	// 1. Ingreso de minibar (+20000)
+	tx1, err := svc.AddTransaction(ctx, shift.ID, 20000, "INCOME_MINIBAR", "Venta minibar Hab 101")
+	if err != nil {
+		t.Fatalf("error al agregar transacción de ingreso: %v", err)
+	}
+	if tx1.Amount != 20000 {
+		t.Errorf("monto de tx esperado 20000, obtenido %d", tx1.Amount)
+	}
+
+	updatedShift, _ := svc.GetShift(ctx, shift.ID)
+	if updatedShift.CurrentCash != 120000 {
+		t.Errorf("efectivo esperado 120000, obtenido %d", updatedShift.CurrentCash)
+	}
+
+	// 2. Egreso a proveedor (-30000)
+	_, err = svc.AddTransaction(ctx, shift.ID, 30000, "EXPENSE_SUPPLIER", "Pago lavandería")
+	if err != nil {
+		t.Fatalf("error al agregar transacción de egreso: %v", err)
+	}
+
+	updatedShift, _ = svc.GetShift(ctx, shift.ID)
+	if updatedShift.CurrentCash != 90000 {
+		t.Errorf("efectivo esperado 90000, obtenido %d", updatedShift.CurrentCash)
+	}
+
+	// 3. Transacción en turno cerrado debe fallar
+	_, _ = svc.CloseShift(ctx, shift.ID, 90000, "Cierre normal")
+	_, err = svc.AddTransaction(ctx, shift.ID, 10000, "INCOME_OTHER", "Intento post-cierre")
+	if !errors.Is(err, domain.ErrShiftAlreadyClosed) {
+		t.Errorf("se esperaba ErrShiftAlreadyClosed, se obtuvo: %v", err)
 	}
 }

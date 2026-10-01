@@ -252,6 +252,21 @@ func (r *postgresRepository) UpdateShift(ctx context.Context, s *domain.Shift) (
 	return &updated, nil
 }
 
+// AddShiftTransaction registra un movimiento de caja / transacción dentro de un turno.
+func (r *postgresRepository) AddShiftTransaction(ctx context.Context, tx *domain.ShiftTransaction) error {
+	query := `
+		INSERT INTO shift_transactions (shift_id, amount, type, concept)
+		VALUES ($1, $2, $3, $4)
+		RETURNING id, created_at
+	`
+	amountFloat := float64(tx.Amount)
+	err := r.pool.QueryRow(ctx, query, tx.ShiftID, amountFloat, tx.Type, tx.Concept).Scan(&tx.ID, &tx.CreatedAt)
+	if err != nil {
+		return fmt.Errorf("error al registrar transacción de turno: %w", err)
+	}
+	return nil
+}
+
 // GetProductByID obtiene un producto del inventario por su id.
 func (r *postgresRepository) GetProductByID(ctx context.Context, id int64) (*domain.Product, error) {
 	query := `
@@ -474,9 +489,9 @@ func (r *postgresRepository) CreateReservation(ctx context.Context, res *domain.
 		) RETURNING created_at, updated_at
 	`
 	
-	// Convert int64 back to float64 (NUMERIC(12,2)) for DB storage
-	totalPriceFloat := float64(res.TotalPrice) / 100.0
-	advancePaymentFloat := float64(res.AdvancePayment) / 100.0
+	// En COP los valores monetarios son enteros directos hacia NUMERIC(12,2)
+	totalPriceFloat := float64(res.TotalPrice)
+	advancePaymentFloat := float64(res.AdvancePayment)
 
 	err := r.pool.QueryRow(ctx, query,
 		res.ID,
@@ -500,17 +515,63 @@ func (r *postgresRepository) CreateReservation(ctx context.Context, res *domain.
 	return nil
 }
 
-func (r *postgresRepository) UpdateReservationStatus(ctx context.Context, id string, status domain.ReservationStatus) error {
-	query := `UPDATE reservations SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`
-	tag, err := r.pool.Exec(ctx, query, status, id)
+func (r *postgresRepository) UpdateReservation(ctx context.Context, id string, update *domain.UpdateReservationInput) error {
+	query := `
+		UPDATE reservations
+		SET room_id = COALESCE($2, room_id),
+		    guest_name = COALESCE($3, guest_name),
+		    guest_contact = COALESCE($4, guest_contact),
+		    check_in_date = COALESCE($5, check_in_date),
+		    check_out_date = COALESCE($6, check_out_date),
+		    status = COALESCE($7, status),
+		    total_price = COALESCE($8, total_price),
+		    advance_payment = COALESCE($9, advance_payment),
+		    notes = COALESCE($10, notes),
+		    updated_at = CURRENT_TIMESTAMP
+		WHERE id = $1
+	`
+	var tpFloat, apFloat *float64
+	if update.TotalPrice != nil {
+		val := float64(*update.TotalPrice)
+		tpFloat = &val
+	}
+	if update.AdvancePayment != nil {
+		val := float64(*update.AdvancePayment)
+		apFloat = &val
+	}
+
+	var statusStr *string
+	if update.Status != nil {
+		s := string(*update.Status)
+		statusStr = &s
+	}
+
+	tag, err := r.pool.Exec(ctx, query,
+		id,
+		update.RoomID,
+		update.GuestName,
+		update.GuestContact,
+		update.CheckInDate,
+		update.CheckOutDate,
+		statusStr,
+		tpFloat,
+		apFloat,
+		update.Notes,
+	)
 	if err != nil {
-		log.Printf("ERROR postgresRepository.UpdateReservationStatus: %v\n", err)
+		log.Printf("ERROR postgresRepository.UpdateReservation: %v\n", err)
 		return err
 	}
 	if tag.RowsAffected() == 0 {
 		return domain.ErrNotFound
 	}
 	return nil
+}
+
+func (r *postgresRepository) UpdateReservationStatus(ctx context.Context, id string, status domain.ReservationStatus) error {
+	return r.UpdateReservation(ctx, id, &domain.UpdateReservationInput{
+		Status: &status,
+	})
 }
 
 func (r *postgresRepository) GetReservationsByDateRange(ctx context.Context, start, end string) ([]*domain.Reservation, error) {
@@ -537,9 +598,9 @@ func (r *postgresRepository) GetReservationsByDateRange(ctx context.Context, sta
 		if err != nil {
 			return nil, err
 		}
-		// Convert NUMERIC(12,2) float back to int64
-		res.TotalPrice = int64(math.Round(tpFloat * 100))
-		res.AdvancePayment = int64(math.Round(apFloat * 100))
+		// Convert NUMERIC(12,2) float back to int64 sin distorsión de centavos
+		res.TotalPrice = int64(math.Round(tpFloat))
+		res.AdvancePayment = int64(math.Round(apFloat))
 		reservations = append(reservations, &res)
 	}
 	return reservations, nil

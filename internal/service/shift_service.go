@@ -13,6 +13,7 @@ type ShiftService interface {
 	OpenShift(ctx context.Context, userID int64, initialCash int64) (*domain.Shift, error)
 	CloseShift(ctx context.Context, shiftID int64, actualCash int64, notes string) (*domain.Shift, error)
 	GetShift(ctx context.Context, shiftID int64) (*domain.Shift, error)
+	AddTransaction(ctx context.Context, shiftID int64, amount int64, txType, concept string) (*domain.ShiftTransaction, error)
 }
 
 type shiftService struct {
@@ -89,4 +90,42 @@ func (s *shiftService) GetShift(ctx context.Context, shiftID int64) (*domain.Shi
 		return nil, domain.ErrNotFound
 	}
 	return shift, nil
+}
+
+func (s *shiftService) AddTransaction(ctx context.Context, shiftID int64, amount int64, txType, concept string) (*domain.ShiftTransaction, error) {
+	shift, err := s.repo.GetShiftByID(ctx, shiftID)
+	if err != nil {
+		return nil, err
+	}
+	if shift == nil {
+		return nil, domain.ErrNotFound
+	}
+	if shift.Status == domain.ShiftStatusClosed {
+		return nil, domain.ErrShiftAlreadyClosed
+	}
+
+	tx := &domain.ShiftTransaction{
+		ShiftID:   shiftID,
+		Amount:    amount,
+		Type:      txType,
+		Concept:   concept,
+		CreatedAt: time.Now().UTC(),
+	}
+
+	if err := s.repo.AddShiftTransaction(ctx, tx); err != nil {
+		return nil, err
+	}
+
+	// Actualizar el efectivo en caja si es un movimiento en efectivo
+	if txType == "INCOME_MINIBAR" || txType == "INCOME_ROOM" || txType == "INCOME_OTHER" {
+		shift.CurrentCash += amount
+		shift.UpdatedAt = time.Now().UTC()
+		_, _ = s.repo.UpdateShift(ctx, shift)
+	} else if txType == "EXPENSE_SUPPLIER" || txType == "EXPENSE_OTHER" {
+		shift.CurrentCash -= amount
+		shift.UpdatedAt = time.Now().UTC()
+		_, _ = s.repo.UpdateShift(ctx, shift)
+	}
+
+	return tx, nil
 }
