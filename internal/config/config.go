@@ -4,6 +4,8 @@ import (
 	"log"
 	"os"
 	"time"
+
+	"github.com/joho/godotenv"
 )
 
 // Config almacena las variables de configuración del servidor y base de datos.
@@ -20,6 +22,8 @@ type Config struct {
 
 // Load carga la configuración leyendo las variables de entorno o asignando valores por defecto.
 func Load() *Config {
+	_ = godotenv.Load() // Intenta cargar .env, si no existe o falla, continúa usando el entorno actual.
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
