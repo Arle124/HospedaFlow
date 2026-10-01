@@ -112,7 +112,13 @@ export interface CreateReservationPayload extends Reservation {}
 
 export interface UpdateReservationPayload {
   id: string;
-  status: Reservation['status'];
+  status?: Reservation['status'];
+  roomId?: string;
+  checkInDate?: string;
+  checkOutDate?: string;
+  notes?: string;
+  totalPrice?: number;
+  advancePayment?: number;
 }
 
 export type SyncPayload =
@@ -156,6 +162,8 @@ export interface Reservation {
   advancePayment: number;
   notes?: string;
   externalId?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export class HospedaSyncDatabase extends Dexie {

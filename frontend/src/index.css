@@ -1705,6 +1705,15 @@ button:disabled {
   background-color: color-mix(in srgb, var(--bg-surface-hover) 50%, transparent);
 }
 
+.timeline-cell.drag-over {
+  background-color: var(--accent-light) !important;
+  border: 1.5px dashed var(--accent) !important;
+}
+
+.timeline-bar:active {
+  cursor: grabbing !important;
+}
+
 .timeline-cell.today.weekend {
   background-color: color-mix(in srgb, var(--status-occupied-bg) 40%, transparent);
 }

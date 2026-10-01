@@ -3,6 +3,7 @@ import { m } from 'framer-motion';
 import { ChevronLeft, ChevronRight, CalendarDays, FileSpreadsheet } from 'lucide-react';
 import { db, type Room, type Reservation } from '../../db/db';
 import { eventBus } from '../../services/eventBus';
+import { syncService } from '../../services/syncService';
 import { springTouch, springModal } from '../../utils/motion';
 
 /* ─────────── Helpers de Fecha ─────────── */
@@ -309,6 +310,56 @@ export const ReservationTimeline: React.FC<ReservationTimelineProps> = ({
                       className={`timeline-cell ${isToday ? 'today' : ''} ${isWeekend ? 'weekend' : ''}`}
                       onClick={() => handleCellClick(room.id, d)}
                       title={`Crear reserva: Hab ${room.number} – ${toDateStr(d)}`}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        e.currentTarget.classList.add('drag-over');
+                      }}
+                      onDragLeave={(e) => {
+                        e.currentTarget.classList.remove('drag-over');
+                      }}
+                      onDrop={async (e) => {
+                        e.preventDefault();
+                        e.currentTarget.classList.remove('drag-over');
+                        const resId = e.dataTransfer.getData('text/plain');
+                        if (!resId) return;
+
+                        const res = reservations.find((x) => x.id === resId);
+                        if (!res) return;
+
+                        const oldStart = parseDate(res.checkInDate);
+                        const oldEnd = parseDate(res.checkOutDate);
+                        const durationDays = daysBetween(oldStart, oldEnd);
+
+                        const newStart = d;
+                        const newEnd = addDays(newStart, durationDays);
+
+                        const newCheckInStr = toDateStr(newStart);
+                        const newCheckOutStr = toDateStr(newEnd);
+
+                        if (res.roomId === room.id && res.checkInDate === newCheckInStr) {
+                          return;
+                        }
+
+                        await db.reservations.update(res.id, {
+                          roomId: room.id,
+                          checkInDate: newCheckInStr,
+                          checkOutDate: newCheckOutStr,
+                          updatedAt: new Date().toISOString()
+                        });
+
+                        await syncService.enqueueAction('UPDATE_RESERVATION', {
+                          id: res.id,
+                          roomId: room.id,
+                          checkInDate: newCheckInStr,
+                          checkOutDate: newCheckOutStr,
+                        });
+
+                        eventBus.emit({
+                          type: 'sync_event',
+                          title: 'Reserva Movida',
+                          message: `La reserva de ${res.guestName} fue movida a la Hab ${room.number}`,
+                        });
+                      }}
                     >
                       {/* Barras de reserva se renderizan solo desde la celda de inicio */}
                       {colIdx === 0 || true
@@ -340,12 +391,19 @@ export const ReservationTimeline: React.FC<ReservationTimelineProps> = ({
                                     backgroundColor: colors.bg,
                                     borderColor: colors.border,
                                     color: colors.text,
+                                    cursor: 'grab',
                                   }}
                                   initial={{ opacity: 0, scaleX: 0.7 }}
                                   animate={{ opacity: 1, scaleX: 1 }}
                                   transition={springTouch}
                                   whileHover={{ y: -2 }}
-                                  onClick={(e) => {
+                                  draggable={true}
+                                  onDragStart={((e: React.DragEvent<HTMLDivElement>) => {
+                                    e.stopPropagation();
+                                    e.dataTransfer.setData('text/plain', r.id);
+                                    e.dataTransfer.effectAllowed = 'move';
+                                  }) as any}
+                                  onClick={(e: React.MouseEvent<HTMLDivElement>) => {
                                     e.stopPropagation();
                                     onSelectReservation(r);
                                   }}
