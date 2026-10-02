@@ -22,10 +22,7 @@ func main() {
 	cfg := config.Load()
 
 	// Conexión al pool de base de datos PostgreSQL
-	dbCtx, cancelDB := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancelDB()
-
-	pool, err := repository.NewDBPool(dbCtx, cfg.DatabaseURL)
+	pool, err := repository.NewDBPool(context.Background(), cfg.DatabaseURL)
 	var shiftHandler *handler.ShiftHandler
 	var roomHandler *handler.RoomHandler
 	var authHandler *handler.AuthHandler
