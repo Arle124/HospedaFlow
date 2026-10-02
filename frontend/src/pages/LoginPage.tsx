@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
-import { Building2, Eye, EyeOff, LogIn, ShieldAlert } from 'lucide-react';
+import { Building2, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { springModal, springTouch } from '../utils/motion';
+import './LoginPage.css';
 
 export const LoginPage: React.FC = () => {
   const { login, error } = useAuth();
@@ -10,117 +10,126 @@ export const LoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isShaking, setIsShaking] = useState(false);
   const [localError, setLocalError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Iniciando submit con:', email);
     setLocalError(null);
     setIsSubmitting(true);
     
     try {
+      console.log('Llamando a login()');
       await login(email, password);
-    } catch (err) {
-      setIsShaking(true);
-      setLocalError(error || 'Credenciales incorrectas.');
-      setTimeout(() => {
-        setIsShaking(false);
-      }, 600);
+      console.log('Login exitoso');
+    } catch (err: any) {
+      console.error('Error capturado en LoginPage:', err);
+      setLocalError('Credenciales incorrectas o error de conexión.');
     } finally {
+      console.log('Ejecutando finally, liberando botón');
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="login-page">
-      <m.div
-        className="login-card"
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ 
-          opacity: 1, 
-          scale: 1,
-          x: isShaking ? [-8, 8, -6, 6, -3, 3, 0] : 0 
-        }}
-        transition={springModal}
-      >
-        <div className="login-header">
-          <div className="login-icon-wrapper">
-            <Building2 size={24} />
+    <div className="hq-login-container">
+      <div className="hq-login-visual">
+        <div className="hq-visual-overlay"></div>
+        <m.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="hq-visual-content"
+        >
+          <div className="hq-brand-mark">
+            <Building2 size={28} strokeWidth={1.5} />
           </div>
-          <h1 className="login-title">HospedaSync</h1>
-          <p className="login-subtitle">Sistema de Gestión Hotelera</p>
-        </div>
+          <h2 className="hq-visual-title">La nueva forma de gestionar tu hotel.</h2>
+          <p className="hq-visual-subtitle">
+            HospedaSync unifica recepción, minibar y caja en un ecosistema offline-first ultrarrápido y seguro.
+          </p>
+        </m.div>
+      </div>
 
-        <form className="login-form" onSubmit={handleSubmit}>
-          <div className="login-field">
-            <label className="login-label" htmlFor="email">Correo Electrónico</label>
-            <input
-              id="email"
-              type="email"
-              className="login-input"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoComplete="email"
-              placeholder="admin@hotel.com"
-            />
+      <div className="hq-login-form-wrapper">
+        <m.div 
+          className="hq-login-form-inner"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <div className="hq-login-header">
+            <h1>Bienvenido de nuevo</h1>
+            <p>Ingresa a tu cuenta para continuar</p>
           </div>
 
-          <div className="login-field">
-            <label className="login-label" htmlFor="password">Contraseña</label>
-            <div className="login-password-wrapper">
-              <input
-                id="password"
-                type={showPassword ? 'text' : 'password'}
-                className="login-input"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete="current-password"
-                placeholder="••••••••"
-              />
-              <button
-                type="button"
-                className="login-toggle-password"
-                onClick={() => setShowPassword(!showPassword)}
-                tabIndex={-1}
-              >
-                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
+          <form onSubmit={handleSubmit} className="hq-form">
+            <div className="hq-input-group">
+              <label htmlFor="email">Correo electrónico</label>
+              <div className="hq-input-container">
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="admin@hotel.com"
+                  required
+                  autoComplete="email"
+                />
+              </div>
             </div>
+
+            <div className="hq-input-group">
+              <label htmlFor="password">Contraseña</label>
+              <div className="hq-input-container">
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  autoComplete="current-password"
+                />
+                <button
+                  type="button"
+                  className="hq-password-toggle"
+                  onClick={() => setShowPassword(!showPassword)}
+                  tabIndex={-1}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+
+            <AnimatePresence>
+              {(localError || error) && (
+                <m.div 
+                  className="hq-error-banner"
+                  initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                  animate={{ opacity: 1, height: 'auto', marginTop: 16 }}
+                  exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                >
+                  <AlertCircle size={16} />
+                  <span>{localError || error}</span>
+                </m.div>
+              )}
+            </AnimatePresence>
+
+            <button 
+              type="submit" 
+              className="hq-submit-btn"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Verificando credenciales...' : 'Iniciar Sesión'}
+            </button>
+          </form>
+          
+          <div className="hq-login-footer">
+            <p>¿Problemas para entrar? <span>Contacta a soporte</span></p>
           </div>
-
-          <AnimatePresence>
-            {(localError || error) && (
-              <m.div
-                className="login-error"
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-              >
-                <ShieldAlert size={14} />
-                <span>{localError || error}</span>
-              </m.div>
-            )}
-          </AnimatePresence>
-
-          <m.button
-            type="submit"
-            className="login-button btn-primary"
-            disabled={isSubmitting}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            transition={springTouch}
-          >
-            <LogIn size={16} />
-            {isSubmitting ? 'Verificando...' : 'Iniciar Sesión'}
-          </m.button>
-        </form>
-
-        <div className="login-footer">
-          HospedaSync PMS · Sistema de Gestion Hotelera
-        </div>
-      </m.div>
+        </m.div>
+      </div>
     </div>
   );
 };
