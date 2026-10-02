@@ -9,7 +9,8 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}']
+        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        navigateFallbackDenylist: [/^\/api/, /^\/healthz/]
       },
       manifest: {
         name: 'HospedaSync',
@@ -43,7 +44,7 @@ export default defineConfig({
     host: true,
     proxy: {
       '/api': {
-        target: 'http://100.84.162.38:8080',
+        target: 'http://localhost:8080',
         changeOrigin: true,
       },
     },
