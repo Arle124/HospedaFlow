@@ -195,6 +195,21 @@ Historial de sesiones de trabajo, hitos completados y estado del proyecto.
      * Arrastre de barras de reserva entre celdas del calendario para reasignar fechas (`checkInDate`/`checkOutDate`) y habitaciones (`roomId`) visualmente.
      * Actualización instantánea en IndexedDB y sincronización mediante `eventBus`.
 
+### Sesión 7: Refactorización Estética "Design Pro Max" y Correcciones Backend
+* **Fecha:** 02 de Octubre de 2026
+* **Hitos completados:**
+  1. **Motor y Autenticación:**
+     * Corrección crítica en `cmd/api/main.go` sobre el pool de conexiones de base de datos (`pgxpool`), evitando el bloqueo (hang) por expiración prematura del contexto.
+     * Actualización de migraciones y esquema local de base de datos (`users.active`) para habilitar el inicio de sesión exitoso sin latencias de 30s.
+  2. **Resolución de Conflictos PWA y Seguridad (CSP):**
+     * Desactivación del secuestro de rutas `/api` y `/healthz` por parte del Service Worker de Vite PWA (`navigateFallbackDenylist`).
+     * Relajación estructurada de Content-Security-Policy en el middleware de Go para soportar fuentes, imágenes externas e integraciones offline-first fluidas.
+  3. **Refactorización Completa "Design Pro Max":**
+     * Eliminación de saturación del color azul ("Blue Abuse") en el dashboard y tarjetas de habitaciones (`btn-secondary` para estados predeterminados).
+     * Reescritura del sistema global de estilos en `index.css` a una estética ultra-premium (estilo Vercel/Linear) con negros absolutos (`#09090b`), bordes de cristal, tipografías tabulares y semáforo de operación rediseñado.
+     * Depuración manual de CSS duplicado y heredado (más de 2,000 líneas) para corregir bugs de contraste (texto blanco en botones blancos del modal gerencial).
+     * Rediseño y pulido estético en la página de Login y el Navbar de la aplicación (eliminación de logos fijos en azul, adaptación inteligente al tema del SO).
+
 ### Sesión 6: Calendario Visual de Reservas (Timeline) e Importación CSV
 * **Fecha:** 30 de Septiembre de 2026
 * **Hitos completados:**
@@ -287,6 +302,7 @@ Historial de sesiones de trabajo, hitos completados y estado del proyecto.
 
 ## Tareas Pendientes y Backlog Priorizado
 
+- [ ] **Fase 2 de Reservas (Channel Manager iCal):** Endpoint en Go para exportar (.ics) y Cron job para importar reservas desde OTAs (Booking, Airbnb).
 - [ ] **Sincronización WebSocket en Tiempo Real:** Reemplazar el polling de sincronización por eventos bidireccionales con WebSockets en Go para avisos inmediatos entre camarera y recepcionista.
 - [ ] **Impresión de Comprobante / Recibo:** Generación de recibo térmico (80mm) para check-out y minibar.
 - [ ] **Reporte Exportable en PDF/Excel para Gerencia:** Descarga de auditoría de turnos cerrados y arqueos de caja.
