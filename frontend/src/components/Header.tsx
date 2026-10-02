@@ -17,7 +17,9 @@ import {
   Moon,
   ChevronDown,
   Lock,
+  LogOut,
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export type UserRole = 'receptionist' | 'housekeeper' | 'admin';
 
@@ -33,6 +35,7 @@ const ROLES: { id: UserRole; label: string; icon: React.FC<{ size?: number }> }[
 ];
 
 export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange }) => {
+  const { logout } = useAuth();
   const [isOnline, setIsOnline] = useState<boolean>(syncService.getOnlineStatus());
   const [pendingCount, setPendingCount] = useState<number>(0);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
@@ -172,6 +175,20 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange }) => 
 
           {/* Controles de Sistema: Conectividad, Sincronización y Modo Oscuro */}
           <div className="header-brand-group">
+            <m.button
+              type="button"
+              onClick={logout}
+              className="theme-toggle-btn"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.95 }}
+              transition={springTouch}
+              title="Cerrar sesión"
+              aria-label="Cerrar sesión"
+            >
+              <LogOut size={13} color="#ef4444" />
+              <span className="hide-on-mobile" style={{ color: '#ef4444' }}>Salir</span>
+            </m.button>
+
             {/* Conmutador de Tema con rotación spring */}
             <m.button
               type="button"

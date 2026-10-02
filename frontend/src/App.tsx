@@ -15,9 +15,15 @@ function AppContent() {
   const [isInitialized, setIsInitialized] = useState<boolean>(false);
 
   useEffect(() => {
-    seedInitialDataIfNeeded().then(() => {
-      setIsInitialized(true);
-    });
+    seedInitialDataIfNeeded()
+      .then(() => {
+        setIsInitialized(true);
+      })
+      .catch((err) => {
+        console.error('Error al inicializar IndexedDB (Dexie):', err);
+        // Evitamos que la app quede en pantalla negra si falla IndexedDB
+        setIsInitialized(true); 
+      });
   }, []);
 
   useEffect(() => {
