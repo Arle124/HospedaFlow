@@ -1,132 +1,133 @@
 /* ==========================================================================
-   HospedaSync - Enterprise Design System (Offline-First PMS)
-   Soporte nativo para Modo Claro y Modo Oscuro con aprovechamiento total de pantalla.
+   HospedaSync - Enterprise Design System (Pro Max Edition)
+   Soporte nativo para Modo Claro y Modo Oscuro.
+   Inspirado en estética Vercel / Linear.
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
-   1. Variables de Modo Claro (Default / Corporativo)
+   1. Variables de Modo Claro (Clean & Minimal)
    -------------------------------------------------------------------------- */
 :root,
 [data-theme="light"] {
-  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
   /* Superficies modo claro */
-  --bg-canvas: #f1f5f9;
+  --bg-canvas: #fafafa;
   --bg-surface: #ffffff;
-  --bg-surface-elevated: #f8fafc;
-  --bg-surface-hover: #f1f5f9;
+  --bg-surface-elevated: #f4f4f5;
+  --bg-surface-hover: #f4f4f5;
   --bg-input: #ffffff;
 
-  /* Bordes de alta definición */
-  --border-subtle: #e2e8f0;
-  --border-medium: #cbd5e1;
-  --border-focus: #2563eb;
+  /* Bordes sutiles y elegantes */
+  --border-subtle: #e4e4e7;
+  --border-medium: #d4d4d8;
+  --border-focus: #18181b;
 
-  /* Textos contrastados (WCAG AA) */
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #64748b;
+  /* Textos de alto contraste */
+  --text-primary: #18181b;
+  --text-secondary: #52525b;
+  --text-muted: #a1a1aa;
   --text-inverted: #ffffff;
 
-  /* Semáforo Operacional Hotelero (Modo Claro) */
-  --status-available-bg: #ecfdf5;
-  --status-available-border: #a7f3d0;
-  --status-available-text: #047857;
+  /* Semáforo Operacional Hotelero (Claro - Colores pastel premium) */
+  --status-available-bg: #dcfce7;
+  --status-available-border: #bbf7d0;
+  --status-available-text: #166534;
 
-  --status-occupied-bg: #eff6ff;
+  --status-occupied-bg: #dbeafe;
   --status-occupied-border: #bfdbfe;
-  --status-occupied-text: #1d4ed8;
+  --status-occupied-text: #1e40af;
 
-  --status-dirty-bg: #fffbeb;
-  --status-dirty-border: #fde68a;
-  --status-dirty-text: #b45309;
+  --status-dirty-bg: #fef9c3;
+  --status-dirty-border: #fde047;
+  --status-dirty-text: #854d0e;
 
-  --status-cleaning-bg: #ecfeff;
-  --status-cleaning-border: #a5f3fc;
-  --status-cleaning-text: #0e7490;
+  --status-cleaning-bg: #e0e7ff;
+  --status-cleaning-border: #c7d2fe;
+  --status-cleaning-text: #3730a3;
 
-  --status-maintenance-bg: #fff1f2;
-  --status-maintenance-border: #fecdd3;
-  --status-maintenance-text: #be123c;
+  --status-maintenance-bg: #fee2e2;
+  --status-maintenance-border: #fecaca;
+  --status-maintenance-text: #991b1b;
 
-  /* Botones primarios y secundarios */
-  --btn-secondary-bg: #f8fafc;
-  --btn-secondary-text: #0f172a;
-  --btn-secondary-border: #cbd5e1;
-  --btn-secondary-hover: #f1f5f9;
+  /* Botones secundarios */
+  --btn-secondary-bg: #ffffff;
+  --btn-secondary-text: #18181b;
+  --btn-secondary-border: #e4e4e7;
+  --btn-secondary-hover: #f4f4f5;
 
-  /* Escala de radios sobrios */
-  --radius-xs: 3px;
-  --radius-sm: 5px;
-  --radius-md: 7px;
-  --radius-lg: 10px;
+  /* Radios suaves */
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
 
-  /* Sombras ligeras y nítidas */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 12px 0 rgba(0, 0, 0, 0.08);
-  --shadow-modal: 0 20px 45px -10px rgba(15, 23, 42, 0.25);
-  --modal-overlay-bg: rgba(15, 23, 42, 0.5);
+  /* Sombras multicapa hiperrealistas */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  --shadow-modal: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+  --modal-overlay-bg: rgba(24, 24, 27, 0.4);
 }
 
 /* --------------------------------------------------------------------------
-   2. Variables de Modo Oscuro (Deep Slate & Navy)
+   2. Variables de Modo Oscuro (Linear-style True Dark)
    -------------------------------------------------------------------------- */
 [data-theme="dark"] {
-  /* Superficies modo oscuro (Slate Charcoal suave, descanso visual) */
-  --bg-canvas: #1b2230;
-  --bg-surface: #242c3d;
-  --bg-surface-elevated: #2d374d;
-  --bg-surface-hover: #354159;
-  --bg-input: #171d29;
+  /* Superficies modo oscuro (Tonos muy profundos, casi OLED) */
+  --bg-canvas: #09090b;
+  --bg-surface: #121214;
+  --bg-surface-elevated: #18181b;
+  --bg-surface-hover: #27272a;
+  --bg-input: #121214;
 
-  /* Bordes nítidos para delimitación visual clara */
-  --border-subtle: #343f54;
-  --border-medium: #45536e;
-  --border-focus: #3b82f6;
+  /* Bordes de cristal */
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-medium: rgba(255, 255, 255, 0.15);
+  --border-focus: #ffffff;
 
   /* Textos */
-  --text-primary: #f8fafc;
-  --text-secondary: #cbd5e1;
-  --text-muted: #94a3b8;
-  --text-inverted: #0f172a;
+  --text-primary: #f4f4f5;
+  --text-secondary: #a1a1aa;
+  --text-muted: #52525b;
+  --text-inverted: #09090b;
 
-  /* Semáforo Operacional Hotelero (Modo Oscuro Suave) */
-  --status-available-bg: #10352b;
-  --status-available-border: #0f766e;
+  /* Semáforo Operacional Hotelero (Oscuro - Tonos neón controlados) */
+  --status-available-bg: rgba(34, 197, 94, 0.1);
+  --status-available-border: rgba(34, 197, 94, 0.2);
   --status-available-text: #4ade80;
 
-  --status-occupied-bg: #1a2b4c;
-  --status-occupied-border: #2563eb;
-  --status-occupied-text: #93c5fd;
+  --status-occupied-bg: rgba(59, 130, 246, 0.1);
+  --status-occupied-border: rgba(59, 130, 246, 0.2);
+  --status-occupied-text: #60a5fa;
 
-  --status-dirty-bg: #3b260e;
-  --status-dirty-border: #b45309;
-  --status-dirty-text: #fcd34d;
+  --status-dirty-bg: rgba(234, 179, 8, 0.1);
+  --status-dirty-border: rgba(234, 179, 8, 0.2);
+  --status-dirty-text: #facc15;
 
-  --status-cleaning-bg: #113244;
-  --status-cleaning-border: #0e7490;
-  --status-cleaning-text: #67e8f9;
+  --status-cleaning-bg: rgba(99, 102, 241, 0.1);
+  --status-cleaning-border: rgba(99, 102, 241, 0.2);
+  --status-cleaning-text: #818cf8;
 
-  --status-maintenance-bg: #3d1a24;
-  --status-maintenance-border: #be123c;
-  --status-maintenance-text: #fda4af;
+  --status-maintenance-bg: rgba(239, 68, 68, 0.1);
+  --status-maintenance-border: rgba(239, 68, 68, 0.2);
+  --status-maintenance-text: #f87171;
 
   /* Botones en modo oscuro */
-  --btn-secondary-bg: var(--bg-surface-elevated);
-  --btn-secondary-text: var(--text-primary);
-  --btn-secondary-border: var(--border-medium);
-  --btn-secondary-hover: var(--bg-surface-hover);
+  --btn-secondary-bg: #121214;
+  --btn-secondary-text: #f4f4f5;
+  --btn-secondary-border: rgba(255, 255, 255, 0.1);
+  --btn-secondary-hover: rgba(255, 255, 255, 0.05);
 
   /* Sombras y modal */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.25);
-  --shadow-md: 0 4px 12px 0 rgba(0, 0, 0, 0.35);
-  --shadow-modal: 0 20px 45px -5px rgba(0, 0, 0, 0.5);
-  --modal-overlay-bg: rgba(15, 20, 30, 0.65);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.6);
+  --shadow-modal: 0 0 0 1px rgba(255,255,255,0.05), 0 30px 60px rgba(0, 0, 0, 0.8);
+  --modal-overlay-bg: rgba(0, 0, 0, 0.7);
 }
 
 /* --------------------------------------------------------------------------
-   3. Reset y estructura base (Full-Screen Responsive)
+   3. Reset y estructura base
    -------------------------------------------------------------------------- */
 *, *::before, *::after {
   box-sizing: border-box;
@@ -141,10 +142,10 @@ html, body {
   color: var(--text-primary);
   font-family: var(--font-sans);
   font-size: 14px;
-  line-height: 1.45;
+  line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 #root {
@@ -154,13 +155,13 @@ html, body {
   flex-direction: column;
 }
 
-/* Tipografía de números tabulares (dinero, códigos, habitaciones) */
 .tabular-nums {
   font-variant-numeric: tabular-nums;
   font-family: var(--font-mono);
+  letter-spacing: -0.02em;
 }
 
-/* Controles de formulario */
+/* Controles de formulario (Estilo Linear) */
 input, select, textarea {
   font-family: inherit;
   font-size: 13px;
@@ -168,18 +169,24 @@ input, select, textarea {
   background-color: var(--bg-input);
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-sm);
-  padding: 8px 12px;
+  padding: 10px 14px;
   outline: none;
-  transition: border-color 0.15s ease, background-color 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
   width: 100%;
+  box-shadow: var(--shadow-sm);
 }
 
 input:focus, select:focus, textarea:focus {
-  border-color: var(--border-focus);
-  box-shadow: 0 0 0 1px var(--border-focus);
+  border-color: var(--text-primary);
+  box-shadow: 0 0 0 1px var(--text-primary);
 }
 
-/* Botones con jerarquía estricta */
+[data-theme="dark"] input:focus, [data-theme="dark"] select:focus, [data-theme="dark"] textarea:focus {
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.3);
+}
+
+/* Botones Premium */
 button {
   font-family: inherit;
   font-size: 13px;
@@ -189,127 +196,105 @@ button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 7px 12px;
+  gap: 8px;
+  padding: 8px 16px;
   border: 1px solid transparent;
-  transition: background-color 0.15s, border-color 0.15s, transform 0.05s;
+  transition: all 0.2s ease;
   user-select: none;
 }
 
 button:active:not(:disabled) {
-  transform: translateY(1px);
+  transform: scale(0.97);
 }
 
 button:disabled {
-  opacity: 0.45;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
+/* Botón Primario (Blanco/Negro puro Vercel style) */
 .btn-primary {
-  background-color: #2563eb;
-  color: #ffffff;
-  border-color: #1d4ed8;
+  background-color: var(--text-primary);
+  color: var(--text-inverted);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 .btn-primary:hover:not(:disabled) {
-  background-color: #1d4ed8;
+  opacity: 0.9;
+}
+[data-theme="dark"] .btn-primary {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1), 0 2px 4px rgba(0, 0, 0, 0.4);
 }
 
 .btn-secondary {
   background-color: var(--btn-secondary-bg);
   color: var(--btn-secondary-text);
   border-color: var(--btn-secondary-border);
+  box-shadow: var(--shadow-sm);
 }
 .btn-secondary:hover:not(:disabled) {
   background-color: var(--btn-secondary-hover);
-  border-color: var(--border-focus);
 }
 
 .btn-danger {
-  background-color: #991b1b;
-  color: #fef2f2;
-  border-color: #b91c1c;
+  background-color: #ef4444;
+  color: #ffffff;
 }
 .btn-danger:hover:not(:disabled) {
-  background-color: #b91c1c;
+  background-color: #dc2626;
 }
 
 .btn-success {
-  background-color: #065f46;
-  color: #ecfdf5;
-  border-color: #047857;
+  background-color: #10b981;
+  color: #ffffff;
 }
 .btn-success:hover:not(:disabled) {
-  background-color: #047857;
+  background-color: #059669;
 }
 
-/* Badges y chips de estado sobrios */
+/* Badges de estado con Glow sutil en modo oscuro */
 .status-pill {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 2px 7px;
-  border-radius: var(--radius-xs);
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.3px;
-  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
-.status-available {
-  background-color: var(--status-available-bg);
-  border: 1px solid var(--status-available-border);
-  color: var(--status-available-text);
-}
+.status-available { background-color: var(--status-available-bg); border: 1px solid var(--status-available-border); color: var(--status-available-text); }
+.status-occupied { background-color: var(--status-occupied-bg); border: 1px solid var(--status-occupied-border); color: var(--status-occupied-text); }
+.status-dirty { background-color: var(--status-dirty-bg); border: 1px solid var(--status-dirty-border); color: var(--status-dirty-text); }
+.status-cleaning { background-color: var(--status-cleaning-bg); border: 1px solid var(--status-cleaning-border); color: var(--status-cleaning-text); }
+.status-maintenance { background-color: var(--status-maintenance-bg); border: 1px solid var(--status-maintenance-border); color: var(--status-maintenance-text); }
 
-.status-occupied {
-  background-color: var(--status-occupied-bg);
-  border: 1px solid var(--status-occupied-border);
-  color: var(--status-occupied-text);
-}
-
-.status-dirty {
-  background-color: var(--status-dirty-bg);
-  border: 1px solid var(--status-dirty-border);
-  color: var(--status-dirty-text);
-}
-
-.status-cleaning {
-  background-color: var(--status-cleaning-bg);
-  border: 1px solid var(--status-cleaning-border);
-  color: var(--status-cleaning-text);
-}
-
-.status-maintenance {
-  background-color: var(--status-maintenance-bg);
-  border: 1px solid var(--status-maintenance-border);
-  color: var(--status-maintenance-text);
-}
-
-/* Modal corporativo */
+/* Modal Corporativo Pro */
 .modal-overlay {
   position: fixed;
   inset: 0;
   background-color: var(--modal-overlay-bg);
-  backdrop-filter: blur(3px);
+  backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  padding: 16px;
+  padding: 24px;
 }
 
 .modal-dialog {
   background-color: var(--bg-surface);
-  border: 1px solid var(--border-medium);
-  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
   width: 100%;
-  max-width: 480px;
+  max-width: 500px;
   box-shadow: var(--shadow-modal);
   overflow: hidden;
+  transform-origin: center;
 }
 
 .modal-header {
-  padding: 14px 18px;
+  padding: 20px 24px;
   border-bottom: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
@@ -317,16 +302,16 @@ button:disabled {
 }
 
 .modal-body {
-  padding: 18px;
+  padding: 24px;
 }
 
 .modal-footer {
-  padding: 12px 18px;
+  padding: 16px 24px;
   border-top: 1px solid var(--border-subtle);
   background-color: var(--bg-surface-elevated);
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
+  gap: 12px;
 }
 
 /* --------------------------------------------------------------------------
@@ -384,12 +369,12 @@ button:disabled {
   width: 30px;
   height: 30px;
   border-radius: var(--radius-sm);
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  background-color: var(--text-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ffffff;
-  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+  color: var(--text-inverted);
+  box-shadow: var(--shadow-sm);
 }
 
 .brand-tag {
@@ -532,14 +517,15 @@ button:disabled {
 .shift-banner {
   background-color: var(--bg-surface);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  padding: 12px 18px;
-  margin-bottom: 16px;
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  margin-bottom: 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 16px;
+  box-shadow: var(--shadow-sm);
 }
 
 .room-grid {
@@ -552,19 +538,22 @@ button:disabled {
 .room-card {
   background-color: var(--bg-surface);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  padding: 16px;
+  border-radius: var(--radius-lg);
+  padding: 20px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   position: relative;
-  min-height: 200px;
+  min-height: 220px;
   cursor: default;
-  transition: border-color 0.15s ease, background-color 0.2s ease;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
 }
 
 .room-card:hover {
   border-color: var(--border-medium);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
 .room-card-header {
@@ -572,13 +561,13 @@ button:disabled {
   align-items: flex-start;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .room-number {
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 800;
-  letter-spacing: -0.5px;
+  letter-spacing: -0.04em;
   color: var(--text-primary);
   font-family: var(--font-mono);
 }
@@ -592,12 +581,12 @@ button:disabled {
 .guest-box {
   background-color: var(--bg-surface-elevated);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
   margin-bottom: 12px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .room-alert-callout {
@@ -1846,24 +1835,6 @@ textarea.form-input {
 .btn:disabled {
   opacity: 0.4;
   cursor: default;
-}
-
-.btn-primary {
-  background-color: var(--border-focus);
-  color: #fff;
-  border-color: var(--border-focus);
-}
-
-.btn-secondary {
-  background-color: var(--btn-secondary-bg);
-  color: var(--btn-secondary-text);
-  border-color: var(--btn-secondary-border);
-}
-
-.btn-danger {
-  background-color: var(--status-maintenance-border);
-  color: #fff;
-  border-color: var(--status-maintenance-border);
 }
 
 .btn-ghost-danger {

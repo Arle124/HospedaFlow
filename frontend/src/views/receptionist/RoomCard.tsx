@@ -130,12 +130,12 @@ export const RoomCard: React.FC<RoomCardProps> = React.memo(({
         {isAvailable && (
           <m.button
             type="button"
-            className="btn-primary"
+            className="btn-secondary"
             onClick={() => onCheckInClick(room)}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.97 }}
             transition={springTouch}
-            style={{ width: '100%' }}
+            style={{ width: '100%', color: 'var(--border-focus)', fontWeight: '600' }}
           >
             <LogIn size={13} />
             <span>Check-in</span>
