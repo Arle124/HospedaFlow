@@ -307,4 +307,7 @@ Historial de sesiones de trabajo, hitos completados y estado del proyecto.
 - [ ] **Impresión de Comprobante / Recibo:** Generación de recibo térmico (80mm) para check-out y minibar.
 - [ ] **Reporte Exportable en PDF/Excel para Gerencia:** Descarga de auditoría de turnos cerrados y arqueos de caja.
 - [x] **Módulo de Reservas Futuras:** Calendario tipo Timeline implementado con Drag & Drop y edición táctil.
+- [ ] **Modularización del Frontend:** Desacoplar y organizar componentes para evitar acumulación excesiva (evitar archivos de 5k+ líneas).
+- [ ] **Auditoría de Seguridad:** Revisión exhaustiva de vulnerabilidades, sanitización, límites de tasa y autenticación.
+- [ ] **Actualización de Despliegue:** Automatización de despliegue en servidor personal local (`cel-server`) y vía VPN Tailscale.
 
