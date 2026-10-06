@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '../context/AuthContext';
 import {
   db,
   type Room,
@@ -21,6 +22,7 @@ import { CheckInModal } from './receptionist/CheckInModal';
 import { CheckOutModal } from './receptionist/CheckOutModal';
 import { OpenShiftModal, CloseShiftModal } from './receptionist/ShiftModals';
 import { MinibarModal } from './receptionist/MinibarModal';
+import { InventoryModal } from './receptionist/InventoryModal';
 import { ExpenseModal } from './receptionist/ExpenseModal';
 import { ConfirmIncidentModal } from '../components/ConfirmIncidentModal';
 import { ViewModeToggle, type ViewMode } from './receptionist/ViewModeToggle';
@@ -30,6 +32,7 @@ import { ReservationDetailModal } from './receptionist/ReservationDetailModal';
 import { CsvImportModal } from './receptionist/CsvImportModal';
 
 export const ReceptionistView: React.FC = () => {
+  const { user } = useAuth();
   const [rooms, setRooms] = useState<Room[]>([]);
   const [activeShift, setActiveShift] = useState<LocalShift | null>(null);
   const [products, setProducts] = useState<LocalProduct[]>([]);
@@ -42,6 +45,7 @@ export const ReceptionistView: React.FC = () => {
   const [showCloseModal, setShowCloseModal] = useState<boolean>(false);
   const [showCheckInModal, setShowCheckInModal] = useState<Room | null>(null);
   const [showMinibarModal, setShowMinibarModal] = useState<boolean>(false);
+  const [showInventoryModal, setShowInventoryModal] = useState<boolean>(false);
   const [showExpenseModal, setShowExpenseModal] = useState<boolean>(false);
   const [selectedRoomDetail, setSelectedRoomDetail] = useState<Room | null>(null);
   const [showCheckOutModal, setShowCheckOutModal] = useState<Room | null>(null);
@@ -55,10 +59,13 @@ export const ReceptionistView: React.FC = () => {
   const [createResCheckOut, setCreateResCheckOut] = useState<string | undefined>();
   const [selectedReservation, setSelectedReservation] = useState<Reservation | null>(null);
   const [showCsvImport, setShowCsvImport] = useState(false);
+  const [todayReservations, setTodayReservations] = useState<Reservation[]>([]);
 
   // Estados de formularios
+  const [receptionistNameInput, setReceptionistNameInput] = useState<string>('');
   const [initialCashInput, setInitialCashInput] = useState<string>('50000');
   const [actualCashInput, setActualCashInput] = useState<string>('');
+  const [baseLeftInput, setBaseLeftInput] = useState<string>('');
   const [closeNotesInput, setCloseNotesInput] = useState<string>('');
   const [guestNameInput, setGuestNameInput] = useState<string>('');
   const [guestsCountInput, setGuestsCountInput] = useState<number>(1);
@@ -84,8 +91,30 @@ export const ReceptionistView: React.FC = () => {
   const [expenseReceipt, setExpenseReceipt] = useState<string>('');
 
   const loadData = async () => {
+    const todayStr = new Date().toLocaleDateString('en-CA');
+    const pastReservations = await db.reservations
+      .filter((r) => (r.status === 'PENDING' || r.status === 'CONFIRMED') && r.checkInDate < todayStr)
+      .toArray();
+
+    if (pastReservations.length > 0) {
+      for (const res of pastReservations) {
+        await db.reservations.update(res.id, { status: 'NO_SHOW', updatedAt: new Date().toISOString() });
+        await syncService.enqueueAction('UPDATE_RESERVATION', { id: res.id, status: 'NO_SHOW' });
+      }
+      eventBus.emit({
+        type: 'room_issue',
+        title: 'No-Shows Procesados',
+        message: `Se liberaron ${pastReservations.length} reservas de días anteriores que no se presentaron.`,
+      });
+    }
+
     const loadedRooms = await db.rooms.toArray();
     setRooms(loadedRooms);
+
+    const todayRes = await db.reservations
+      .filter((r) => r.status === 'CONFIRMED' && r.checkInDate <= todayStr && r.checkOutDate > todayStr)
+      .toArray();
+    setTodayReservations(todayRes);
 
     const openShifts = await db.shifts.where('status').equals('OPEN').toArray();
     const currentShift = openShifts.length > 0 ? openShifts[0] : null;
@@ -105,12 +134,16 @@ export const ReceptionistView: React.FC = () => {
   useEffect(() => {
     loadData();
 
+    if (user?.name && !receptionistNameInput) {
+      setReceptionistNameInput(user.name);
+    }
+
     const unsubscribe = eventBus.subscribe(() => {
       loadData();
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [user]);
 
   // Conciliación por medios de pago para el turno activo
   const totalTransfers = shiftMovements
@@ -130,7 +163,8 @@ export const ReceptionistView: React.FC = () => {
 
     const newShift: LocalShift = {
       id: localId,
-      userId: 1,
+      userId: user?.id || 1,
+      receptionistName: receptionistNameInput,
       initialCash: cash,
       currentCash: cash,
       status: 'OPEN',
@@ -141,14 +175,14 @@ export const ReceptionistView: React.FC = () => {
     await db.shifts.add(newShift);
     await syncService.enqueueAction('OPEN_SHIFT', {
       localId,
-      user_id: 1,
+      user_id: user?.id || 1,
       initial_cash: cash,
     });
 
     eventBus.emit({
       type: 'shift_event',
       title: 'Turno de Caja Abierto',
-      message: `Base inicial de $ ${cash.toLocaleString()} en gaveta registrada.`,
+      message: `Base inicial de $ ${cash.toLocaleString()} en gaveta registrada por ${receptionistNameInput}.`,
     });
 
     setActiveShift(newShift);
@@ -160,12 +194,16 @@ export const ReceptionistView: React.FC = () => {
     if (!activeShift) return;
 
     const actual = parseFloat(actualCashInput) || 0;
-    const diff = actual - activeShift.currentCash;
+    const base = parseFloat(baseLeftInput) || 0;
+    const difference = actual - activeShift.currentCash;
+    const cashToDeliver = actual - base;
     const now = new Date().toISOString();
 
     await db.shifts.update(activeShift.id, {
       actualCash: actual,
-      difference: diff,
+      baseLeft: base,
+      cashToDeliver: cashToDeliver,
+      difference,
       status: 'CLOSED',
       notes: closeNotesInput,
       endedAt: now,
@@ -181,12 +219,13 @@ export const ReceptionistView: React.FC = () => {
     eventBus.emit({
       type: 'shift_event',
       title: 'Turno de Caja Cerrado',
-      message: `Arqueo finalizado: $ ${actual.toLocaleString()} en gaveta. Diferencia: $ ${diff.toLocaleString()}.`,
+      message: `Arqueo finalizado: $ ${actual.toLocaleString()} en gaveta. Diferencia: $ ${difference.toLocaleString()}.`,
     });
 
     setActiveShift(null);
     setShowCloseModal(false);
     setActualCashInput('');
+    setBaseLeftInput('');
     setCloseNotesInput('');
   };
 
@@ -195,6 +234,14 @@ export const ReceptionistView: React.FC = () => {
     if (!showCheckInModal) return;
 
     const isPaidNow = checkInPaymentOption === 'PAID';
+    if (isPaidNow && !activeShift) {
+      eventBus.emit({
+        type: 'shift_event',
+        title: 'Turno Requerido',
+        message: 'Debes tener un turno de caja abierto para registrar pagos en el check-in.',
+      });
+      return;
+    }
     const guests = Math.max(1, Number(guestsCountInput) || 1);
     const surcharge = isPaidNow && checkInPaymentMethod === 'CARD' && checkInApplySurcharge ? Math.round(showCheckInModal.price * 0.06) : 0;
     const totalPaid = showCheckInModal.price + surcharge;
@@ -584,6 +631,7 @@ export const ReceptionistView: React.FC = () => {
         }}
         onMinibarClick={() => setShowMinibarModal(true)}
         onExpenseClick={() => setShowExpenseModal(true)}
+        onInventoryClick={() => setShowInventoryModal(true)}
       />
 
       {/* 2. Toggle Rack / Línea de Tiempo */}
@@ -606,16 +654,20 @@ export const ReceptionistView: React.FC = () => {
 
           {/* 2b. Rack de Habitaciones */}
           <div className="room-grid">
-            {filteredRooms.map((room) => (
-              <RoomCard
-                key={room.id}
-                room={room}
-                onCheckInClick={handleShowCheckInModal}
-                onCheckOutClick={handleShowCheckOutModal}
-                onDetailClick={handleDetailClick}
-                onClearNotes={handleClearNotesClick}
-              />
-            ))}
+            {filteredRooms.map((room) => {
+              const resForToday = todayReservations.find(r => r.roomId === room.id);
+              return (
+                <RoomCard
+                  key={room.id}
+                  room={room}
+                  reservationForToday={resForToday}
+                  onCheckInClick={handleShowCheckInModal}
+                  onCheckOutClick={handleShowCheckOutModal}
+                  onDetailClick={handleDetailClick}
+                  onClearNotes={handleClearNotesClick}
+                />
+              );
+            })}
           </div>
         </>
       ) : (
@@ -674,6 +726,8 @@ export const ReceptionistView: React.FC = () => {
 
       <OpenShiftModal
         isOpen={showOpenModal}
+        receptionistName={receptionistNameInput}
+        onReceptionistNameChange={setReceptionistNameInput}
         initialCash={initialCashInput}
         onInitialCashChange={setInitialCashInput}
         onSubmit={handleOpenShift}
@@ -685,6 +739,8 @@ export const ReceptionistView: React.FC = () => {
         activeShift={activeShift}
         actualCash={actualCashInput}
         onActualCashChange={setActualCashInput}
+        baseLeft={baseLeftInput}
+        onBaseLeftChange={setBaseLeftInput}
         closeNotes={closeNotesInput}
         onCloseNotesChange={setCloseNotesInput}
         totalTransfers={totalTransfers}
@@ -741,6 +797,12 @@ export const ReceptionistView: React.FC = () => {
           setExpenseAmount('');
           setExpenseReceipt('');
         }}
+      />
+
+      <InventoryModal
+        isOpen={showInventoryModal}
+        products={products}
+        onClose={() => setShowInventoryModal(false)}
       />
 
       <ConfirmIncidentModal

@@ -45,154 +45,183 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({
   onSubmit,
   onClose,
 }) => {
-  if (!isOpen) return null;
+  const numericAmount = parseFloat(amount) || 0;
+  const isOverLimit = numericAmount > maxCash;
 
   return (
     <AnimatePresence>
-      <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true">
-        <m.div
-          className="modal-dialog"
-          onClick={(e) => e.stopPropagation()}
-          initial={{ opacity: 0, scale: 0.94, y: 15 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.94, y: 15 }}
-          transition={springModal}
-        >
-          <form onSubmit={onSubmit}>
-            <div className="modal-header">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <ArrowDownRight size={16} color="var(--status-maintenance-text)" />
-                <span className="room-number" style={{ fontSize: '16px' }}>Registro de Egreso / Pago a Proveedor</span>
-              </div>
-              <m.button
-                type="button"
-                onClick={onClose}
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                transition={springTouch}
-                className="btn-secondary"
-                style={{ padding: '4px', borderRadius: '4px', border: 'none' }}
-                aria-label="Cerrar modal"
-              >
-                <X size={16} />
-              </m.button>
-            </div>
-
-            <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              <div
-                style={{
-                  backgroundColor: 'var(--bg-surface-elevated)',
-                  border: '1px solid var(--border-subtle)',
-                  borderRadius: 'var(--radius-sm)',
-                  padding: '8px 12px',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  fontSize: '12px',
-                }}
-              >
-                <span style={{ color: 'var(--text-muted)' }}>Efectivo Disponible en Caja:</span>
-                <span className="tabular-nums" style={{ fontWeight: '700', color: 'var(--status-available-text)' }}>
-                  $ {maxCash.toLocaleString()}
-                </span>
+      {isOpen && (
+        <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true">
+          <m.div
+            className="modal-dialog"
+            onClick={(e) => e.stopPropagation()}
+            initial={{ opacity: 0, scale: 0.94, y: 15 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.94, y: 15 }}
+            transition={springModal}
+          >
+            <form onSubmit={onSubmit}>
+              <div className="modal-header">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <ArrowDownRight size={16} color="var(--status-maintenance-text)" />
+                  <span className="room-number" style={{ fontSize: '16px' }}>Registro de Egreso / Pago a Proveedor</span>
+                </div>
+                <m.button
+                  type="button"
+                  onClick={onClose}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  transition={springTouch}
+                  className="btn-secondary"
+                  style={{ padding: '4px', borderRadius: '4px', border: 'none' }}
+                  aria-label="Cerrar modal"
+                >
+                  <X size={16} />
+                </m.button>
               </div>
 
-              <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '4px' }}>
-                  Nombre del Proveedor o Beneficiario
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ej. Distribuidora El Sol"
-                  value={supplier}
-                  onChange={(e) => onSupplierChange(e.target.value)}
-                  autoFocus
-                />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '4px' }}>
-                  Concepto del Pago
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Ej. Compra de jabones y cloro"
-                  value={concept}
-                  onChange={(e) => onConceptChange(e.target.value)}
-                />
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '4px' }}>
-                    Categoría de Gasto
-                  </label>
-                  <select value={category} onChange={(e) => onCategoryChange(e.target.value)}>
-                    {CATEGORIES.map((cat) => (
-                      <option key={cat} value={cat}>
-                        {cat}
-                      </option>
-                    ))}
-                  </select>
+              <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div
+                  style={{
+                    backgroundColor: 'var(--bg-surface-elevated)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: 'var(--radius-sm)',
+                    padding: '8px 12px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    fontSize: '12px',
+                  }}
+                >
+                  <span style={{ color: 'var(--text-muted)' }}>Efectivo Disponible en Caja:</span>
+                  <span className="tabular-nums" style={{ fontWeight: '700', color: 'var(--status-available-text)' }}>
+                    $ {maxCash.toLocaleString()}
+                  </span>
                 </div>
 
                 <div>
                   <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '4px' }}>
-                    Monto a Egresar ($)
+                    Nombre del Proveedor o Beneficiario
                   </label>
                   <input
-                    type="number"
+                    type="text"
                     required
-                    min="100"
-                    max={maxCash}
-                    step="any"
-                    placeholder="Ej. 25000"
-                    value={amount}
-                    onChange={(e) => onAmountChange(e.target.value)}
+                    placeholder="Ej. Distribuidora El Sol"
+                    value={supplier}
+                    onChange={(e) => onSupplierChange(e.target.value)}
+                    autoFocus
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                    Concepto del Pago
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ej. Compra de jabones y cloro"
+                    value={concept}
+                    onChange={(e) => onConceptChange(e.target.value)}
+                  />
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                      Categoría de Gasto
+                    </label>
+                    <select value={category} onChange={(e) => onCategoryChange(e.target.value)}>
+                      {CATEGORIES.map((cat) => (
+                        <option key={cat} value={cat}>
+                          {cat}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                      Monto a Egresar ($)
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      min="100"
+                      step="any"
+                      placeholder="Ej. 25000"
+                      value={amount}
+                      onChange={(e) => onAmountChange(e.target.value)}
+                      style={{ 
+                        borderColor: isOverLimit ? 'var(--status-maintenance-border)' : undefined,
+                        backgroundColor: isOverLimit ? 'var(--status-maintenance-bg)' : undefined
+                      }}
+                    />
+                    <AnimatePresence>
+                      {isOverLimit && (
+                        <m.span
+                          initial={{ opacity: 0, height: 0, y: -5 }}
+                          animate={{ opacity: 1, height: 'auto', y: 0 }}
+                          exit={{ opacity: 0, height: 0, y: -5 }}
+                          style={{ 
+                            color: 'var(--status-maintenance-text)', 
+                            fontSize: '11px', 
+                            display: 'block', 
+                            marginTop: '6px',
+                            fontWeight: '500'
+                          }}
+                        >
+                          Supera el efectivo en caja (${maxCash.toLocaleString()})
+                        </m.span>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                    Nº de Factura / Recibo (Opcional)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Ej. FAC-4892"
+                    value={receipt}
+                    onChange={(e) => onReceiptChange(e.target.value)}
                   />
                 </div>
               </div>
 
-              <div>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: '4px' }}>
-                  Nº de Factura / Recibo (Opcional)
-                </label>
-                <input
-                  type="text"
-                  placeholder="Ej. FAC-4892"
-                  value={receipt}
-                  onChange={(e) => onReceiptChange(e.target.value)}
-                />
+              <div className="modal-footer">
+                <m.button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={onClose}
+                  whileTap={{ scale: 0.97 }}
+                  transition={springTouch}
+                >
+                  Cancelar
+                </m.button>
+                <m.button
+                  type="submit"
+                  className="btn-primary"
+                  disabled={isOverLimit || numericAmount < 100}
+                  whileHover={!isOverLimit ? { scale: 1.02 } : {}}
+                  whileTap={!isOverLimit ? { scale: 0.97 } : {}}
+                  transition={springTouch}
+                  style={{ 
+                    backgroundColor: isOverLimit ? 'var(--border-medium)' : '#be123c', 
+                    borderColor: isOverLimit ? 'transparent' : '#9f1239',
+                    cursor: isOverLimit ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  <ArrowDownRight size={13} />
+                  <span>Registrar y Descontar de Caja</span>
+                </m.button>
               </div>
-            </div>
-
-            <div className="modal-footer">
-              <m.button
-                type="button"
-                className="btn-secondary"
-                onClick={onClose}
-                whileTap={{ scale: 0.97 }}
-                transition={springTouch}
-              >
-                Cancelar
-              </m.button>
-              <m.button
-                type="submit"
-                className="btn-primary"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.97 }}
-                transition={springTouch}
-                style={{ backgroundColor: '#be123c', borderColor: '#9f1239' }}
-              >
-                <ArrowDownRight size={13} />
-                <span>Registrar y Descontar de Caja</span>
-              </m.button>
-            </div>
-          </form>
-        </m.div>
-      </div>
+            </form>
+          </m.div>
+        </div>
+      )}
     </AnimatePresence>
   );
 };
