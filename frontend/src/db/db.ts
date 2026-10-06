@@ -30,25 +30,60 @@ export interface Room {
   paymentReference?: string;
   consumptions?: RoomConsumption[];
   notes?: string;
+  /** Reserva vinculada a la estancia actual (walk-in o reserva previa). */
+  reservationId?: string;
+  checkInAt?: string;
+  nights?: number;
+  /** Valor total del hospedaje de la estancia. Si no existe se asume `price` (1 noche). */
+  stayTotal?: number;
+  /** Anticipo cobrado fuera de la gaveta (transferencia previa, OTA). Se descuenta al liquidar. */
+  prepaidAmount?: number;
   updatedAt: string;
+}
+
+/** Firma de revisión gerencial de un cierre de caja. */
+export interface ShiftReview {
+  status: 'APPROVED' | 'OBSERVED';
+  reviewedBy: string;
+  reviewedAt: string;
+  /** Efectivo que gerencia recibió físicamente del sobre de entrega. */
+  cashReceived: number;
+  notes?: string;
+  /** Movimientos punteados uno a uno por gerencia durante la revisión. */
+  checkedMovementIds?: string[];
 }
 
 export interface LocalShift {
   id: string;
   serverId?: number;
   userId: number;
+  receptionistName?: string;
   initialCash: number;
   currentCash: number;
   actualCash?: number;
   difference?: number;
+  /** Efectivo que se deja en gaveta como base para el siguiente turno. */
+  baseLeft?: number;
+  /** Efectivo apartado para entregar a gerencia (actualCash - baseLeft). */
+  cashToDeliver?: number;
+  /** Turno anterior del que se recibió la gaveta (relevo). */
+  previousShiftId?: string;
   status: 'OPEN' | 'CLOSED';
   notes?: string;
   startedAt: string;
   endedAt?: string;
+  review?: ShiftReview;
   isSynced: boolean;
 }
 
 export type CashMovementType = 'INCOME_ROOM' | 'INCOME_MINIBAR' | 'EXPENSE_SUPPLIER';
+
+export interface CashMovementItem {
+  productId: number;
+  name: string;
+  qty: number;
+  unitPrice: number;
+}
 
 export interface CashMovement {
   id: string;
@@ -63,6 +98,8 @@ export interface CashMovement {
   supplier?: string;
   receipt?: string;
   roomNumber?: string;
+  /** Detalle de productos vendidos (minibar directo o consumos liquidados en check-out). */
+  items?: CashMovementItem[];
   createdAt: string;
 }
 
@@ -156,7 +193,7 @@ export interface Reservation {
   guestContact?: string;
   checkInDate: string;
   checkOutDate: string;
-  status: 'PENDING' | 'CONFIRMED' | 'CHECKED_IN' | 'CANCELLED' | 'NO_SHOW';
+  status: 'PENDING' | 'CONFIRMED' | 'CHECKED_IN' | 'CHECKED_OUT' | 'CANCELLED' | 'NO_SHOW';
   source: 'MANUAL' | 'EXCEL_IMPORT' | 'BOOKING' | 'AIRBNB';
   totalPrice: number;
   advancePayment: number;

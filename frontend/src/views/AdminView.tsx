@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { m } from 'framer-motion';
-import { db, type Room, type LocalShift, type LocalProduct, type CashMovement } from '../db/db';
+import { db, type Room, type LocalShift, type CashMovement } from '../db/db';
 import { syncService } from '../services/syncService';
 import { eventBus } from '../services/eventBus';
 import { springTouch } from '../utils/motion';
 import {
   TrendingUp,
   DollarSign,
-  Package,
   FileText,
   AlertTriangle,
   Wrench,
@@ -16,13 +15,14 @@ import {
   Receipt
 } from 'lucide-react';
 import { ConfirmIncidentModal } from '../components/ConfirmIncidentModal';
+import { ShiftAuditModal } from './admin/ShiftAuditModal';
 
 export const AdminView: React.FC = () => {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [shifts, setShifts] = useState<LocalShift[]>([]);
-  const [products, setProducts] = useState<LocalProduct[]>([]);
   const [cashMovements, setCashMovements] = useState<CashMovement[]>([]);
   const [selectedIncidentRoom, setSelectedIncidentRoom] = useState<Room | null>(null);
+  const [selectedShiftId, setSelectedShiftId] = useState<string | null>(null);
 
   const loadAdminData = async () => {
     const allRooms = await db.rooms.toArray();
@@ -32,9 +32,6 @@ export const AdminView: React.FC = () => {
     // Ordenar turnos más recientes primero
     allShifts.sort((a, b) => new Date(b.startedAt).getTime() - new Date(a.startedAt).getTime());
     setShifts(allShifts);
-
-    const allProducts = await db.inventory.toArray();
-    setProducts(allProducts);
 
     const allMoves = await db.cashMovements.toArray();
     allMoves.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -90,6 +87,9 @@ export const AdminView: React.FC = () => {
   const totalClosedCash = shifts
     .filter((s) => s.status === 'CLOSED' && s.actualCash !== undefined)
     .reduce((acc, s) => acc + (s.actualCash || 0), 0);
+    
+  const pendingReviewShifts = shifts.filter(s => s.status === 'CLOSED' && !s.review);
+  const oldestPendingShift = [...pendingReviewShifts].sort((a, b) => new Date(a.startedAt).getTime() - new Date(b.startedAt).getTime())[0];
 
   return (
     <div className="container-fluid" style={{ paddingBottom: '50px' }}>
@@ -102,6 +102,31 @@ export const AdminView: React.FC = () => {
           Supervisión consolidada de ocupación, arqueos de caja, inventario y novedades de infraestructura.
         </p>
       </div>
+
+      {pendingReviewShifts.length > 0 && (
+        <div style={{ backgroundColor: 'var(--status-dirty-bg)', border: '1px solid var(--status-dirty-border)', padding: '16px', borderRadius: 'var(--radius-md)', marginBottom: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <h3 style={{ margin: 0, fontSize: '14px', color: 'var(--status-dirty-text)', fontWeight: 700 }}>
+              <AlertTriangle size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '6px' }} />
+              {pendingReviewShifts.length} {pendingReviewShifts.length === 1 ? 'cierre de caja pendiente' : 'cierres de caja pendientes'} por revisar
+            </h3>
+            <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: 'var(--status-dirty-text)' }}>
+              Revisa los movimientos y firma la recepción del dinero para completar el proceso.
+            </p>
+          </div>
+          <m.button
+            type="button"
+            className="btn-primary"
+            onClick={() => setSelectedShiftId(oldestPendingShift.id)}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            transition={springTouch}
+            style={{ fontSize: '12px', padding: '8px 12px' }}
+          >
+            Revisar más antiguo
+          </m.button>
+        </div>
+      )}
 
       {/* Grid de KPIs Ejecutivos (Responsive: 5 cols en desktop, 2 cols en móvil) */}
       <div className="admin-kpi-grid">
@@ -300,8 +325,10 @@ export const AdminView: React.FC = () => {
                         <td style={{ padding: '10px' }}>
                           {isOpen ? (
                             <span className="status-pill status-cleaning">En Operación</span>
+                          ) : s.review ? (
+                            <span className="status-pill status-available">{s.review.status === 'APPROVED' ? 'Revisado' : 'Con Observación'}</span>
                           ) : (
-                            <span className="status-pill status-available">Cerrado</span>
+                            <span className="status-pill status-dirty">Pendiente revisión</span>
                           )}
                         </td>
 
@@ -335,8 +362,18 @@ export const AdminView: React.FC = () => {
                           ) : null}
                         </td>
 
-                        <td style={{ padding: '10px', color: 'var(--text-secondary)', maxWidth: '240px' }}>
-                          {s.notes || <span style={{ color: 'var(--text-muted)' }}>Sin notas</span>}
+                        <td style={{ padding: '10px', color: 'var(--text-secondary)' }}>
+                          <m.button
+                            type="button"
+                            className="btn-secondary"
+                            style={{ padding: '4px 8px', fontSize: '11px' }}
+                            onClick={() => setSelectedShiftId(s.id)}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            transition={springTouch}
+                          >
+                            {isOpen || s.review ? 'Ver detalle' : 'Revisar'}
+                          </m.button>
                         </td>
                       </tr>
                     );
@@ -354,7 +391,7 @@ export const AdminView: React.FC = () => {
                 const isSurplus = s.difference !== undefined && s.difference > 0;
 
                 return (
-                  <div key={s.id} className="mobile-card-item">
+                  <div key={s.id} className="mobile-card-item" onClick={() => setSelectedShiftId(s.id)}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                       <div>
                         <div className="tabular-nums" style={{ fontWeight: '700', fontSize: '13px', color: 'var(--text-primary)' }}>
@@ -364,8 +401,8 @@ export const AdminView: React.FC = () => {
                           {new Date(s.startedAt).toLocaleDateString()} · {new Date(s.startedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </div>
                       </div>
-                      <span className={`status-pill ${isOpen ? 'status-cleaning' : 'status-available'}`} style={{ fontSize: '11px' }}>
-                        {isOpen ? 'En Operación' : 'Cerrado'}
+                      <span className={`status-pill ${isOpen ? 'status-cleaning' : s.review ? 'status-available' : 'status-dirty'}`} style={{ fontSize: '11px' }}>
+                        {isOpen ? 'En Operación' : s.review ? (s.review.status === 'APPROVED' ? 'Revisado' : 'Con Observación') : 'Pendiente revisión'}
                       </span>
                     </div>
 
@@ -534,68 +571,19 @@ export const AdminView: React.FC = () => {
         )}
       </section>
 
-      {/* Sección 4: Control de Minibar e Insumos */}
-      <section
-        style={{
-          backgroundColor: 'var(--bg-surface)',
-          border: '1px solid var(--border-subtle)',
-          borderRadius: 'var(--radius-md)',
-          padding: '16px',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
-          <Package size={16} color="#34d399" />
-          <h2 style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>
-            Supervisión de Minibar e Inventario
-          </h2>
-        </div>
-
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '10px' }}>
-          {products.map((p) => {
-            const isLowStock = p.stock <= p.minStock;
-            return (
-              <div
-                key={p.id}
-                style={{
-                  backgroundColor: 'var(--bg-input)',
-                  border: `1px solid ${isLowStock ? 'var(--status-dirty-border)' : 'var(--border-subtle)'}`,
-                  borderRadius: 'var(--radius-xs)',
-                  padding: '10px 12px',
-                }}
-              >
-                <div style={{ fontWeight: '600', fontSize: '13px', color: 'var(--text-primary)' }}>{p.name}</div>
-                <div style={{ fontSize: '11px', color: 'var(--text-muted)', margin: '2px 0 6px 0' }}>SKU: {p.sku}</div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span className="tabular-nums" style={{ fontSize: '13px', fontWeight: '700' }}>
-                    ${p.price.toLocaleString()}
-                  </span>
-                  <span
-                    className="tabular-nums"
-                    style={{
-                      fontSize: '11px',
-                      fontWeight: '700',
-                      padding: '2px 6px',
-                      borderRadius: '3px',
-                      backgroundColor: isLowStock ? 'var(--status-dirty-bg)' : 'var(--status-available-bg)',
-                      color: isLowStock ? 'var(--status-dirty-text)' : 'var(--status-available-text)',
-                      border: `1px solid ${isLowStock ? 'var(--status-dirty-border)' : 'var(--status-available-border)'}`,
-                    }}
-                  >
-                    Stock: {p.stock} {isLowStock ? '(Bajo)' : ''}
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
       <ConfirmIncidentModal
         room={selectedIncidentRoom}
         isOpen={Boolean(selectedIncidentRoom)}
         onClose={() => setSelectedIncidentRoom(null)}
         onConfirm={handleResolveIncident}
       />
+      
+      {selectedShiftId && (
+        <ShiftAuditModal 
+          shiftId={selectedShiftId} 
+          onClose={() => setSelectedShiftId(null)} 
+        />
+      )}
     </div>
   );
 };
