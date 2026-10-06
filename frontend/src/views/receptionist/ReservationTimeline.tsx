@@ -62,6 +62,11 @@ const STATUS_COLORS: Record<Reservation['status'], { bg: string; border: string;
     border: 'var(--status-available-border)',
     text: 'var(--status-available-text)',
   },
+  CHECKED_OUT: {
+    bg: 'var(--status-available-bg)',
+    border: 'var(--status-available-border)',
+    text: 'var(--status-available-text)',
+  },
   CANCELLED: {
     bg: 'var(--status-maintenance-bg)',
     border: 'var(--status-maintenance-border)',
@@ -78,6 +83,7 @@ const STATUS_LABELS: Record<Reservation['status'], string> = {
   PENDING: 'Pendiente',
   CONFIRMED: 'Confirmada',
   CHECKED_IN: 'Hospedado',
+  CHECKED_OUT: 'Finalizada',
   CANCELLED: 'Cancelada',
   NO_SHOW: 'No Show',
 };
@@ -407,7 +413,7 @@ export const ReservationTimeline: React.FC<ReservationTimelineProps> = ({
                                     e.stopPropagation();
                                     onSelectReservation(r);
                                   }}
-                                  title={`${r.guestName} · ${STATUS_LABELS[r.status]}`}
+                                  title={`Huésped: ${r.guestName}\nEstado: ${STATUS_LABELS[r.status]}\nDesde: ${rStart.toLocaleDateString('es-CO')} Hasta: ${rEnd.toLocaleDateString('es-CO')}\nOrigen: ${r.source}\nTotal: $${r.totalPrice.toLocaleString()}\nAbono: $${r.advancePayment.toLocaleString()}`}
                                 >
                                   <span className="timeline-bar-text">{r.guestName}</span>
                                   {spanDays >= 3 && (

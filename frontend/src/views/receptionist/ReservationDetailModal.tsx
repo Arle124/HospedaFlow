@@ -30,6 +30,7 @@ const STATUS_LABELS: Record<Reservation['status'], string> = {
   PENDING: 'Pendiente',
   CONFIRMED: 'Confirmada',
   CHECKED_IN: 'Hospedado',
+  CHECKED_OUT: 'Finalizada',
   CANCELLED: 'Cancelada',
   NO_SHOW: 'No Show',
 };
