@@ -6,6 +6,27 @@ Historial de sesiones de trabajo, hitos completados y estado del proyecto.
 
 ## Sesiones Recientes
 
+### Sesión 14: Refinamientos Operativos, UI de Aseo y Auditoría Gerencial
+* **Fecha:** 06 de Octubre de 2026
+* **Hitos completados:**
+  1. **Validaciones y Turnos de Caja Estrictos:**
+     * Bloqueo de check-in pagado, ventas de minibar y registro de gastos si no hay un turno de caja abierto (aislamiento contable correcto).
+     * En el cierre de caja, se incluyó el desglose de "Base dejada para el siguiente turno" y cálculo de "Efectivo a entregar al gerente".
+  2. **Rediseño de Vista de Aseo (Housekeeper UI):**
+     * Cumplimiento estricto de las reglas "Impeccable" y "Emil Kowalski Skill" usando tokens semánticos y Framer Motion (`springTouch`, `springModal`).
+     * Las habitaciones se dividen jerárquicamente en dos grupos: "Por atender" (Sucias, Mantenimiento) destacadas visualmente y "Al día" (Ocupadas, Disponibles) con estilo atenuado.
+     * Integración con `eventBus` para el refresco reactivo automático de la lista sin necesidad de recargar la página.
+  3. **Auditoría Gerencial (Manager Audit UI):**
+     * Nuevo modal `ShiftAuditModal` para la revisión exhaustiva de cierres de caja.
+     * Permite al gerente "puntear" (marcar con check) cada movimiento individual (ingresos/egresos).
+     * Módulo de firma de revisión donde el jefe confirma cuánto efectivo recibió, registrando el turno como `APPROVED` o `OBSERVED`.
+     * `AdminView` actualizado con tarjetas/filas indicando qué cierres de caja están "Pendientes de revisión".
+  4. **Mejoras en el Timeline y Recepción:**
+     * Se añadieron tooltips informativos rápidos en las barras de la línea de tiempo.
+     * **Auto-Release (No Show):** Las reservaciones cuya fecha de check-in ya pasó y seguían pendientes cambian automáticamente a `NO_SHOW`, liberando la habitación en el rack para clientes físicos.
+  5. **UX Global:**
+     * Corrección de contraste y opacidad en las notificaciones flotantes (Toasts) para que sean completamente legibles.
+
 ### Sesión 13: Finalización de SyncService, API de Actualización y Tests Unitarios
 * **Fecha:** 01 de Octubre de 2026
 * **Hitos completados:**
