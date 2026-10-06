@@ -2,7 +2,7 @@ import React from 'react';
 import { m } from 'framer-motion';
 import type { LocalShift } from '../../db/db';
 import { springTouch } from '../../utils/motion';
-import { ShoppingBag, ArrowDownRight, Lock, Unlock, Smartphone } from 'lucide-react';
+import { ShoppingBag, ArrowDownRight, Lock, Unlock, Smartphone, Package } from 'lucide-react';
 
 interface ShiftBannerProps {
   activeShift: LocalShift | null;
@@ -11,6 +11,7 @@ interface ShiftBannerProps {
   onCloseShiftClick: () => void;
   onMinibarClick: () => void;
   onExpenseClick: () => void;
+  onInventoryClick: () => void;
 }
 
 export const ShiftBanner: React.FC<ShiftBannerProps> = ({
@@ -20,6 +21,7 @@ export const ShiftBanner: React.FC<ShiftBannerProps> = ({
   onCloseShiftClick,
   onMinibarClick,
   onExpenseClick,
+  onInventoryClick,
 }) => {
   return (
     <div className="shift-banner">
@@ -69,6 +71,19 @@ export const ShiftBanner: React.FC<ShiftBannerProps> = ({
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+        <m.button
+          type="button"
+          className="btn-secondary"
+          onClick={onInventoryClick}
+          whileHover={{ y: -1 }}
+          whileTap={{ scale: 0.97 }}
+          transition={springTouch}
+          title="Gestionar inventario de insumos y minibar"
+        >
+          <Package size={13} color="var(--text-secondary)" />
+          <span>Inventario</span>
+        </m.button>
+
         {activeShift && (
           <>
             <m.button
