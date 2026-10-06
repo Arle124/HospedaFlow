@@ -1029,30 +1029,30 @@ button:disabled {
 }
 
 
-/* === Notification Toast === */
-.toast-clean {
-  background-color: var(--status-available-bg);
-  border: 1px solid var(--status-available-border);
-  border-left-color: var(--status-available-border);
+/* === Notification Toast ===
+   El tinte de estado se superpone a una superficie opaca para que el mensaje
+   sea legible sobre cualquier contenido (los tokens *-bg son translúcidos en dark). */
+.toast-item {
+  --toast-tint: var(--status-occupied-bg);
+  --toast-accent: var(--status-occupied-text);
+  background: linear-gradient(var(--toast-tint), var(--toast-tint)), var(--bg-surface-elevated);
+  border: 1px solid var(--border-medium);
+  border-left: 4px solid var(--toast-accent);
 }
-.toast-clean svg {
-  color: var(--status-available-text);
+.toast-item svg {
+  color: var(--toast-accent);
+}
+.toast-clean {
+  --toast-tint: var(--status-available-bg);
+  --toast-accent: var(--status-available-text);
 }
 .toast-issue {
-  background-color: var(--status-dirty-bg);
-  border: 1px solid var(--status-dirty-border);
-  border-left-color: var(--status-dirty-border);
-}
-.toast-issue svg {
-  color: var(--status-dirty-text);
+  --toast-tint: var(--status-dirty-bg);
+  --toast-accent: var(--status-dirty-text);
 }
 .toast-default {
-  background-color: var(--status-occupied-bg);
-  border: 1px solid var(--border-focus);
-  border-left-color: var(--border-focus);
-}
-.toast-default svg {
-  color: var(--status-occupied-text);
+  --toast-tint: var(--status-occupied-bg);
+  --toast-accent: var(--status-occupied-text);
 }
 
 .toast-icon-wrapper {
@@ -1076,11 +1076,12 @@ button:disabled {
 }
 .toast-time {
   font-size: 11px;
-  color: var(--text-muted);
+  color: var(--text-secondary);
 }
 .toast-message {
   font-size: 12px;
-  color: var(--text-secondary);
+  color: var(--text-primary);
+  opacity: 0.85;
   margin: 3px 0 0 0;
   line-height: 1.4;
 }
@@ -1228,26 +1229,60 @@ button:disabled {
   padding: 12px;
   font-size: 14px;
   font-weight: 600;
-  background-color: #1d4ed8;
-  color: #ffffff;
+  background-color: var(--status-dirty-bg);
+  color: var(--status-dirty-text);
+  border: 1px solid var(--status-dirty-border);
   border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 .hk-btn-finish {
   width: 100%;
   padding: 12px;
   font-size: 14px;
   font-weight: 700;
-  background-color: #047857;
-  color: #ffffff;
+  background-color: var(--status-available-bg);
+  color: var(--status-available-text);
+  border: 1px solid var(--status-available-border);
   border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 .hk-btn-note {
   background-color: transparent;
-  border: 1px solid var(--border-medium);
+  border: 1px solid transparent;
   color: var(--text-secondary);
   padding: 7px;
   font-size: 12px;
   border-radius: var(--radius-xs);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.hk-btn-note:hover {
+  background-color: var(--bg-input);
+  border-color: var(--border-subtle);
+}
+.hk-room-card.maintenance {
+  border: 1px solid var(--status-maintenance-border);
+  border-left: 4px solid var(--status-maintenance-text);
+}
+.hk-room-card.dirty {
+  border: 1px solid var(--status-dirty-border);
+  border-left: 4px solid var(--status-dirty-text);
+}
+.hk-room-card.cleaning {
+  border: 1px solid var(--status-cleaning-border);
+  border-left: 4px solid var(--status-cleaning-text);
+}
+.hk-room-card.al-dia {
+  border: 1px solid var(--border-subtle);
+  padding: 10px 12px;
 }
 .hk-modal-title {
   font-size: 14px;
