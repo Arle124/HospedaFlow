@@ -96,8 +96,15 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({ isOpen, products
 
         <div className="modal-body" style={{ maxHeight: '65vh', overflowY: 'auto' }}>
           {editingProduct ? (
-            <form onSubmit={handleSave} style={{ backgroundColor: 'var(--bg-input)', padding: '16px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)', marginBottom: '16px' }}>
-              <h3 style={{ fontSize: '13px', fontWeight: '600', marginBottom: '12px', color: 'var(--text-primary)' }}>
+            <m.form 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              onSubmit={handleSave} 
+              style={{ backgroundColor: 'var(--bg-surface-elevated)', padding: '20px', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)', marginBottom: '24px', overflow: 'hidden' }}
+            >
+              <h3 style={{ fontSize: '15px', fontWeight: '700', marginBottom: '16px', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Edit2 size={16} color="var(--border-focus)" />
                 {editingProduct.id === 0 ? 'Añadir Nuevo Producto' : 'Editar Producto'}
               </h3>
               
@@ -159,15 +166,15 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({ isOpen, products
                 </div>
               </div>
               
-              <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '16px' }}>
-                <button type="button" className="btn-secondary" onClick={handleCancelEdit}>
+              <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '20px' }}>
+                <m.button type="button" className="btn-secondary" onClick={handleCancelEdit} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
                   Cancelar
-                </button>
-                <button type="submit" className="btn-primary">
+                </m.button>
+                <m.button type="submit" className="btn-primary" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
                   {editingProduct.id === 0 ? 'Crear Producto' : 'Guardar Cambios'}
-                </button>
+                </m.button>
               </div>
-            </form>
+            </m.form>
           ) : (
             <>
               <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
@@ -184,48 +191,70 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({ isOpen, products
                 </m.button>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '10px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '12px' }}>
                 {products.map((p) => {
                   const isLowStock = p.stock <= p.minStock;
                   return (
-                    <div
+                    <m.div
                       key={p.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      whileHover={{ y: -2, boxShadow: 'var(--shadow-md)' }}
+                      transition={springTouch}
                       style={{
-                        backgroundColor: 'var(--bg-surface)',
+                        backgroundColor: 'var(--bg-surface-elevated)',
                         border: `1px solid ${isLowStock ? 'var(--status-dirty-border)' : 'var(--border-subtle)'}`,
-                        borderRadius: 'var(--radius-sm)',
-                        padding: '12px',
+                        borderRadius: 'var(--radius-md)',
+                        padding: '14px',
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: '8px'
+                        gap: '10px'
                       }}
                     >
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                         <div>
-                          <div style={{ fontWeight: '600', fontSize: '13px', color: 'var(--text-primary)' }}>{p.name}</div>
+                          <div style={{ fontWeight: '600', fontSize: '14px', color: 'var(--text-primary)', marginBottom: '2px' }}>{p.name}</div>
                           <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>SKU: {p.sku}</div>
                         </div>
                         <div style={{ display: 'flex', gap: '4px' }}>
-                          <button type="button" className="btn-secondary" style={{ padding: '4px 6px', height: 'auto' }} onClick={() => handleEdit(p)} title="Editar">
-                            <Edit2 size={12} />
-                          </button>
-                          <button type="button" className="btn-secondary" style={{ padding: '4px 6px', height: 'auto', color: 'var(--status-maintenance-text)' }} onClick={() => handleDelete(p.id)} title="Eliminar">
-                            <Trash2 size={12} />
-                          </button>
+                          <m.button
+                            type="button"
+                            className="btn-secondary"
+                            style={{ padding: '6px', height: 'auto', border: 'none', backgroundColor: 'var(--bg-surface)' }}
+                            onClick={() => handleEdit(p)}
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            transition={springTouch}
+                            title="Editar"
+                          >
+                            <Edit2 size={14} color="var(--text-secondary)" />
+                          </m.button>
+                          <m.button
+                            type="button"
+                            className="btn-secondary"
+                            style={{ padding: '6px', height: 'auto', border: 'none', backgroundColor: 'var(--bg-surface)' }}
+                            onClick={() => handleDelete(p.id)}
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                            transition={springTouch}
+                            title="Eliminar"
+                          >
+                            <Trash2 size={14} color="var(--status-maintenance-text)" />
+                          </m.button>
                         </div>
                       </div>
                       
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
-                        <span className="tabular-nums" style={{ fontSize: '13px', fontWeight: '700' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '4px' }}>
+                        <span className="tabular-nums" style={{ fontSize: '15px', fontWeight: '800', color: 'var(--text-primary)' }}>
                           ${p.price.toLocaleString()}
                         </span>
                         <span
                           className="tabular-nums"
                           style={{
                             fontSize: '11px',
-                            fontWeight: '700',
-                            padding: '2px 6px',
-                            borderRadius: '3px',
+                            fontWeight: '600',
+                            padding: '4px 8px',
+                            borderRadius: 'var(--radius-sm)',
                             backgroundColor: isLowStock ? 'var(--status-dirty-bg)' : 'var(--status-available-bg)',
                             color: isLowStock ? 'var(--status-dirty-text)' : 'var(--status-available-text)',
                             border: `1px solid ${isLowStock ? 'var(--status-dirty-border)' : 'var(--status-available-border)'}`,
@@ -234,7 +263,7 @@ export const InventoryModal: React.FC<InventoryModalProps> = ({ isOpen, products
                           Stock: {p.stock} {isLowStock ? '(Bajo)' : ''}
                         </span>
                       </div>
-                    </div>
+                    </m.div>
                   );
                 })}
                 {products.length === 0 && (
