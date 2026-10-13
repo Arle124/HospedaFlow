@@ -6,6 +6,32 @@ Historial de sesiones de trabajo, hitos completados y estado del proyecto.
 
 ## Sesiones Recientes
 
+### Sesión 15: Diagnóstico y Estabilización Integral de Conexión en cel-server
+* **Fecha:** 12 de Octubre de 2026
+* **Hitos completados:**
+  1. **Diagnóstico de Caída de PostgreSQL en cel-server:**
+     * Se identificó que tras reinicios o suspensión del móvil en Termux, el motor PostgreSQL no se iniciaba automáticamente.
+     * En `internal/repository/repository.go` (`NewDBPool`), pgxpool no realizaba un ping activo, reportando falsamente una conexión exitosa mientras la base de datos estaba inactiva.
+     * En `internal/handler/auth_handler.go`, cualquier error de BD en login se enmascaraba como `401 credenciales inválidas`, ocultando la caída del servicio.
+  2. **Corrección Crítica en Script de Migraciones (`manage.sh`):**
+     * El patrón `$CEL_PATH/sql/migrations/00*.sql` ejecutaba accidentalmente `000001_init_schema.down.sql` en cada despliegue, eliminando las tablas `shifts`, `shift_transactions` y `products`.
+     * Se corrigió el loop de migración para ignorar estrictamente los archivos `*.down.sql` y ordenar lexicográficamente solo los archivos up y esquemas numéricos.
+  3. **Corrección de Cookie `Secure` en Entornos HTTP / Tailscale:**
+     * En producción bajo HTTP (`http://100.84.162.38:8080`), la cookie `hospedasync_session` se enviaba con el atributo `Secure`, provocando que Chrome y Android rechazaran/descartaran la cookie de sesión.
+     * Se ajustó el atributo `Secure` de manera dinámica (`r.TLS != nil || r.Header.Get("X-Forwarded-Proto") == "https"`).
+     * Se agregó retorno explícito de token JWT en el payload de login y soporte de fallback Bearer (`Authorization: Bearer <token>`) en `AuthContext.tsx` y `syncService.ts`.
+  4. **Persistencia y Sembrado de Habitaciones (404 en Sincronización):**
+     * La tabla `rooms` en PostgreSQL estaba vacía, ocasionando errores `404 Not Found` en la cola de sincronización al invocar `/api/v1/rooms/:id/status`.
+     * Se creó la migración `006_seed_rooms_and_products.sql` alineada con las 7 habitaciones y productos base de Dexie.js.
+     * Se transformó `UpdateRoomStatus` en `postgres_repository.go` a una operación UPSERT (`ON CONFLICT (id) DO UPDATE`), garantizando que la sincronización nunca falle por inexistencia de registro.
+  5. **Autoarranque de PostgreSQL en Scripts Móviles:**
+     * Se configuró verificación y arranque automático de PostgreSQL (`pg_ctl start`) en `manage.sh`, `manage.example.sh`, `bin/start-pocket.sh` y `~/start.sh` en `cel-server`.
+  6. **CORS Dinámico para Tailscale:**
+     * Inclusión de variables `CORS_ORIGINS` completas en `.env` en cel-server cubriendo IPs de Tailscale (`100.84.162.38`, `100.94.80.83`, `100.88.37.120`).
+* **Verificaciones:**
+  * Pruebas unitarias de Go (`go test ./...`) y Vitest (`npm test -- --run`) 100% PASS.
+  * Verificación directa vía curl sobre Tailscale en `cel-server`: login 200 OK con cookies y Bearer, persistencia de sesión en `/api/auth/me`, actualización de habitaciones 200 OK (`rooms/101/status`) y conteo de BD validado (7 habitaciones, 4 productos, 2 usuarios).
+
 ### Sesión 14: Refinamientos Operativos, UI de Aseo y Auditoría Gerencial
 * **Fecha:** 06 de Octubre de 2026
 * **Hitos completados:**
