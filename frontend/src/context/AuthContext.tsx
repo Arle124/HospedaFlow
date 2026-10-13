@@ -31,22 +31,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUser(JSON.parse(storedUser));
         }
 
+        const token = localStorage.getItem('hospedasync_token');
+        const headers: Record<string, string> = {};
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+
         const res = await fetch('/api/auth/me', {
-          credentials: 'include'
+          credentials: 'include',
+          headers,
         });
         
         if (res.ok) {
           const data = await res.json();
           if (data.success && data.data) {
-            setUser(data.data);
-            localStorage.setItem('hospedasync_user', JSON.stringify(data.data));
+            const userObj = (data.data.user || data.data) as AuthUser;
+            setUser(userObj);
+            localStorage.setItem('hospedasync_user', JSON.stringify(userObj));
           } else {
             setUser(null);
             localStorage.removeItem('hospedasync_user');
+            localStorage.removeItem('hospedasync_token');
           }
         } else {
           setUser(null);
           localStorage.removeItem('hospedasync_user');
+          localStorage.removeItem('hospedasync_token');
         }
       } catch (err) {
         console.error('Failed to check auth:', err);
@@ -70,11 +80,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const data = await res.json();
       
       if (res.ok && data.success) {
-        setUser(data.data);
-        localStorage.setItem('hospedasync_user', JSON.stringify(data.data));
+        const userObj = (data.data.user || data.data) as AuthUser;
+        if (data.data?.token) {
+          localStorage.setItem('hospedasync_token', data.data.token);
+        }
+        setUser(userObj);
+        localStorage.setItem('hospedasync_user', JSON.stringify(userObj));
       } else {
-        setError(data.message || 'Error al iniciar sesión');
-        throw new Error('Login failed');
+        setError(data.error || data.message || 'Error al iniciar sesión');
+        throw new Error(data.error || 'Login failed');
       }
     } catch (err: any) {
       setError(err.message || 'Error de conexión');
@@ -84,15 +98,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
+      const token = localStorage.getItem('hospedasync_token');
+      const headers: Record<string, string> = {};
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
       await fetch('/api/auth/logout', {
         method: 'POST',
-        credentials: 'include'
+        credentials: 'include',
+        headers,
       });
     } catch (err) {
       console.error('Failed to logout:', err);
     } finally {
       setUser(null);
       localStorage.removeItem('hospedasync_user');
+      localStorage.removeItem('hospedasync_token');
     }
   };
 

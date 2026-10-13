@@ -99,6 +99,17 @@ class SyncService {
     return { synced, failed };
   }
 
+  private getHeaders(): Record<string, string> {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (typeof localStorage !== 'undefined') {
+      const token = localStorage.getItem('hospedasync_token');
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+    }
+    return headers;
+  }
+
   private async dispatchToServer(item: SyncQueueItem): Promise<boolean> {
     const API_BASE = '/api/v1';
 
@@ -108,7 +119,7 @@ class SyncService {
           const payload = item.payload as import('../db/db').OpenShiftPayload;
           const res = await fetch(`${API_BASE}/shifts`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: this.getHeaders(),
             credentials: 'include',
             body: JSON.stringify(payload),
           });
@@ -143,7 +154,7 @@ class SyncService {
 
           const res = await fetch(`${API_BASE}/shifts/${targetServerId}/close`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: this.getHeaders(),
             credentials: 'include',
             body: JSON.stringify({
               actual_cash: payload.actual_cash,
@@ -163,7 +174,7 @@ class SyncService {
           const roomPayload = item.payload as UpdateRoomStatusPayload;
           const res = await fetch(`${API_BASE}/rooms/${roomPayload.roomId}/status`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: this.getHeaders(),
             credentials: 'include',
             body: JSON.stringify({
               status: roomPayload.status,
@@ -178,7 +189,7 @@ class SyncService {
           const payload = item.payload; // Already a reservation
           const res = await fetch(`${API_BASE}/reservations`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: this.getHeaders(),
             credentials: 'include',
             body: JSON.stringify(payload),
           });
@@ -189,7 +200,7 @@ class SyncService {
           const payload = item.payload as import('../db/db').UpdateReservationPayload;
           const res = await fetch(`${API_BASE}/reservations/${payload.id}`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: this.getHeaders(),
             credentials: 'include',
             body: JSON.stringify(payload),
           });
@@ -200,7 +211,7 @@ class SyncService {
           const payload = item.payload as import('../db/db').ResolveIncidentPayload & { status?: string; notes?: string };
           const res = await fetch(`${API_BASE}/rooms/${payload.roomId}/status`, {
             method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
+            headers: this.getHeaders(),
             credentials: 'include',
             body: JSON.stringify({
               status: payload.status || 'available',
@@ -227,7 +238,7 @@ class SyncService {
 
           const res = await fetch(`${API_BASE}/shifts/${targetServerId}/transactions`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: this.getHeaders(),
             credentials: 'include',
             body: JSON.stringify({
               amount: payload.amount,
