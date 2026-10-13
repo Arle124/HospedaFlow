@@ -320,21 +320,18 @@ func (r *postgresRepository) UpdateProductStock(ctx context.Context, id int64, n
 	return nil
 }
 
-// UpdateRoomStatus actualiza el estado de una habitación.
+// UpdateRoomStatus actualiza o inserta el estado de una habitación (upsert).
 func (r *postgresRepository) UpdateRoomStatus(ctx context.Context, id string, status string, notes string) error {
 	query := `
-		UPDATE rooms
-		SET status = $2, notes = $3, updated_at = NOW()
-		WHERE id = $1;
+		INSERT INTO rooms (id, number, status, notes, updated_at)
+		VALUES ($1, $1, $2, $3, NOW())
+		ON CONFLICT (id) DO UPDATE
+		SET status = EXCLUDED.status, notes = EXCLUDED.notes, updated_at = NOW();
 	`
 
-	cmdTag, err := r.pool.Exec(ctx, query, id, status, notes)
+	_, err := r.pool.Exec(ctx, query, id, status, notes)
 	if err != nil {
 		return fmt.Errorf("error al actualizar estado de habitación %s: %w", id, err)
-	}
-
-	if cmdTag.RowsAffected() == 0 {
-		return domain.ErrNotFound
 	}
 
 	return nil
