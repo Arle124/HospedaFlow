@@ -45,22 +45,29 @@ case $choice in
         
         # 4. Transferir Backend y config
         echo -e "${BLUE}Transfiriendo Backend y configuraciones al servidor...${NC}"
-        ssh -p $CEL_PORT $CEL_USER@$CEL_IP "echo 'DATABASE_URL=postgres://${CEL_USER}@127.0.0.1:5432/hospedasync?sslmode=disable' > $CEL_PATH/.env"
+        ssh -p $CEL_PORT $CEL_USER@$CEL_IP "cat << 'ENVEOF' > $CEL_PATH/.env
+DATABASE_URL=postgres://${CEL_USER}@127.0.0.1:5432/hospedasync?sslmode=disable
+CORS_ORIGINS=http://localhost:5173,http://localhost:8080,http://${CEL_IP}:8080
+APP_ENV=production
+ENVEOF
+"
         scp -P $CEL_PORT bin/hospedasync-arm64 $CEL_USER@$CEL_IP:$CEL_PATH/bin/.new
         
-        # 4.5 Transferir y aplicar Migraciones SQL
-        echo -e "${BLUE}Transfiriendo y aplicando migraciones SQL...${NC}"
+        # 4.5 Verificar PostgreSQL, transferir y aplicar Migraciones SQL
+        echo -e "${BLUE}Verificando PostgreSQL y aplicando migraciones SQL...${NC}"
+        ssh -p $CEL_PORT $CEL_USER@$CEL_IP "if command -v pg_ctl >/dev/null 2>&1 && [ -d ~/pg_data ]; then if ! pg_ctl -D ~/pg_data status >/dev/null 2>&1; then echo 'Iniciando PostgreSQL...'; pg_ctl -D ~/pg_data -l ~/pg_data/server.log start; sleep 2; fi; fi"
         ssh -p $CEL_PORT $CEL_USER@$CEL_IP "mkdir -p $CEL_PATH/sql"
         scp -P $CEL_PORT -r sql/migrations $CEL_USER@$CEL_IP:$CEL_PATH/sql/
-        ssh -p $CEL_PORT $CEL_USER@$CEL_IP "for f in $CEL_PATH/sql/migrations/*.up.sql $CEL_PATH/sql/migrations/00*.sql; do if [ -f \"\$f\" ]; then psql hospedasync -f \"\$f\" > /dev/null 2>&1 || true; fi; done"
+        ssh -p $CEL_PORT $CEL_USER@$CEL_IP "for f in \$(ls -1 $CEL_PATH/sql/migrations/*.sql 2>/dev/null | grep -v '\.down\.sql' | sort); do if [ -f \"\$f\" ]; then echo \"Aplicando: \$f\"; psql hospedasync -f \"\$f\" > /dev/null 2>&1 || true; fi; done"
         
         # 5. Reiniciar Servicio en el servidor remoto
         echo -e "${BLUE}Reiniciando servicio en segundo plano (tmux)...${NC}"
         ssh -p $CEL_PORT $CEL_USER@$CEL_IP "cd $CEL_PATH && \
+            (pg_ctl -D ~/pg_data status >/dev/null 2>&1 || pg_ctl -D ~/pg_data -l ~/pg_data/server.log start) && \
             tmux kill-session -t hospeda 2>/dev/null || true && \
-            pkill -f hospedasync-arm64 || true && \
-            sleep 2 && \
-            mv bin/.new bin/hospedasync-arm64 && \
+            pkill -x hospedasync-arm64 2>/dev/null || true && \
+            sleep 1 && \
+            if [ -f bin/.new ]; then mv bin/.new bin/hospedasync-arm64; fi && \
             chmod +x bin/hospedasync-arm64 && \
             tmux new-session -d -s hospeda 'cd $CEL_PATH && ./bin/hospedasync-arm64 >> app.log 2>&1'"
             

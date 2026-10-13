@@ -11,6 +11,16 @@ if command -v termux-wake-lock >/dev/null 2>&1; then
     echo "✓ CPU Wake-lock activado (Android no suspenderá el servidor)."
 fi
 
+# Iniciar PostgreSQL si no está activo
+PG_DATA="${PG_DATA:-$HOME/pg_data}"
+if command -v pg_ctl >/dev/null 2>&1 && [ -d "$PG_DATA" ]; then
+    if ! pg_ctl -D "$PG_DATA" status >/dev/null 2>&1; then
+        echo "Iniciando base de datos PostgreSQL..."
+        pg_ctl -D "$PG_DATA" -l "$PG_DATA/server.log" start
+        echo "✓ PostgreSQL activo."
+    fi
+fi
+
 # Directorio base
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$DIR"
