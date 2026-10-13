@@ -2,6 +2,8 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
+	"log"
 	"net/http"
 
 	"github.com/Arle124/HospedaSync/internal/config"
@@ -44,9 +46,16 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 	token, user, err := h.authService.Login(r.Context(), req.Email, req.Password, ipAddress, userAgent)
 	if err != nil {
-		response.Error(w, http.StatusUnauthorized, "credenciales inválidas")
+		if errors.Is(err, domain.ErrInvalidCredentials) || errors.Is(err, domain.ErrUserInactive) {
+			response.Error(w, http.StatusUnauthorized, "credenciales inválidas")
+		} else {
+			log.Printf("Error interno durante login: %v", err)
+			response.Error(w, http.StatusInternalServerError, "error interno del servidor")
+		}
 		return
 	}
+
+	isSecure := r.TLS != nil || r.Header.Get("X-Forwarded-Proto") == "https"
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     "hospedasync_session",
@@ -54,12 +63,13 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		Path:     "/",
 		MaxAge:   int(h.cfg.JWTExpiry.Seconds()),
 		HttpOnly: true,
-		Secure:   h.cfg.Environment == "production",
+		Secure:   isSecure,
 		SameSite: http.SameSiteLaxMode,
 	})
 
 	response.JSON(w, http.StatusOK, map[string]interface{}{
-		"user": user,
+		"token": token,
+		"user":  user,
 	})
 }
 
@@ -70,12 +80,15 @@ func (h *AuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
 		h.authService.Logout(r.Context(), cookie.Value)
 	}
 
+	isSecure := r.TLS != nil || r.Header.Get("X-Forwarded-Proto") == "https"
 	http.SetCookie(w, &http.Cookie{
 		Name:     "hospedasync_session",
 		Value:    "",
 		Path:     "/",
 		MaxAge:   -1,
 		HttpOnly: true,
+		Secure:   isSecure,
+		SameSite: http.SameSiteLaxMode,
 	})
 
 	response.JSON(w, http.StatusOK, map[string]string{
