@@ -1,4 +1,4 @@
-# HospedaSync · Reglas del Agente y Memoria Persistente
+# HospedaFlow · Reglas del Agente y Memoria Persistente
 
 ## Memoria y Documentación Técnica
 * La documentación destilada, arquitectura técnica y bitácora residen en el repositorio local:

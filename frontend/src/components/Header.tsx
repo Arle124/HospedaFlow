@@ -116,7 +116,7 @@ export const Header: React.FC<HeaderProps> = ({ currentRole, onRoleChange }) => 
               </m.div>
               <div className="header-nav-wrapper">
                 <span className="brand-title">
-                  HospedaSync
+                  HospedaFlow
                 </span>
                 <span className="brand-tag">PMS</span>
               </div>

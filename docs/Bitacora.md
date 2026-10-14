@@ -1,10 +1,31 @@
-# HospedaSync · Bitácora de Desarrollo
+# HospedaFlow · Bitácora de Desarrollo
 
 Historial de sesiones de trabajo, hitos completados y estado del proyecto.
 
 ---
 
 ## Sesiones Recientes
+
+### Sesión 16: Rebranding a HospedaFlow, Modo Demo Autónomo y Despliegue Público
+* **Fecha:** 14 de Octubre de 2026
+* **Hitos completados:**
+  1. **Rebranding Integral a HospedaFlow:**
+     * Actualización sistemática de la identidad corporativa en el frontend (`index.html`, PWA manifest en `vite.config.ts`, `App.tsx`, `Header.tsx`, `LoginPage.tsx`, CSS design tokens en `index.css`).
+     * Actualización del nombre de base de datos Dexie a `HospedaFlowDB` manteniendo exportación compatible de `HospedaSyncDatabase`.
+     * Renombrado de canales de comunicación en tiempo real (`hospedaflow_live_bus`) y claves de almacenamiento (`hospedaflow_user`, `hospedaflow_token`, `hospedaflow_theme`) con lectura retrocompatible.
+     * Actualización de documentación de arquitectura, directivas de agente (`AGENTS.md`, `.cursorrules`, `Overview.md`, `Arquitectura.md`, `ADR_Decisiones.md`).
+  2. **Modo Demo Autónomo y Acceso Público Inmediato:**
+     * Para que cualquier evaluador, profesor o compañero de clase pueda acceder sin fricción ni fallos de red en despliegues estáticos, se implementó `loginAsRole` en `AuthContext.tsx` y botones de acceso rápido de 1-clic en `LoginPage.tsx` (Recepción, Aseo Móvil, Gerencia).
+     * Soporte de autenticación híbrida: si el backend API está disponible intenta autenticar contra `/api/auth/login`; si el backend está ausente o no responde, autentica localmente con credenciales demo (`admin1234`).
+     * Persistencia de sesión protegida en `checkAuth()` para que los refrescos de página en despliegues estáticos conserven la sesión del usuario.
+  3. **Configuración de Despliegue Público Gratuito (Vercel / Cloudflare Pages):**
+     * Creación de `vercel.json` en raíz y en `frontend/` con directivas completas de reescritura SPA hacia `/index.html` y script de build automático.
+  4. **Documentación de Apoyo para Exposición:**
+     * Creación de `docs/Guia_Presentacion.md`: guión estructurado de 3 a 5 minutos paso a paso para la exposición académica de la novia del usuario.
+     * Reescritura completa del `README.md` orientado a presentación ejecutiva y técnica.
+* **Verificaciones:**
+  * Build de producción Vite (`npm run build`) ejecutado con éxito (0 errores).
+  * Suite de pruebas Vitest (`npm test -- --run`) 100% PASS (6/6).
 
 ### Sesión 15: Diagnóstico y Estabilización Integral de Conexión en cel-server
 * **Fecha:** 12 de Octubre de 2026

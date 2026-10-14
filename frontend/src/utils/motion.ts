@@ -1,5 +1,5 @@
 /**
- * HospedaSync - Design System Motion Tokens
+ * HospedaFlow - Design System Motion Tokens
  * Directiva: "Emil Kowalski Skill"
  * Físicas de resortes calculadas para microinteracciones fluidas, táctiles y con latencia cero.
  */

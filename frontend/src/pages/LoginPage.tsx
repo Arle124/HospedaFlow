@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { m, AnimatePresence } from 'framer-motion';
-import { Building2, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Building2, Eye, EyeOff, AlertCircle, Layers, Sparkles, BarChart3, ArrowRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { springTouch } from '../utils/motion';
 import './LoginPage.css';
 
 export const LoginPage: React.FC = () => {
-  const { login, error } = useAuth();
+  const { login, loginAsRole, error } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -14,19 +15,14 @@ export const LoginPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Iniciando submit con:', email);
     setLocalError(null);
     setIsSubmitting(true);
     
     try {
-      console.log('Llamando a login()');
       await login(email, password);
-      console.log('Login exitoso');
     } catch (err: any) {
-      console.error('Error capturado en LoginPage:', err);
-      setLocalError('Credenciales incorrectas o error de conexión.');
+      setLocalError(err.message || 'Credenciales incorrectas o error de conexión.');
     } finally {
-      console.log('Ejecutando finally, liberando botón');
       setIsSubmitting(false);
     }
   };
@@ -46,7 +42,7 @@ export const LoginPage: React.FC = () => {
           </div>
           <h2 className="hq-visual-title">La nueva forma de gestionar tu hotel.</h2>
           <p className="hq-visual-subtitle">
-            HospedaSync unifica recepción, minibar y caja en un ecosistema offline-first ultrarrápido y seguro.
+            HospedaFlow unifica recepción, minibar y caja en un ecosistema offline-first ultrarrápido y seguro.
           </p>
         </m.div>
       </div>
@@ -59,8 +55,8 @@ export const LoginPage: React.FC = () => {
           transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
         >
           <div className="hq-login-header">
-            <h1>Bienvenido de nuevo</h1>
-            <p>Ingresa a tu cuenta para continuar</p>
+            <h1>Bienvenido a HospedaFlow</h1>
+            <p>Ingresa a tu cuenta o elige un perfil de prueba</p>
           </div>
 
           <form onSubmit={handleSubmit} className="hq-form">
@@ -72,7 +68,7 @@ export const LoginPage: React.FC = () => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@hotel.com"
+                  placeholder="admin@hospedaflow.local"
                   required
                   autoComplete="email"
                 />
@@ -124,9 +120,76 @@ export const LoginPage: React.FC = () => {
               {isSubmitting ? 'Verificando credenciales...' : 'Iniciar Sesión'}
             </button>
           </form>
-          
+
+          {/* Acceso Rápido para Demostración */}
+          <div className="hq-demo-divider">
+            <span className="hq-demo-divider-line" />
+            <span className="hq-demo-divider-text">Acceso rápido para evaluación</span>
+            <span className="hq-demo-divider-line" />
+          </div>
+
+          <div className="hq-demo-roles">
+            <m.button
+              type="button"
+              className="hq-demo-btn"
+              onClick={() => loginAsRole('receptionist')}
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.98 }}
+              transition={springTouch}
+            >
+              <div className="hq-demo-btn-icon">
+                <Layers size={16} />
+              </div>
+              <div className="hq-demo-btn-info">
+                <strong>Recepción</strong>
+                <small>Rack interactivo y caja</small>
+              </div>
+              <ArrowRight size={14} className="hq-demo-arrow" />
+            </m.button>
+
+            <m.button
+              type="button"
+              className="hq-demo-btn"
+              onClick={() => loginAsRole('housekeeper')}
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.98 }}
+              transition={springTouch}
+            >
+              <div className="hq-demo-btn-icon">
+                <Sparkles size={16} />
+              </div>
+              <div className="hq-demo-btn-info">
+                <strong>Aseo (Móvil)</strong>
+                <small>Terminal de camareras</small>
+              </div>
+              <ArrowRight size={14} className="hq-demo-arrow" />
+            </m.button>
+
+            <m.button
+              type="button"
+              className="hq-demo-btn"
+              onClick={() => loginAsRole('admin')}
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.98 }}
+              transition={springTouch}
+            >
+              <div className="hq-demo-btn-icon">
+                <BarChart3 size={16} />
+              </div>
+              <div className="hq-demo-btn-info">
+                <strong>Gerencia</strong>
+                <small>Auditoría de turnos y KPIs</small>
+              </div>
+              <ArrowRight size={14} className="hq-demo-arrow" />
+            </m.button>
+          </div>
+
+          <div className="hq-demo-hint">
+            <span>Credenciales demo: <code>admin1234</code></span>
+          </div>
+
           <div className="hq-login-footer">
-            <p>¿Problemas para entrar? <span>Contacta a soporte</span></p>
+            <p>HospedaFlow PMS · <span>Modo Autónomo Offline-First</span></p>
           </div>
         </m.div>
       </div>

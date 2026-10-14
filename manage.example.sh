@@ -13,7 +13,7 @@ CEL_PORT="${CEL_PORT:-8022}"
 CEL_USER="${CEL_USER:-usuario}"
 CEL_PATH="${CEL_PATH:-~/HospedaSync}"
 
-echo -e "${BLUE}=== HospedaSync CLI (Plantilla) ===${NC}"
+echo -e "${BLUE}=== HospedaFlow CLI (Plantilla) ===${NC}"
 echo "1) Preparar entorno LOCAL (PC)"
 echo "2) Compilar y Desplegar al Servidor (SSH)"
 echo ""

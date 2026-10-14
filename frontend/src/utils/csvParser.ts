@@ -1,5 +1,5 @@
 /**
- * HospedaSync — Parser CSV ligero (sin dependencias externas)
+ * HospedaFlow — Parser CSV ligero (sin dependencias externas)
  *
  * Soporta:
  * - Auto-detección de delimitador (coma, punto y coma, tab)

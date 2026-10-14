@@ -1,8 +1,8 @@
-# HospedaSync · Visión General
+# HospedaFlow · Visión General
 
 * **Proyecto:** Sistema de Gestión Hotelera (PMS - Property Management System)
 * **Objetivo:** Operación ágil, desacoplada por roles, con capacidad offline-first ininterrumpida y sincronización en segundo plano.
-* **Ubicación en disco:** `/home/asher/HospedaSync`
+* **Ubicación en disco:** `/home/asher/HospedaFlow`
 
 ---
 

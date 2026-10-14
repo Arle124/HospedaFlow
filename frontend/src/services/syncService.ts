@@ -102,7 +102,7 @@ class SyncService {
   private getHeaders(): Record<string, string> {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (typeof localStorage !== 'undefined') {
-      const token = localStorage.getItem('hospedasync_token');
+      const token = localStorage.getItem('hospedaflow_token') || localStorage.getItem('hospedasync_token');
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }

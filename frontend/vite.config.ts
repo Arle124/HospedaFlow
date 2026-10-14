@@ -13,8 +13,8 @@ export default defineConfig({
         navigateFallbackDenylist: [/^\/api/, /^\/healthz/]
       },
       manifest: {
-        name: 'HospedaSync',
-        short_name: 'HospedaSync',
+        name: 'HospedaFlow',
+        short_name: 'HospedaFlow',
         display: 'standalone',
         theme_color: '#1b2230',
         background_color: '#1b2230',

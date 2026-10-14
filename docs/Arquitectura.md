@@ -1,4 +1,4 @@
-# HospedaSync · Arquitectura Técnica
+# HospedaFlow · Arquitectura Técnica
 
 Documento de referencia para agentes de IA y desarrolladores. Permite comprender el funcionamiento del sistema sin necesidad de re-inspeccionar todo el código fuente.
 

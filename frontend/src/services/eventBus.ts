@@ -16,7 +16,7 @@ class EventBus {
   constructor() {
     if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
       try {
-        this.channel = new BroadcastChannel('hospedasync_live_bus');
+        this.channel = new BroadcastChannel('hospedaflow_live_bus');
         this.channel.onmessage = (event) => {
           if (event.data && typeof event.data === 'object') {
             this.notifyLocalListeners(event.data as LiveNotification);

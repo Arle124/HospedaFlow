@@ -35,7 +35,7 @@ function AppContent() {
   if (isLoading || !isInitialized) {
     return (
       <div className="app-loading">
-        Iniciando almacén local de HospedaSync...
+        Iniciando almacén local de HospedaFlow...
       </div>
     );
   }
@@ -57,7 +57,7 @@ function AppContent() {
 
       <footer className="app-footer">
         <div>
-          <span>HospedaSync PMS</span> · <span>Terminal Local Autónomo</span>
+          <span>HospedaFlow PMS</span> · <span>Terminal Local Autónomo</span>
         </div>
         <div>
           <span>Persistencia: IndexedDB (Dexie)</span> · <span>Modo Offline-First</span>

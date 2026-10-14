@@ -203,7 +203,7 @@ export interface Reservation {
   updatedAt?: string;
 }
 
-export class HospedaSyncDatabase extends Dexie {
+export class HospedaFlowDatabase extends Dexie {
   rooms!: Table<Room>;
   shifts!: Table<LocalShift>;
   syncQueue!: Table<SyncQueueItem>;
@@ -212,7 +212,7 @@ export class HospedaSyncDatabase extends Dexie {
   reservations!: Table<Reservation>;
 
   constructor() {
-    super('HospedaSyncDB');
+    super('HospedaFlowDB');
     this.version(1).stores({
       rooms: 'id, number, floor, status',
       shifts: 'id, status, isSynced',
@@ -244,7 +244,8 @@ export class HospedaSyncDatabase extends Dexie {
   }
 }
 
-export const db = new HospedaSyncDatabase();
+export const db = new HospedaFlowDatabase();
+export { HospedaFlowDatabase as HospedaSyncDatabase };
 
 // Sembrado inicial de habitaciones y productos si la base local está vacía
 export async function seedInitialDataIfNeeded() {

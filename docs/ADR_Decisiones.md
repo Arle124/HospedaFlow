@@ -1,4 +1,4 @@
-# HospedaSync · Registro de Decisiones de Arquitectura (ADR)
+# HospedaFlow · Registro de Decisiones de Arquitectura (ADR)
 
 Historial formal de decisiones de diseño para evitar regresiones o replanteamientos innecesarios en futuras sesiones con agentes de IA.
 
